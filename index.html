@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Davis Origin · 戴维斯原点足球俱乐部</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #fafaf7;
+    --ink: #0d1224;
+    --ink-soft: #4a4a55;
+    --muted: #8a8a92;
+    --line: #e6e6e2;
+    --accent: #1e3a8a;       /* 队服蓝 */
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --card: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ===== Top bar ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(250, 250, 247, 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .brand-mark {
+    width: 38px; height: 38px;
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+
+  .top-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-soft); }
+  .top-links a:hover { color: var(--accent); }
+
+  /* ===== Hero (image background, text overlay, fade-down) ===== */
+  .hero {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background-image: url('assets/hero.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #c7d8e8;
+    overflow: hidden;
+  }
+  .hero-fade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      /* 左右两侧渐变 */
+      linear-gradient(90deg,
+        rgba(250,250,247,1) 0%,
+        rgba(250,250,247,0.6) 5%,
+        rgba(250,250,247,0) 18%,
+        rgba(250,250,247,0) 82%,
+        rgba(250,250,247,0.6) 95%,
+        rgba(250,250,247,1) 100%),
+      /* 上下渐变（保留底部往下渐变到不透明） */
+      linear-gradient(180deg,
+        rgba(250,250,247,0.55) 0%,
+        rgba(250,250,247,0) 8%,
+        rgba(250,250,247,0) 42%,
+        rgba(250,250,247,0.4) 58%,
+        rgba(250,250,247,0.82) 78%,
+        rgba(250,250,247,0.97) 92%,
+        rgba(250,250,247,1) 100%);
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 56vh 32px 96px;
+    text-align: center;
+    color: var(--ink);
+  }
+  .hero-content .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .hero-content .section-title {
+    font-size: clamp(30px, 4.2vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+  }
+  .hero-content .section-body p {
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.85;
+    margin-bottom: 16px;
+  }
+  .hero-content .quote {
+    border-left: none;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0;
+    margin: 36px auto 0;
+    max-width: 380px;
+    font-size: 19px;
+    letter-spacing: 0.06em;
+    text-align: center;
+    background: rgba(250,250,247,0.6);
+    backdrop-filter: blur(2px);
+  }
+  .hero-content .quote small {
+    margin-top: 8px;
+    text-align: center;
+  }
+  .hero-content .stat-row {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+  .hero-content .about-text-box {
+    margin: 0 auto 28px;
+    max-width: 620px;
+    background: rgba(245, 232, 200, 0.55);
+    border: 1px solid rgba(212, 188, 138, 0.45);
+    border-radius: 14px;
+    padding: 24px 28px;
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.85;
+    text-align: left;
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    box-shadow: 0 6px 24px rgba(120, 100, 50, 0.08);
+  }
+  .hero-content .about-text-box p {
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+  .hero-content .about-text-box p:last-child { margin-bottom: 0; }
+
+  /* ===== Honors ===== */
+  .honors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .honor-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px 24px 22px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .honor-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .honor-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #d49a2a 0%, #f4c460 100%);
+  }
+  .honor-year {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .honor-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 6px 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .honor-sub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ===== Layout ===== */
+  .layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 56px 32px 64px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 56px;
+    align-items: start;
+  }
+
+  /* ===== Section blocks ===== */
+  .section-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+  .section-body p { color: var(--ink-soft); margin-bottom: 14px; }
+  .section-body p:last-child { margin-bottom: 0; }
+  .quote {
+    border-left: 3px solid var(--accent);
+    padding: 6px 0 6px 18px;
+    margin: 18px 0 4px;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.02em;
+  }
+  .quote small {
+    display: block;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--line);
+    margin-top: 28px;
+    padding-top: 24px;
+  }
+  .stat-cell { padding: 0 8px; }
+  .stat-num {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ===== Right sidebar ===== */
+  aside.side {
+    position: sticky;
+    top: 88px;
+    align-self: start;
+  }
+  .side-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+  .side-nav {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .nav-item { border-bottom: 1px solid var(--line); }
+  .nav-item:last-child { border-bottom: none; }
+
+  .nav-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s ease, color .15s ease;
+  }
+  .nav-head:hover { background: var(--accent-soft); }
+  .nav-head .label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .nav-head .num {
+    font-size: 11px;
+    color: var(--muted);
+    width: 22px;
+    letter-spacing: 0.05em;
+  }
+  .caret {
+    width: 10px; height: 10px;
+    border-right: 1.6px solid var(--ink-soft);
+    border-bottom: 1.6px solid var(--ink-soft);
+    transform: rotate(-45deg);
+    transition: transform .25s ease;
+  }
+  .nav-item.open .caret { transform: rotate(45deg); }
+  .nav-item.open .nav-head { color: var(--accent); }
+  .nav-item.open .caret { border-color: var(--accent); }
+
+  .nav-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+    background: #fbfbf8;
+  }
+  .nav-body-inner {
+    padding: 6px 22px 20px 56px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .nav-body-inner ul { list-style: none; }
+  .nav-body-inner li { padding: 6px 0; }
+  .nav-body-inner a:hover { color: var(--accent); }
+  .placeholder { color: var(--muted); font-style: italic; font-size: 13px; }
+
+  /* ===== Detail sections (anchor targets) ===== */
+  .detail {
+    scroll-margin-top: 88px;
+    padding-top: 48px;
+    margin-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .detail h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .detail .lead { color: var(--ink-soft); margin-bottom: 24px; }
+
+  .roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .roster-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    transition: transform .15s ease, border-color .15s ease, color .15s ease;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .roster-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .match-row {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+  }
+  .match-row:last-child { border-bottom: none; }
+  .match-meta {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .match-date {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .match-vs { font-size: 15px; font-weight: 500; }
+  .match-vs .opp { color: var(--accent); }
+  .match-vs span.x { color: var(--muted); margin: 0 8px; }
+  .match-note { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .match-result {
+    text-align: right;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    min-width: 64px;
+  }
+  .match-result.draw { color: var(--ink-soft); }
+  .match-result.loss { color: #b04646; }
+
+  .timeline { border-left: 2px solid var(--line); padding-left: 24px; margin-left: 8px; }
+  .timeline-item { position: relative; padding-bottom: 24px; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -31px;
+    top: 6px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .timeline-year {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .timeline-title { font-size: 16px; font-weight: 600; margin: 2px 0 6px; }
+  .timeline-desc { font-size: 14px; color: var(--ink-soft); }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .contact-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+  }
+  .contact-card h4 {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .contact-card p { font-size: 15px; color: var(--ink); }
+  .contact-card a { color: var(--accent); }
+
+  /* ===== Footer ===== */
+  footer {
+    padding: 32px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg);
+  }
+  footer .slogan-cn {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 960px) {
+    .layout {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      padding: 40px 20px 64px;
+    }
+    aside.side { position: static; }
+    .topbar-inner { padding: 14px 20px; }
+    .top-links { display: none; }
+    .match-row { grid-template-columns: 1fr; }
+    .match-result { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <nav class="top-links">
+      <a href="#about">关于</a>
+      <a href="#roster">名单</a>
+      <a href="#matches">比赛</a>
+      <a href="#honors">荣誉</a>
+      <a href="#story">我们的故事</a>
+      <a href="#contact">联系</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ Hero — image bg + text overlay + fade down ============ -->
+<section class="hero" id="top">
+  <div class="hero-fade" aria-hidden="true"></div>
+  <div class="hero-content" id="about">
+    <div class="section-label">About / 球队介绍</div>
+    <h2 class="section-title">我们是谁</h2>
+    <div class="section-body">
+      <div class="about-text-box">
+        <p>戴维斯原点足球俱乐部（Davis Origin FC）是加州大学戴维斯分校唯一一支华人足球队，隶属于全球原点足球大家庭。</p>
+        <p>在主教练金指导的带领下，球队已经发展成北美最具规模、组织架构与凝聚力的学生足球队之一，下设一线队与预备队，覆盖在校学生与校友球员。</p>
+      </div>
+      <div class="quote">岂曰无衣？与子同袍。<small>— Team Slogan</small></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num">2</div>
+        <div class="stat-label">梯队（一队 / 预备队）</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">50+</div>
+        <div class="stat-label">注册学生</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">10+</div>
+        <div class="stat-label">出征比赛</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="layout">
+
+  <!-- ============ Main column ============ -->
+  <section>
+
+    <!-- ============ Detail sections ============ -->
+
+    <section class="detail" id="roster">
+      <h2>球员大名单</h2>
+      <p class="lead">Davis Origin · 全员名单</p>
+      <div class="roster-grid">
+        <div class="roster-card">何嘉伦</div>
+        <div class="roster-card">刘彦君</div>
+        <div class="roster-card">朱超凡</div>
+        <div class="roster-card">李明达</div>
+        <div class="roster-card">严令垚</div>
+        <div class="roster-card">尹鸣赫</div>
+        <div class="roster-card">刘效尔</div>
+        <div class="roster-card">闫家豪</div>
+        <div class="roster-card">刘明硕</div>
+        <div class="roster-card">黄溆子</div>
+        <div class="roster-card">刘琨</div>
+        <div class="roster-card">夏梓宸</div>
+        <div class="roster-card">蔡毅诚</div>
+        <div class="roster-card">李春蓉</div>
+        <div class="roster-card">刘籽珅</div>
+        <div class="roster-card">李瀚文</div>
+        <div class="roster-card">史皓元</div>
+        <div class="roster-card">刘奕</div>
+        <div class="roster-card">黄泓睿</div>
+        <div class="roster-card">李昊泽</div>
+        <div class="roster-card">于霆访</div>
+        <div class="roster-card">刘子云</div>
+        <div class="roster-card">Ian</div>
+        <div class="roster-card">Frank</div>
+        <div class="roster-card">黎元其</div>
+        <div class="roster-card">李思远</div>
+        <div class="roster-card">洪远</div>
+        <div class="roster-card">李润泽</div>
+        <div class="roster-card">宋京阳</div>
+        <div class="roster-card">李静诚</div>
+        <div class="roster-card">李金宇</div>
+        <div class="roster-card">周元中</div>
+        <div class="roster-card">叶彦铖</div>
+        <div class="roster-card">邓逸明</div>
+        <div class="roster-card">Otis</div>
+        <div class="roster-card">王俊皓</div>
+        <div class="roster-card">罗宇航</div>
+        <div class="roster-card">冯楚明</div>
+        <div class="roster-card">闻唯伊</div>
+        <div class="roster-card">王亚珩</div>
+        <div class="roster-card">陆子涵</div>
+        <div class="roster-card">张宏毅</div>
+        <div class="roster-card">巢景焱</div>
+        <div class="roster-card">仇舜宇</div>
+        <div class="roster-card">相铮</div>
+        <div class="roster-card">马雨辰</div>
+        <div class="roster-card">曹震旦</div>
+        <div class="roster-card">孙楚越</div>
+        <div class="roster-card">凌亦辰</div>
+        <div class="roster-card">卢嘉玉</div>
+        <div class="roster-card">李岱声</div>
+        <div class="roster-card">赵乐涵</div>
+        <div class="roster-card">刘富行</div>
+        <div class="roster-card">马琦尧</div>
+        <div class="roster-card">王凯睿</div>
+        <div class="roster-card">黄宇翔</div>
+        <div class="roster-card">柴泓旭</div>
+        <div class="roster-card">杨湘龙</div>
+        <div class="roster-card">杨乐成</div>
+        <div class="roster-card">葛孟宇</div>
+      </div>
+    </section>
+
+    <section class="detail" id="matches">
+      <h2>比赛</h2>
+      <p class="lead">2026 赛季正在进行中——南加备战结束，北加备战开启。</p>
+      <div>
+        <div class="match-row">
+          <div>
+            <div class="match-meta">2026 校际杯 · LA</div>
+            <div class="match-date">2026 / 03</div>
+          </div>
+          <div>
+            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">UCSD</span></div>
+            <div class="match-note">小组赛 · 同分同净胜球，差两个进球无缘决赛</div>
+          </div>
+          <div class="match-result draw">D</div>
+        </div>
+        <div class="match-row">
+          <div>
+            <div class="match-meta">2026 校际杯 · LA</div>
+            <div class="match-date">2026 / 03</div>
+          </div>
+          <div>
+            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">USC</span></div>
+            <div class="match-note">柴泓旭半场迎球吊射制胜，把 USC 挡在决赛门外</div>
+          </div>
+          <div class="match-result">W</div>
+        </div>
+        <div class="match-row">
+          <div>
+            <div class="match-meta">2026 校际杯 · LA</div>
+            <div class="match-date">2026 / 03</div>
+          </div>
+          <div>
+            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">UCLA</span></div>
+            <div class="match-note">于霆访角球开到门前，李润泽甩头攻门</div>
+          </div>
+          <div class="match-result">G</div>
+        </div>
+        <div class="match-row">
+          <div>
+            <div class="match-meta">2026 校际杯 · LA</div>
+            <div class="match-date">2026 / 03</div>
+          </div>
+          <div>
+            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">UCI</span></div>
+            <div class="match-note">定位赛两球小负，二队最终位列第六</div>
+          </div>
+          <div class="match-result loss">L</div>
+        </div>
+        <div class="match-row">
+          <div>
+            <div class="match-meta">2026 北美湾区贺岁杯</div>
+            <div class="match-date">已出征</div>
+          </div>
+          <div>
+            <div class="match-vs">Davis Origin · 两支队伍出战</div>
+            <div class="match-note">详细战报陆续更新</div>
+          </div>
+          <div class="match-result">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail" id="honors">
+      <h2>我们的荣誉</h2>
+      <p class="lead">这些年我们一起捧回的奖杯。</p>
+      <div class="honors-grid">
+        <div class="honor-card">
+          <div class="honor-year">2024</div>
+          <div class="honor-title">北加联 · 冠军</div>
+          <div class="honor-sub">Champion · Northern California League</div>
+        </div>
+        <div class="honor-card">
+          <div class="honor-year">2025</div>
+          <div class="honor-title">华体会 · 亚军</div>
+          <div class="honor-sub">Runner-up · 华体会</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail" id="history">
+      <h2>过往经历</h2>
+      <p class="lead">从人员凋敝到 40+ 整装待发，我们一路走来的脚印。</p>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">三年前</div>
+          <div class="timeline-title">人员凋敝，阵容单薄</div>
+          <div class="timeline-desc">第一次南下出征，球队还很瘦弱，但每个人都在坚持。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2026 / 01</div>
+          <div class="timeline-title">出征 北美湾区贺岁杯</div>
+          <div class="timeline-desc">两支队伍同时出战，让在一起的时光一直璀璨。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2026 / 03</div>
+          <div class="timeline-title">时隔三年再次南下 · 加州华人大学生校际杯（尔湾）</div>
+          <div class="timeline-desc">
+            两个队四十多名学生 / 校友球员整装待发。一队最终第四，二队第六。
+            一队对阵 UCSD 同分同净胜球，差两个进球进决赛；
+            击败 USC，对阵 UCLA 由于霆访角球助攻李润泽头球破门；
+            遗憾因球员需返回 Davis，3/4 名决赛弃权。
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">现在</div>
+          <div class="timeline-title">南加备战结束，北加备战开启</div>
+          <div class="timeline-desc">下一段征程在路上。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail" id="story">
+      <h2>我们的故事</h2>
+      <p class="lead">为什么叫"原点"，以及一群人是如何聚到一起的。</p>
+      <div class="section-body">
+        <p>
+          戴维斯原点是加州大学戴维斯分校唯一一支华人足球队，也是全球原点足球大家庭的一员。
+          我们取名"原点"，是希望每一个来到戴维斯的人——无论第一次踩上这片草坪，
+          还是已经在这里待了好几年——都能找到一个出发点。
+        </p>
+        <p>
+          一片可以并肩跑动的草坪，一群愿意把球踢好的人。
+          仅此而已，但也已经足够。
+        </p>
+        <p>
+          球队从最初的几个人慢慢长起来，到现在覆盖在校学生和校友球员，一队加预备队几十号人。
+          训练日的风、雨、汗，每一脚传球、每一次回追、每一次为队友补防的瞬间——
+          就是我们在戴维斯一起留下的故事。
+        </p>
+        <p>
+          我们不靠光环，也不靠虚名。
+          站在这里的理由很简单：因为爱球，因为爱身边的兄弟。
+        </p>
+        <div class="quote">
+          爱球队和球队里的人，我们才变成最拼的球队。
+        </div>
+      </div>
+    </section>
+
+    <section class="detail" id="contact">
+      <h2>联系我们 / 加入我们</h2>
+      <p class="lead">无论你是戴维斯新生，还是刚搬来附近——只要你想踢球，不要犹豫。</p>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <h4>小红书</h4>
+          <p>戴维斯原点足球俱乐部</p>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px;">小红书号 26476633982</p>
+        </div>
+        <div class="contact-card">
+          <h4>主教练</h4>
+          <p>金指导</p>
+        </div>
+        <div class="contact-card">
+          <h4>所在地</h4>
+          <p>加州大学戴维斯分校 · UC Davis</p>
+        </div>
+      </div>
+    </section>
+
+  </section>
+
+  <!-- ============ Right sidebar ============ -->
+  <aside class="side">
+    <div class="side-title">栏目导航</div>
+    <nav class="side-nav" id="sideNav">
+
+      <div class="nav-item" data-target="roster">
+        <div class="nav-head">
+          <div class="label"><span class="num">01</span>球员大名单</div>
+          <span class="caret"></span>
+        </div>
+        <div class="nav-body">
+          <div class="nav-body-inner">
+            <ul>
+              <li><a href="#roster">查看完整名单</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-target="matches">
+        <div class="nav-head">
+          <div class="label"><span class="num">02</span>比赛</div>
+          <span class="caret"></span>
+        </div>
+        <div class="nav-body">
+          <div class="nav-body-inner">
+            <ul>
+              <li><a href="#matches">2026 加州华人大学生校际杯</a></li>
+              <li><a href="#matches">2026 北美湾区贺岁杯</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-target="honors">
+        <div class="nav-head">
+          <div class="label"><span class="num">03</span>我们的荣誉</div>
+          <span class="caret"></span>
+        </div>
+        <div class="nav-body">
+          <div class="nav-body-inner">
+            <ul>
+              <li><a href="#honors">2024 北加联冠军</a></li>
+              <li><a href="#honors">2025 华体会亚军</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-target="history">
+        <div class="nav-head">
+          <div class="label"><span class="num">04</span>过往经历</div>
+          <span class="caret"></span>
+        </div>
+        <div class="nav-body">
+          <div class="nav-body-inner">
+            <ul>
+              <li><a href="#history">球队大事记</a></li>
+              <li><a href="#history">三年前 → 今天</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-target="story">
+        <div class="nav-head">
+          <div class="label"><span class="num">05</span>我们的故事</div>
+          <span class="caret"></span>
+        </div>
+        <div class="nav-body">
+          <div class="nav-body-inner">
+            <ul>
+              <li><a href="#story">原点的来历</a></li>
+              <li><a href="#story">我们为什么打球</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-item" data-target="contact">
+        <div class="nav-head">
+          <div class="label"><span class="num">06</span>联系我们</div>
+          <span class="caret"></span>
+        </div>
+        <div class="nav-body">
+          <div class="nav-body-inner">
+            <ul>
+              <li><a href="#contact">加入我们</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </nav>
+  </aside>
+</main>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+<script>
+  // 可展开侧栏：点击展开/收起，自动滚到对应分区
+  const items = document.querySelectorAll('#sideNav .nav-item');
+  items.forEach(item => {
+    const head = item.querySelector('.nav-head');
+    const body = item.querySelector('.nav-body');
+    head.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A') return;
+      const isOpen = item.classList.contains('open');
+      items.forEach(other => {
+        other.classList.remove('open');
+        other.querySelector('.nav-body').style.maxHeight = null;
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        body.style.maxHeight = body.scrollHeight + 'px';
+        const targetId = item.getAttribute('data-target');
+        const el = document.getElementById(targetId);
+        if (el) {
+          setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
