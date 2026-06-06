@@ -7,69 +7,164 @@
 <link rel="icon" type="image/png" href="assets/logo.png" />
 <style>
   :root {
-    --bg: #fafaf7;
-    --ink: #0d1224;
-    --ink-soft: #4a4a55;
+    --bg: #f7f5f0;
+    --bg-soft: #fafaf7;
+    --ink: #0a0e1a;
+    --ink-soft: #3d4151;
     --muted: #8a8a92;
-    --line: #e6e6e2;
-    --accent: #1e3a8a;       /* 队服蓝 */
+    --line: #e6e2d8;
+    --line-soft: #efece3;
+    --accent: #1e3a8a;
     --accent-deep: #0f1d4d;
     --accent-soft: #eaf0fb;
+    --gold: #c89134;
     --card: #ffffff;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   html, body {
-    background: var(--bg);
-    color: var(--ink);
+    background: var(--bg); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
                  "Helvetica Neue", Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.65;
+    font-size: 16px; line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
-
   a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
 
-  /* ===== Top bar ===== */
+  /* ===== Topbar ===== */
   .topbar {
     position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(250, 250, 247, 0.85);
-    backdrop-filter: saturate(180%) blur(12px);
-    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    top: 0; z-index: 50;
+    background: rgba(247, 245, 240, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
     border-bottom: 1px solid var(--line);
   }
   .topbar-inner {
-    max-width: 1280px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 16px 32px;
+    padding: 18px 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
   .brand-mark {
-    width: 38px; height: 38px;
-    display: block;
+    width: 40px; height: 40px;
     object-fit: contain;
-    flex-shrink: 0;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
   }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
   .brand-name { font-size: 16px; }
   .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
-
   .top-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-soft); }
+  .top-links a {
+    position: relative;
+    transition: color .25s ease;
+    padding: 4px 0;
+  }
   .top-links a:hover { color: var(--accent); }
+  .top-links a::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1.5px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+  }
+  .top-links a:hover::after { transform: scaleX(1); }
 
-  /* ===== Hero (image background, text overlay, fade-down) ===== */
+  /* ===== Mobile menu ===== */
+  .menu-toggle {
+    display: none;
+    width: 42px; height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px;
+    padding: 0;
+  }
+  .menu-toggle span {
+    width: 18px; height: 1.8px;
+    background: var(--ink);
+    transition: transform .3s ease, opacity .25s ease;
+    display: block;
+    border-radius: 2px;
+  }
+  .menu-toggle.open span:nth-child(1) { transform: translateY(5.8px) rotate(45deg); }
+  .menu-toggle.open span:nth-child(2) { opacity: 0; }
+  .menu-toggle.open span:nth-child(3) { transform: translateY(-5.8px) rotate(-45deg); }
+  .drawer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(13, 18, 36, 0.45);
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+    z-index: 99;
+    backdrop-filter: blur(3px);
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .mobile-drawer {
+    position: fixed;
+    top: 0; right: 0;
+    width: min(86vw, 360px);
+    height: 100vh;
+    background: var(--bg-soft);
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform .4s cubic-bezier(.4, 0, .2, 1);
+    box-shadow: -10px 0 40px rgba(0,0,0,.2);
+    overflow-y: auto;
+    padding: 76px 32px 40px;
+  }
+  .mobile-drawer.open { transform: translateX(0); }
+  .drawer-close {
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 20px; line-height: 1; cursor: pointer;
+    color: var(--ink);
+    display: grid; place-items: center;
+    transition: background .25s, color .25s, transform .25s;
+  }
+  .drawer-close:hover { background: var(--accent); color: #fff; transform: rotate(90deg); }
+  .drawer-title {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  .drawer-nav { display: flex; flex-direction: column; }
+  .drawer-nav a {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    transition: color .2s, padding-left .25s;
+    display: flex; align-items: center; justify-content: space-between;
+    letter-spacing: -0.01em;
+  }
+  .drawer-nav a:last-child { border-bottom: none; }
+  .drawer-nav a:hover { color: var(--accent); padding-left: 6px; }
+  .drawer-nav a .num {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    font-weight: 500;
+  }
+
+  /* ===== Hero ===== */
   .hero {
     position: relative;
     width: 100%;
@@ -83,27 +178,23 @@
   }
   .hero-fade {
     position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
+    inset: 0; z-index: 1; pointer-events: none;
     background:
-      /* 左右两侧渐变 */
       linear-gradient(90deg,
-        rgba(250,250,247,1) 0%,
-        rgba(250,250,247,0.6) 5%,
-        rgba(250,250,247,0) 18%,
-        rgba(250,250,247,0) 82%,
-        rgba(250,250,247,0.6) 95%,
-        rgba(250,250,247,1) 100%),
-      /* 上下渐变（保留底部往下渐变到不透明） */
+        rgba(247,245,240,1) 0%,
+        rgba(247,245,240,0.6) 5%,
+        rgba(247,245,240,0) 18%,
+        rgba(247,245,240,0) 82%,
+        rgba(247,245,240,0.6) 95%,
+        rgba(247,245,240,1) 100%),
       linear-gradient(180deg,
-        rgba(250,250,247,0.55) 0%,
-        rgba(250,250,247,0) 8%,
-        rgba(250,250,247,0) 42%,
-        rgba(250,250,247,0.4) 58%,
-        rgba(250,250,247,0.82) 78%,
-        rgba(250,250,247,0.97) 92%,
-        rgba(250,250,247,1) 100%);
+        rgba(247,245,240,0.55) 0%,
+        rgba(247,245,240,0) 8%,
+        rgba(247,245,240,0) 42%,
+        rgba(247,245,240,0.4) 58%,
+        rgba(247,245,240,0.82) 78%,
+        rgba(247,245,240,0.97) 92%,
+        rgba(247,245,240,1) 100%);
   }
   .hero-content {
     position: relative;
@@ -114,594 +205,513 @@
     text-align: center;
     color: var(--ink);
   }
-  .hero-content .section-label {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 14px;
-  }
-  .hero-content .section-title {
-    font-size: clamp(30px, 4.2vw, 44px);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    margin-bottom: 28px;
-  }
-  .hero-content .section-body p {
-    color: var(--ink);
-    font-size: 16px;
-    line-height: 1.85;
-    margin-bottom: 16px;
-  }
   .hero-content .quote {
-    border-left: none;
+    border: none;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
-    padding: 18px 0;
+    padding: 20px 0;
     margin: 36px auto 0;
     max-width: 380px;
-    font-size: 19px;
+    font-size: 20px;
     letter-spacing: 0.06em;
     text-align: center;
-    background: rgba(250,250,247,0.6);
+    background: rgba(247,245,240,0.6);
     backdrop-filter: blur(2px);
+    font-weight: 600;
+    color: var(--ink);
+    position: relative;
+  }
+  .hero-content .quote::before,
+  .hero-content .quote::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 28px; height: 1px;
+  }
+  .hero-content .quote::before {
+    left: -36px;
+    background: linear-gradient(90deg, transparent, var(--accent));
+  }
+  .hero-content .quote::after {
+    right: -36px;
+    background: linear-gradient(90deg, var(--accent), transparent);
   }
   .hero-content .quote small {
-    margin-top: 8px;
-    text-align: center;
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
   }
   .hero-content .stat-row {
-    margin-top: 48px;
-    padding-top: 32px;
+    margin-top: 56px;
+    padding-top: 36px;
     border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
   }
-  /* About — 两个上下叠的纯色文本框 */
+  .stat-cell { padding: 0 12px; transition: transform .3s; }
+  .stat-cell:hover { transform: translateY(-3px); }
+  .stat-num {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--accent);
+    display: inline-block;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  /* About text boxes */
   .about-box {
     background: #f5e8c8;
     border: 1px solid #e0cfa3;
-    border-radius: 14px;
-    padding: 26px 30px;
+    border-radius: 16px;
+    padding: 30px 34px;
     margin: 0 auto 16px;
-    max-width: 640px;
+    max-width: 660px;
     text-align: left;
     color: var(--ink);
-    box-shadow: 0 10px 30px rgba(120, 100, 50, 0.18);
-    transition: transform .3s ease, box-shadow .3s ease;
+    box-shadow: 0 14px 36px rgba(120, 100, 50, 0.16);
+    transition: transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s ease;
   }
   .about-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 36px rgba(120, 100, 50, 0.22);
+    transform: translateY(-3px);
+    box-shadow: 0 22px 48px rgba(120, 100, 50, 0.22);
   }
-  .about-box-header {
-    text-align: center;
-    padding: 22px 28px 20px;
-  }
+  .about-box-header { text-align: center; padding: 26px 30px 22px; }
   .about-box-header .section-label {
-    margin-bottom: 10px;
-    color: #8a6d2c;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: #8a6d2c; margin-bottom: 12px; display: block;
   }
   .about-box-header .section-title {
-    margin-bottom: 0;
-    font-size: clamp(26px, 3.6vw, 36px);
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0;
   }
-  .about-box-body { font-size: 15.5px; line-height: 1.85; }
-  .about-box-body p { margin: 0 0 12px; color: var(--ink); }
+  .about-box-body { font-size: 16px; line-height: 1.85; }
+  .about-box-body p { margin: 0 0 14px; }
   .about-box-body p:last-child { margin-bottom: 0; }
 
   /* ===== Animations ===== */
-  @keyframes fadeInUp {
+  @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-  }
-  /* 进入页面：hero 内容依次淡入上滑 */
-  .hero-content > .about-box-header { animation: fadeInUp .8s ease .15s both; }
-  .hero-content > .about-box-body { animation: fadeInUp .8s ease .35s both; }
-  .hero-content > .quote { animation: fadeInUp .9s ease .55s both; }
-  .hero-content > .stat-row { animation: fadeInUp .9s ease .7s both; }
+  .hero-content > .about-box-header { animation: fadeUp .9s ease .15s both; }
+  .hero-content > .about-box-body { animation: fadeUp .9s ease .3s both; }
+  .hero-content > .quote { animation: fadeUp .9s ease .5s both; }
+  .hero-content > .stat-row { animation: fadeUp .9s ease .65s both; }
+
   .hero-mobile-img,
   .hero-fade-top,
   .hero-fade-bottom { display: none; }
 
-  /* 滚动可见时触发 */
-  .reveal {
+  /* ===== Main layout ===== */
+  .layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 96px 40px 64px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 72px;
+    align-items: start;
+  }
+  .layout-main { min-width: 0; }
+
+  /* Brief content sections */
+  .brief {
+    padding: 56px 0;
+    border-top: 1px solid var(--line);
     opacity: 0;
     transform: translateY(30px);
-    transition: opacity .7s ease, transform .7s ease;
-    will-change: opacity, transform;
+    transition: opacity .8s ease, transform .8s ease;
   }
-  .reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  /* 内部子元素错位淡入 */
-  .reveal-stagger > * {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity .6s ease, transform .6s ease;
-  }
-  .reveal-stagger.is-visible > * {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .reveal-stagger.is-visible > *:nth-child(1) { transition-delay: .05s; }
-  .reveal-stagger.is-visible > *:nth-child(2) { transition-delay: .1s; }
-  .reveal-stagger.is-visible > *:nth-child(3) { transition-delay: .15s; }
-  .reveal-stagger.is-visible > *:nth-child(4) { transition-delay: .2s; }
-  .reveal-stagger.is-visible > *:nth-child(5) { transition-delay: .25s; }
-  .reveal-stagger.is-visible > *:nth-child(6) { transition-delay: .3s; }
-  .reveal-stagger.is-visible > *:nth-child(n+7) { transition-delay: .35s; }
-
-  /* 侧栏箭头 hover 微动 */
-  .nav-head:hover .caret { transform: rotate(-45deg) translate(2px, 2px); }
-  .nav-item.open .nav-head:hover .caret { transform: rotate(45deg) translate(-2px, -2px); }
-
-  /* 顶栏 logo 轻微浮动 */
-  .brand-mark { transition: transform .3s ease; }
-  .brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
-
-  /* 链接下划线滑入 */
-  .top-links a {
-    position: relative;
-    transition: color .2s ease;
-  }
-  .top-links a::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0; bottom: -4px;
-    height: 1.5px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform .3s ease;
-  }
-  .top-links a:hover::after { transform: scaleX(1); }
-
-  /* 减少动画偏好 */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: .01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: .01ms !important;
-    }
-  }
-
-  /* ===== Honors ===== */
-  .honors-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  .brief:first-child { border-top: none; padding-top: 0; }
+  .brief.in-view { opacity: 1; transform: translateY(0); }
+  .brief-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
     gap: 16px;
-    margin-top: 12px;
   }
-  .honor-card {
+  .brief-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brief-eyebrow::before {
+    content: '';
+    width: 36px; height: 1.5px;
+    background: var(--accent);
+  }
+  .brief-link {
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transition: all .3s ease;
+  }
+  .brief-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    gap: 12px;
+  }
+  .brief-title {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .brief-title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+  .brief-lede {
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.65;
+    max-width: 600px;
+    margin-bottom: 32px;
+  }
+
+  /* ===== Honors brief ===== */
+  .honors-mini {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .honor-mini-card {
+    padding: 28px 26px 24px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 26px 24px 22px 32px;
+    border-radius: 16px;
     position: relative;
     overflow: hidden;
-    transition: transform .2s ease, border-color .2s ease;
+    transition: transform .35s ease, border-color .25s, box-shadow .3s;
   }
-  .honor-card:hover { transform: translateY(-2px); border-color: var(--accent); }
-  .honor-card::before {
+  .honor-mini-card::before {
     content: '';
     position: absolute;
     left: 0; top: 0; bottom: 0;
     width: 4px;
-    background: linear-gradient(180deg, #d49a2a 0%, #f4c460 100%);
+    background: linear-gradient(180deg, var(--gold) 0%, #f4c460 100%);
+    transition: width .3s;
   }
-  .honor-year {
-    font-size: 13px;
+  .honor-mini-card.silver::before {
+    background: linear-gradient(180deg, #9aa0a9 0%, #d8dce1 100%);
+  }
+  .honor-mini-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold);
+    box-shadow: 0 18px 40px rgba(200, 145, 52, 0.12);
+  }
+  .honor-mini-card.silver:hover { border-color: #9aa0a9; }
+  .honor-mini-card:hover::before { width: 6px; }
+  .honor-mini-year {
+    font-size: 12px;
     color: var(--accent);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-  }
-  .honor-title {
-    font-size: 20px;
     font-weight: 700;
-    margin: 6px 0 4px;
-    letter-spacing: -0.005em;
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
   }
-  .honor-sub {
+  .honor-mini-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    margin-bottom: 4px;
+  }
+  .honor-mini-sub {
     font-size: 13px;
     color: var(--muted);
   }
 
-  /* ===== Layout ===== */
-  .layout {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 56px 32px 64px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 56px;
-    align-items: start;
+  /* ===== History brief (mini timeline) ===== */
+  .history-mini {
+    position: relative;
+    padding-left: 32px;
   }
-
-  /* ===== Section blocks ===== */
-  .section-card {
+  .history-mini::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: var(--line);
+  }
+  .history-mini-item {
+    position: relative;
+    padding-bottom: 28px;
+  }
+  .history-mini-item:last-child { padding-bottom: 0; }
+  .history-mini-item::before {
+    content: '';
+    position: absolute;
+    left: -32px; top: 6px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 24px;
+    border: 3px solid var(--accent);
+    transition: transform .3s, box-shadow .3s;
   }
-  .section-label {
-    font-size: 12px;
-    font-weight: 600;
+  .history-mini-item:hover::before {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px var(--accent-soft);
+  }
+  .history-mini-item.now::before {
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px var(--accent-soft); }
+    50% { box-shadow: 0 0 0 10px rgba(30,58,138,0.05); }
+  }
+  .history-mini-year {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .section-title {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    margin-bottom: 16px;
-  }
-  .section-body p { color: var(--ink-soft); margin-bottom: 14px; }
-  .section-body p:last-child { margin-bottom: 0; }
-  .quote {
-    border-left: 3px solid var(--accent);
-    padding: 6px 0 6px 18px;
-    margin: 18px 0 4px;
-    color: var(--ink);
-    font-weight: 600;
-    font-size: 17px;
-    letter-spacing: 0.02em;
-  }
-  .quote small {
-    display: block;
-    font-weight: 400;
-    color: var(--muted);
-    font-size: 12px;
+  .now-tag {
+    padding: 2px 7px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 9px;
     letter-spacing: 0.1em;
-    margin-top: 4px;
+  }
+  .history-mini-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.35;
   }
 
-  .stat-row {
+  /* ===== Story brief ===== */
+  .story-mini {
+    font-family: "Songti SC", "Source Han Serif SC", "Noto Serif SC",
+                 "STSong", SimSun, Georgia, "Times New Roman", serif;
+    font-size: 18px;
+    line-height: 2;
+    color: var(--ink);
+    max-width: 620px;
+    letter-spacing: 0.02em;
+    font-weight: 400;
+  }
+  .story-mini p { margin-bottom: 18px; }
+  .story-mini p:last-child { margin-bottom: 0; }
+
+  /* ===== Contact brief ===== */
+  .contact-mini {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0;
-    border-top: 1px solid var(--line);
-    margin-top: 28px;
-    padding-top: 24px;
+    gap: 14px;
   }
-  .stat-cell { padding: 0 8px; }
-  .stat-num {
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+  .contact-mini-card {
+    padding: 22px 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    transition: transform .3s, border-color .25s, box-shadow .3s;
+    text-align: center;
+  }
+  .contact-mini-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 14px 30px rgba(13,18,36,0.06);
+  }
+  .contact-mini-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--accent-soft);
     color: var(--accent);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 14px;
+    transition: transform .3s, background .25s;
   }
-  .stat-label {
-    font-size: 13px;
+  .contact-mini-icon svg { width: 22px; height: 22px; }
+  .contact-mini-card:hover .contact-mini-icon {
+    transform: scale(1.08) rotate(-4deg);
+    background: var(--accent);
+    color: #fff;
+  }
+  .contact-mini-label {
+    font-size: 11px;
     color: var(--muted);
-    margin-top: 4px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .contact-mini-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.4;
   }
 
-  /* ===== Right sidebar ===== */
+  /* ===== Sidebar ===== */
   aside.side {
     position: sticky;
-    top: 88px;
+    top: 96px;
     align-self: start;
   }
   .side-title {
     font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-weight: 700;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 16px;
-    padding-left: 4px;
-  }
-  .side-nav {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    overflow: hidden;
-  }
-  .nav-item { border-bottom: 1px solid var(--line); }
-  .nav-item:last-child { border-bottom: none; }
-
-  .nav-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 22px;
-    cursor: pointer;
-    user-select: none;
-    transition: background .15s ease, color .15s ease;
-  }
-  .nav-head:hover { background: var(--accent-soft); }
-  .nav-head .label {
+    margin-bottom: 18px;
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 15px;
-    font-weight: 500;
   }
-  .nav-head .num {
-    font-size: 11px;
-    color: var(--muted);
-    width: 22px;
-    letter-spacing: 0.05em;
+  .side-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
   }
-  .caret {
-    width: 10px; height: 10px;
-    border-right: 1.6px solid var(--ink-soft);
-    border-bottom: 1.6px solid var(--ink-soft);
-    transform: rotate(-45deg);
-    transition: transform .25s ease;
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  .nav-item.open .caret { transform: rotate(45deg); }
-  .nav-item.open .nav-head { color: var(--accent); }
-  .nav-item.open .caret { border-color: var(--accent); }
-
-  .nav-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height .3s ease;
-    background: #fbfbf8;
-  }
-  .nav-body-inner {
-    padding: 6px 22px 20px 56px;
-    font-size: 14px;
-    color: var(--ink-soft);
-  }
-  .nav-body-inner ul { list-style: none; }
-  .nav-body-inner li { padding: 6px 0; }
-  .nav-body-inner a:hover { color: var(--accent); }
-  .placeholder { color: var(--muted); font-style: italic; font-size: 13px; }
-
-  /* ===== Detail sections (anchor targets) ===== */
-  .detail {
-    scroll-margin-top: 88px;
-    padding-top: 48px;
-    margin-top: 16px;
-    border-top: 1px solid var(--line);
-  }
-  .detail h2 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    margin-bottom: 8px;
-  }
-  .detail .lead { color: var(--ink-soft); margin-bottom: 24px; }
-
-  .roster-grid {
+  .side-card {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .roster-card {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 14px 16px;
-    text-align: center;
-    transition: transform .15s ease, border-color .15s ease, color .15s ease;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
+    border-radius: 14px;
+    transition: transform .3s cubic-bezier(.4,0,.2,1),
+                border-color .25s, background .25s, box-shadow .3s;
+    position: relative;
+    overflow: hidden;
   }
-  .roster-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .match-row {
-    display: grid;
-    grid-template-columns: 110px 1fr auto;
-    gap: 16px;
-    padding: 18px 0;
-    border-bottom: 1px solid var(--line);
-    align-items: center;
-  }
-  .match-row:last-child { border-bottom: none; }
-  .match-meta {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-  .match-date {
-    font-size: 14px;
-    color: var(--ink);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .match-vs { font-size: 15px; font-weight: 500; }
-  .match-vs .opp { color: var(--accent); }
-  .match-vs span.x { color: var(--muted); margin: 0 8px; }
-  .match-note { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .match-result {
-    text-align: right;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-    min-width: 64px;
-  }
-  .match-result.draw { color: var(--ink-soft); }
-  .match-result.loss { color: #b04646; }
-
-  .timeline { border-left: 2px solid var(--line); padding-left: 24px; margin-left: 8px; }
-  .timeline-item { position: relative; padding-bottom: 24px; }
-  .timeline-item:last-child { padding-bottom: 0; }
-  .timeline-item::before {
+  .side-card::before {
     content: '';
     position: absolute;
-    left: -31px;
-    top: 6px;
-    width: 10px; height: 10px;
-    border-radius: 50%;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
     background: var(--accent);
+    transform: scaleY(0);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
   }
-  .timeline-year {
-    font-size: 13px;
-    color: var(--accent);
-    font-weight: 600;
-    letter-spacing: 0.05em;
+  .side-card:hover {
+    transform: translateX(4px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 24px rgba(13,18,36,0.06);
   }
-  .timeline-title { font-size: 16px; font-weight: 600; margin: 2px 0 6px; }
-  .timeline-desc { font-size: 14px; color: var(--ink-soft); }
-
-  .contact-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-  }
-  .contact-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 22px;
-  }
-  .contact-card h4 {
-    font-size: 12px;
+  .side-card:hover::before { transform: scaleY(1); }
+  .side-num {
+    font-size: 11px;
     color: var(--muted);
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+    transition: color .25s;
   }
-  .contact-card p { font-size: 15px; color: var(--ink); }
-  .contact-card a { color: var(--accent); }
+  .side-card:hover .side-num { color: var(--accent); }
+  .side-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    transition: color .25s;
+  }
+  .side-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+  .side-card:hover .side-name { color: var(--accent); }
+  .side-arrow {
+    color: var(--muted);
+    font-size: 16px;
+    transition: transform .3s, color .25s;
+  }
+  .side-card:hover .side-arrow {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
 
   /* ===== Footer ===== */
   footer {
-    padding: 32px;
+    padding: 56px 40px;
     text-align: center;
-    font-size: 13px;
-    color: var(--muted);
-    background: var(--bg);
-  }
-  footer .slogan-cn {
-    font-size: 14px;
-    color: var(--ink-soft);
-    margin-bottom: 8px;
-    letter-spacing: 0.08em;
-  }
-
-  /* ===== Mobile menu (hamburger + drawer) ===== */
-  .menu-toggle {
-    display: none;
-    width: 40px;
-    height: 40px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--card);
-    cursor: pointer;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 0;
-  }
-  .menu-toggle span {
-    width: 18px;
-    height: 1.8px;
     background: var(--ink);
-    transition: transform .3s ease, opacity .25s ease;
-    display: block;
-    border-radius: 2px;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
   }
-  .menu-toggle.open span:nth-child(1) { transform: translateY(5.8px) rotate(45deg); }
-  .menu-toggle.open span:nth-child(2) { opacity: 0; }
-  .menu-toggle.open span:nth-child(3) { transform: translateY(-5.8px) rotate(-45deg); }
-
-  .drawer-overlay {
-    position: fixed; inset: 0;
-    background: rgba(13, 18, 36, 0.42);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .3s ease;
-    z-index: 99;
-    backdrop-filter: blur(2px);
-  }
-  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
-  .mobile-drawer {
-    position: fixed;
-    top: 0; right: 0;
-    width: min(86vw, 340px);
-    height: 100vh;
-    background: var(--card);
-    z-index: 100;
-    transform: translateX(100%);
-    transition: transform .38s cubic-bezier(.4, 0, .2, 1);
-    box-shadow: -10px 0 32px rgba(0,0,0,.18);
-    overflow-y: auto;
-    padding: 72px 28px 32px;
-  }
-  .mobile-drawer.open { transform: translateX(0); }
-  .drawer-close {
-    position: absolute;
-    top: 16px; right: 16px;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    border: 1px solid var(--line);
-    background: var(--bg);
+  footer .footer-slogan {
     font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    color: var(--ink);
-    display: grid;
-    place-items: center;
-    transition: background .2s, color .2s, transform .2s;
-  }
-  .drawer-close:hover { background: var(--accent); color: #fff; transform: rotate(90deg); }
-  .drawer-title {
-    font-size: 12px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-    font-weight: 600;
-  }
-  .drawer-nav { display: flex; flex-direction: column; }
-  .drawer-nav a {
-    font-size: 17px;
+    color: #fff;
+    margin-bottom: 14px;
+    letter-spacing: 0.15em;
     font-weight: 500;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink);
-    transition: color .2s ease, padding-left .2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
   }
-  .drawer-nav a:last-child { border-bottom: none; }
-  .drawer-nav a:hover { color: var(--accent); padding-left: 6px; }
-  .drawer-nav a .num {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
+  footer .footer-meta {
+    margin-top: 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
   }
 
   /* ===== Responsive ===== */
-  @media (max-width: 960px) {
+  @media (max-width: 1100px) {
     .layout {
       grid-template-columns: 1fr;
-      gap: 40px;
-      padding: 40px 20px 64px;
+      gap: 56px;
+      padding: 64px 32px 56px;
     }
     aside.side { display: none; }
-    .topbar-inner { padding: 14px 20px; }
+  }
+  @media (max-width: 960px) {
     .top-links { display: none; }
     .menu-toggle { display: flex; }
+    .topbar-inner { padding: 14px 20px; }
 
-    /* Hero — 手机上图片完整显示，上下都有渐变 */
     .hero {
       background-image: none;
       background-color: var(--bg);
@@ -717,78 +727,48 @@
     }
     .hero-fade { display: none; }
     .hero-fade-top {
-      display: block;
-      position: relative;
-      height: 60px;
-      margin-bottom: -60px;
-      z-index: 2;
-      pointer-events: none;
+      display: block; position: relative;
+      height: 60px; margin-bottom: -60px;
+      z-index: 2; pointer-events: none;
       background: linear-gradient(180deg,
-        rgba(250,250,247,1) 0%,
-        rgba(250,250,247,0.7) 35%,
-        rgba(250,250,247,0) 100%);
+        rgba(247,245,240,1) 0%,
+        rgba(247,245,240,0.7) 35%,
+        rgba(247,245,240,0) 100%);
     }
     .hero-fade-bottom {
-      display: block;
-      position: relative;
-      height: 80px;
-      margin-top: -80px;
-      z-index: 2;
-      pointer-events: none;
+      display: block; position: relative;
+      height: 80px; margin-top: -80px;
+      z-index: 2; pointer-events: none;
       background: linear-gradient(180deg,
-        rgba(250,250,247,0) 0%,
-        rgba(250,250,247,0.7) 55%,
-        rgba(250,250,247,1) 100%);
+        rgba(247,245,240,0) 0%,
+        rgba(247,245,240,0.7) 55%,
+        rgba(247,245,240,1) 100%);
     }
-    .hero-content { padding: 28px 20px 56px; }
+    .hero-content { padding: 32px 22px 64px; }
+    .about-box { padding: 24px 22px; max-width: 100%; margin-bottom: 14px; }
+    .about-box-header { padding: 22px 24px 18px; }
     .about-box-header .section-title { font-size: 26px; }
-    .about-box-header .section-label { font-size: 11px; }
-    .about-box { padding: 22px 22px; max-width: 100%; }
-    .about-box-header { padding: 18px 22px 16px; }
+    .hero-content .quote { font-size: 17px; max-width: 100%; }
+    .hero-content .quote::before, .hero-content .quote::after { display: none; }
+    .stat-num { font-size: 28px; }
+    .stat-cell { padding: 0 6px; }
 
-    /* About 文本框在手机上堆叠（已经默认是 block，这里调整间距） */
-    .about-box { margin-bottom: 12px; }
-
-    /* 数字 stats 紧凑一点 */
-    .stat-row { gap: 4px; }
-    .stat-cell { padding: 0 4px; }
-    .stat-num { font-size: 24px; }
-    .stat-label { font-size: 11px; }
-
-    /* 比赛行：日期独占一行，对阵 + 结果同一行 */
-    .match-row {
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
-      gap: 4px 12px;
-      align-items: center;
-    }
-    .match-row > div:nth-child(1) {
-      grid-column: 1 / -1;
-      grid-row: 1;
-    }
-    .match-row > div:nth-child(2) { grid-column: 1; grid-row: 2; }
-    .match-row .match-result { grid-column: 2; grid-row: 2; min-width: 36px; }
-
-    /* 口号的 — Team Slogan 在手机上同一行 */
-    .quote {
-      font-size: 17px;
-      max-width: 100%;
-    }
-    .quote small {
-      display: inline;
-      margin-left: 8px;
-      margin-top: 0;
-      white-space: nowrap;
-    }
-
-    /* honors / contact 单列 */
-    .honors-grid { grid-template-columns: 1fr; }
-    .contact-grid { grid-template-columns: 1fr; }
+    .layout { padding: 48px 22px 40px; gap: 40px; }
+    .brief { padding: 36px 0; }
+    .brief-header { margin-bottom: 24px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .brief-lede { font-size: 16px; }
+    .honors-mini { grid-template-columns: 1fr; }
+    .contact-mini { grid-template-columns: 1fr; }
+    footer { padding: 40px 22px; }
   }
   @media (min-width: 961px) {
     .menu-toggle, .mobile-drawer, .drawer-overlay { display: none !important; }
   }
-    .match-result { text-align: left; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
   }
 </style>
 </head>
@@ -803,12 +783,14 @@
       </div>
     </a>
     <nav class="top-links">
-      <a href="#about">关于</a>
-      <a href="#roster">名单</a>
-      <a href="#matches">比赛</a>
-      <a href="#honors">荣誉</a>
-      <a href="#story">我们的故事</a>
-      <a href="#contact">联系</a>
+      <a href="roster.html">名单</a>
+      <a href="matches.html">比赛</a>
+      <a href="videos.html">录像</a>
+      <a href="news.html">新闻</a>
+      <a href="honors.html">荣誉</a>
+      <a href="history.html">经历</a>
+      <a href="story.html">故事</a>
+      <a href="contact.html">联系</a>
     </nav>
     <button class="menu-toggle" aria-label="打开菜单" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -822,438 +804,248 @@
   <button class="drawer-close" aria-label="关闭菜单">×</button>
   <div class="drawer-title">栏目导航</div>
   <nav class="drawer-nav">
-    <a href="#about">关于<span class="num">00</span></a>
-    <a href="#roster">球员大名单<span class="num">01</span></a>
-    <a href="#matches">比赛<span class="num">02</span></a>
-    <a href="#honors">我们的荣誉<span class="num">03</span></a>
-    <a href="#history">过往经历<span class="num">04</span></a>
-    <a href="#story">我们的故事<span class="num">05</span></a>
-    <a href="#contact">联系我们<span class="num">06</span></a>
+    <a href="roster.html">球员大名单<span class="num">01</span></a>
+    <a href="matches.html">比赛<span class="num">02</span></a>
+    <a href="videos.html">比赛录像<span class="num">03</span></a>
+    <a href="news.html">新闻动态<span class="num">04</span></a>
+    <a href="honors.html">我们的荣誉<span class="num">05</span></a>
+    <a href="history.html">过往经历<span class="num">06</span></a>
+    <a href="story.html">我们的故事<span class="num">07</span></a>
+    <a href="contact.html">联系我们<span class="num">08</span></a>
   </nav>
 </aside>
 
-<!-- ============ Hero — image bg + text overlay + fade down ============ -->
+<!-- ============ Hero ============ -->
 <section class="hero" id="top">
   <div class="hero-fade-top" aria-hidden="true"></div>
   <img class="hero-mobile-img" src="assets/hero.jpg" alt="Davis Origin Football Club" />
   <div class="hero-fade-bottom" aria-hidden="true"></div>
   <div class="hero-fade" aria-hidden="true"></div>
-  <div class="hero-content" id="about">
+  <div class="hero-content">
     <div class="about-box about-box-header">
-      <div class="section-label">About / 球队介绍</div>
+      <span class="section-label">About · 球队介绍</span>
       <h2 class="section-title">我们是谁</h2>
     </div>
     <div class="about-box about-box-body">
       <p>戴维斯原点足球俱乐部（Davis Origin FC）是加州大学戴维斯分校唯一一支华人足球队，隶属于全球原点足球大家庭。</p>
       <p>在主教练金指导的带领下，球队已经发展成北美最具规模、组织架构与凝聚力的学生足球队之一，下设一线队与预备队，覆盖在校学生与校友球员。</p>
     </div>
-    <div class="quote">岂曰无衣？与子同袍。<small>— Team Slogan</small></div>
-
+    <div class="quote">岂曰无衣？与子同袍。<small>Team Slogan</small></div>
     <div class="stat-row">
       <div class="stat-cell">
         <div class="stat-num">2</div>
-        <div class="stat-label">梯队（一队 / 预备队）</div>
+        <div class="stat-label">梯队 · 一队 / 预备队</div>
       </div>
       <div class="stat-cell">
         <div class="stat-num">50+</div>
         <div class="stat-label">注册学生</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-num">10+</div>
+        <div class="stat-num">20+</div>
         <div class="stat-label">出征比赛</div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ============ Main layout (content + sidebar) ============ -->
 <main class="layout">
+  <div class="layout-main">
 
-  <!-- ============ Main column ============ -->
-  <section>
-
-    <!-- ============ Detail sections ============ -->
-
-    <section class="detail" id="roster">
-      <h2>球员大名单</h2>
-      <p class="lead">Davis Origin · 全员名单</p>
-      <div class="roster-grid">
-        <div class="roster-card">何嘉伦</div>
-        <div class="roster-card">刘彦君</div>
-        <div class="roster-card">朱超凡</div>
-        <div class="roster-card">李明达</div>
-        <div class="roster-card">严令垚</div>
-        <div class="roster-card">尹鸣赫</div>
-        <div class="roster-card">刘效尔</div>
-        <div class="roster-card">闫家豪</div>
-        <div class="roster-card">刘明硕</div>
-        <div class="roster-card">黄溆子</div>
-        <div class="roster-card">刘琨</div>
-        <div class="roster-card">夏梓宸</div>
-        <div class="roster-card">蔡毅诚</div>
-        <div class="roster-card">李春蓉</div>
-        <div class="roster-card">刘籽珅</div>
-        <div class="roster-card">李瀚文</div>
-        <div class="roster-card">史皓元</div>
-        <div class="roster-card">刘奕</div>
-        <div class="roster-card">黄泓睿</div>
-        <div class="roster-card">李昊泽</div>
-        <div class="roster-card">于霆访</div>
-        <div class="roster-card">刘子云</div>
-        <div class="roster-card">Ian</div>
-        <div class="roster-card">Frank</div>
-        <div class="roster-card">黎元其</div>
-        <div class="roster-card">李思远</div>
-        <div class="roster-card">洪远</div>
-        <div class="roster-card">李润泽</div>
-        <div class="roster-card">宋京阳</div>
-        <div class="roster-card">李静诚</div>
-        <div class="roster-card">李金宇</div>
-        <div class="roster-card">周元中</div>
-        <div class="roster-card">叶彦铖</div>
-        <div class="roster-card">邓逸明</div>
-        <div class="roster-card">Otis</div>
-        <div class="roster-card">王俊皓</div>
-        <div class="roster-card">罗宇航</div>
-        <div class="roster-card">冯楚明</div>
-        <div class="roster-card">闻唯伊</div>
-        <div class="roster-card">王亚珩</div>
-        <div class="roster-card">陆子涵</div>
-        <div class="roster-card">张宏毅</div>
-        <div class="roster-card">巢景焱</div>
-        <div class="roster-card">仇舜宇</div>
-        <div class="roster-card">相铮</div>
-        <div class="roster-card">马雨辰</div>
-        <div class="roster-card">曹震旦</div>
-        <div class="roster-card">孙楚越</div>
-        <div class="roster-card">凌亦辰</div>
-        <div class="roster-card">卢嘉玉</div>
-        <div class="roster-card">李岱声</div>
-        <div class="roster-card">赵乐涵</div>
-        <div class="roster-card">刘富行</div>
-        <div class="roster-card">马琦尧</div>
-        <div class="roster-card">王凯睿</div>
-        <div class="roster-card">黄宇翔</div>
-        <div class="roster-card">柴泓旭</div>
-        <div class="roster-card">杨湘龙</div>
-        <div class="roster-card">杨乐成</div>
-        <div class="roster-card">葛孟宇</div>
+    <!-- Honors brief -->
+    <section class="brief" id="honors-brief">
+      <div class="brief-header">
+        <div class="brief-eyebrow">Honors · 我们的荣誉</div>
+        <a class="brief-link" href="honors.html">查看完整荣誉 <span>→</span></a>
+      </div>
+      <h2 class="brief-title">捧回的奖杯</h2>
+      <p class="brief-lede">这些年我们一起在战斗中赢下的战果。</p>
+      <div class="honors-mini">
+        <a class="honor-mini-card" href="honors.html">
+          <div class="honor-mini-year">2024 · Champion</div>
+          <div class="honor-mini-title">北加联 · 冠军</div>
+          <div class="honor-mini-sub">Northern California League</div>
+        </a>
+        <a class="honor-mini-card silver" href="honors.html">
+          <div class="honor-mini-year">2025 · Runner-up</div>
+          <div class="honor-mini-title">华体会 · 亚军</div>
+          <div class="honor-mini-sub">CSGA Runner-up</div>
+        </a>
       </div>
     </section>
 
-    <section class="detail" id="matches">
-      <h2>比赛</h2>
-      <p class="lead">2026 赛季正在进行中——南加备战结束，北加备战开启。</p>
-      <div>
-        <div class="match-row">
-          <div>
-            <div class="match-meta">2026 校际杯 · LA</div>
-            <div class="match-date">2026 / 03</div>
-          </div>
-          <div>
-            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">UCSD</span></div>
-            <div class="match-note">小组赛 · 同分同净胜球，差两个进球无缘决赛</div>
-          </div>
-          <div class="match-result draw">D</div>
+    <!-- History brief -->
+    <section class="brief" id="history-brief">
+      <div class="brief-header">
+        <div class="brief-eyebrow">History · 过往经历</div>
+        <a class="brief-link" href="history.html">完整时间线 <span>→</span></a>
+      </div>
+      <h2 class="brief-title">一路走来的脚印</h2>
+      <p class="brief-lede">从人员凋敝到 50+ 整装待发。我们没停过。</p>
+      <div class="history-mini">
+        <div class="history-mini-item">
+          <div class="history-mini-year">三年前 · 2023</div>
+          <div class="history-mini-title">人员凋敝，阵容单薄。第一次南下出征，每个人都在坚持。</div>
         </div>
-        <div class="match-row">
-          <div>
-            <div class="match-meta">2026 校际杯 · LA</div>
-            <div class="match-date">2026 / 03</div>
-          </div>
-          <div>
-            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">USC</span></div>
-            <div class="match-note">柴泓旭半场迎球吊射制胜，把 USC 挡在决赛门外</div>
-          </div>
-          <div class="match-result">W</div>
+        <div class="history-mini-item">
+          <div class="history-mini-year">2024 · Champion</div>
+          <div class="history-mini-title">北加联冠军 — 真正意义上的崛起。</div>
         </div>
-        <div class="match-row">
-          <div>
-            <div class="match-meta">2026 校际杯 · LA</div>
-            <div class="match-date">2026 / 03</div>
-          </div>
-          <div>
-            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">UCLA</span></div>
-            <div class="match-note">于霆访角球开到门前，李润泽甩头攻门</div>
-          </div>
-          <div class="match-result">G</div>
+        <div class="history-mini-item">
+          <div class="history-mini-year">2026 · 03</div>
+          <div class="history-mini-title">时隔三年再次南下尔湾。两支队伍 40+ 球员整装待发。</div>
         </div>
-        <div class="match-row">
-          <div>
-            <div class="match-meta">2026 校际杯 · LA</div>
-            <div class="match-date">2026 / 03</div>
-          </div>
-          <div>
-            <div class="match-vs">Davis Origin <span class="x">vs</span> <span class="opp">UCI</span></div>
-            <div class="match-note">定位赛两球小负，二队最终位列第六</div>
-          </div>
-          <div class="match-result loss">L</div>
+        <div class="history-mini-item">
+          <div class="history-mini-year">2026 · 05 · 23</div>
+          <div class="history-mini-title">北加州足联杯 3:1 击败 EBU Rangers — 死亡之组顽强挺过，正式赛季收官。</div>
         </div>
-        <div class="match-row">
-          <div>
-            <div class="match-meta">2026 北美湾区贺岁杯</div>
-            <div class="match-date">已出征</div>
-          </div>
-          <div>
-            <div class="match-vs">Davis Origin · 两支队伍出战</div>
-            <div class="match-note">详细战报陆续更新</div>
-          </div>
-          <div class="match-result">—</div>
+        <div class="history-mini-item now">
+          <div class="history-mini-year">现在 · NOW</div>
+          <div class="history-mini-title">赛季落幕，短暂休整。下一段征程，仍在路上。</div>
         </div>
       </div>
     </section>
 
-    <section class="detail" id="honors">
-      <h2>我们的荣誉</h2>
-      <p class="lead">这些年我们一起捧回的奖杯。</p>
-      <div class="honors-grid">
-        <div class="honor-card">
-          <div class="honor-year">2024</div>
-          <div class="honor-title">北加联 · 冠军</div>
-          <div class="honor-sub">Champion · Northern California League</div>
-        </div>
-        <div class="honor-card">
-          <div class="honor-year">2025</div>
-          <div class="honor-title">华体会 · 亚军</div>
-          <div class="honor-sub">Runner-up · 华体会</div>
-        </div>
+    <!-- Story brief -->
+    <section class="brief" id="story-brief">
+      <div class="brief-header">
+        <div class="brief-eyebrow">Story · 我们的故事</div>
+        <a class="brief-link" href="story.html">阅读全文 <span>→</span></a>
+      </div>
+      <h2 class="brief-title">为什么叫"原点"</h2>
+      <p class="brief-lede">一群人，一片草坪，一个共同的开始。</p>
+      <div class="story-mini">
+        <p>戴维斯原点是加州大学戴维斯分校唯一一支华人足球队，也是全球原点足球大家庭的一员。</p>
+        <p>我们取名"原点"，是希望每一个来到戴维斯的人——无论第一次踩上这片草坪，还是已经在这里待了好几年——都能找到一个出发点。</p>
+        <p>一片可以并肩跑动的草坪，一群愿意把球踢好的人。仅此而已，但也已经足够。</p>
       </div>
     </section>
 
-    <section class="detail" id="history">
-      <h2>过往经历</h2>
-      <p class="lead">从人员凋敝到 40+ 整装待发，我们一路走来的脚印。</p>
-      <div class="timeline">
-        <div class="timeline-item">
-          <div class="timeline-year">三年前</div>
-          <div class="timeline-title">人员凋敝，阵容单薄</div>
-          <div class="timeline-desc">第一次南下出征，球队还很瘦弱，但每个人都在坚持。</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">2026 / 01</div>
-          <div class="timeline-title">出征 北美湾区贺岁杯</div>
-          <div class="timeline-desc">两支队伍同时出战，让在一起的时光一直璀璨。</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">2026 / 03</div>
-          <div class="timeline-title">时隔三年再次南下 · 加州华人大学生校际杯（尔湾）</div>
-          <div class="timeline-desc">
-            两个队四十多名学生 / 校友球员整装待发。一队最终第四，二队第六。
-            一队对阵 UCSD 同分同净胜球，差两个进球进决赛；
-            遗憾因球员需返回 Davis，3/4 名决赛弃权；
-            二队打破 USC不丢球金身，对阵 UCLA 由于霆访角球助攻李润泽头球破门。
+    <!-- Contact brief -->
+    <section class="brief" id="contact-brief">
+      <div class="brief-header">
+        <div class="brief-eyebrow">Contact · 联系我们</div>
+        <a class="brief-link" href="contact.html">所有联系方式 <span>→</span></a>
+      </div>
+      <h2 class="brief-title">加入我们</h2>
+      <p class="brief-lede">无论你是戴维斯新生还是刚搬来附近，只要你想踢球，不要犹豫。</p>
+      <div class="contact-mini">
+        <a class="contact-mini-card" href="https://www.xiaohongshu.com/user/profile/695d6dfd0000000037032fa2" target="_blank" rel="noopener">
+          <div class="contact-mini-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
           </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">现在</div>
-          <div class="timeline-title">南加备战结束，北加备战开启</div>
-          <div class="timeline-desc">下一段征程在路上。</div>
-        </div>
+          <div class="contact-mini-label">小红书</div>
+          <div class="contact-mini-value">戴维斯原点足球俱乐部</div>
+        </a>
+        <a class="contact-mini-card" href="contact.html">
+          <div class="contact-mini-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 21v-1a8 8 0 0 1 16 0v1"/>
+            </svg>
+          </div>
+          <div class="contact-mini-label">主教练</div>
+          <div class="contact-mini-value">金指导</div>
+        </a>
+        <a class="contact-mini-card" href="contact.html">
+          <div class="contact-mini-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6"/>
+              <path d="M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/>
+            </svg>
+          </div>
+          <div class="contact-mini-label">所在地</div>
+          <div class="contact-mini-value">加州大学戴维斯</div>
+        </a>
       </div>
     </section>
 
-    <section class="detail" id="story">
-      <h2>我们的故事</h2>
-      <p class="lead">为什么叫"原点"，以及一群人是如何聚到一起的。</p>
-      <div class="section-body">
-        <p>
-          戴维斯原点是加州大学戴维斯分校唯一一支华人足球队，也是全球原点足球大家庭的一员。
-          我们取名"原点"，是希望每一个来到戴维斯的人——无论第一次踩上这片草坪，
-          还是已经在这里待了好几年——都能找到一个出发点。
-        </p>
-        <p>
-          一片可以并肩跑动的草坪，一群愿意把球踢好的人。
-          仅此而已，但也已经足够。
-        </p>
-        <p>
-          球队从最初的几个人慢慢长起来，到现在覆盖在校学生和校友球员，一队加预备队几十号人。
-          训练日的风、雨、汗，每一脚传球、每一次回追、每一次为队友补防的瞬间——
-          就是我们在戴维斯一起留下的故事。
-        </p>
-        <p>
-          我们不靠光环，也不靠虚名。
-          站在这里的理由很简单：因为爱球，因为爱身边的兄弟。
-        </p>
-        <div class="quote">
-          爱球队和球队里的人，我们才变成最拼的球队。
-        </div>
-      </div>
-    </section>
+  </div>
 
-    <section class="detail" id="contact">
-      <h2>联系我们 / 加入我们</h2>
-      <p class="lead">无论你是戴维斯新生，还是刚搬来附近——只要你想踢球，不要犹豫。</p>
-      <div class="contact-grid">
-        <div class="contact-card">
-          <h4>小红书</h4>
-          <p>戴维斯原点足球俱乐部</p>
-          <p style="font-size:13px;color:var(--muted);margin-top:4px;">小红书号 26476633982</p>
-        </div>
-        <div class="contact-card">
-          <h4>主教练</h4>
-          <p>金指导</p>
-        </div>
-        <div class="contact-card">
-          <h4>所在地</h4>
-          <p>加州大学戴维斯分校 · UC Davis</p>
-        </div>
-      </div>
-    </section>
-
-  </section>
-
-  <!-- ============ Right sidebar ============ -->
+  <!-- ============ Sidebar ============ -->
   <aside class="side">
-    <div class="side-title">栏目导航</div>
-    <nav class="side-nav" id="sideNav">
-
-      <div class="nav-item" data-target="roster">
-        <div class="nav-head">
-          <div class="label"><span class="num">01</span>球员大名单</div>
-          <span class="caret"></span>
+    <div class="side-title">Browse · 栏目</div>
+    <nav class="side-nav">
+      <a class="side-card" href="roster.html">
+        <span class="side-num">01</span>
+        <div>
+          <div class="side-name">球员大名单</div>
+          <div class="side-sub">Roster</div>
         </div>
-        <div class="nav-body">
-          <div class="nav-body-inner">
-            <ul>
-              <li><a href="#roster">查看完整名单</a></li>
-            </ul>
-          </div>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="matches.html">
+        <span class="side-num">02</span>
+        <div>
+          <div class="side-name">比赛</div>
+          <div class="side-sub">Schedule</div>
         </div>
-      </div>
-
-      <div class="nav-item" data-target="matches">
-        <div class="nav-head">
-          <div class="label"><span class="num">02</span>比赛</div>
-          <span class="caret"></span>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="videos.html">
+        <span class="side-num">03</span>
+        <div>
+          <div class="side-name">比赛录像</div>
+          <div class="side-sub">Videos</div>
         </div>
-        <div class="nav-body">
-          <div class="nav-body-inner">
-            <ul>
-              <li><a href="#matches">2026 加州华人大学生校际杯</a></li>
-              <li><a href="#matches">2026 北美湾区贺岁杯</a></li>
-            </ul>
-          </div>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="news.html">
+        <span class="side-num">04</span>
+        <div>
+          <div class="side-name">新闻动态</div>
+          <div class="side-sub">News</div>
         </div>
-      </div>
-
-      <div class="nav-item" data-target="honors">
-        <div class="nav-head">
-          <div class="label"><span class="num">03</span>我们的荣誉</div>
-          <span class="caret"></span>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="honors.html">
+        <span class="side-num">05</span>
+        <div>
+          <div class="side-name">我们的荣誉</div>
+          <div class="side-sub">Trophies</div>
         </div>
-        <div class="nav-body">
-          <div class="nav-body-inner">
-            <ul>
-              <li><a href="#honors">2024 北加联冠军</a></li>
-              <li><a href="#honors">2025 华体会亚军</a></li>
-            </ul>
-          </div>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="history.html">
+        <span class="side-num">06</span>
+        <div>
+          <div class="side-name">过往经历</div>
+          <div class="side-sub">Timeline</div>
         </div>
-      </div>
-
-      <div class="nav-item" data-target="history">
-        <div class="nav-head">
-          <div class="label"><span class="num">04</span>过往经历</div>
-          <span class="caret"></span>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="story.html">
+        <span class="side-num">07</span>
+        <div>
+          <div class="side-name">我们的故事</div>
+          <div class="side-sub">Origin</div>
         </div>
-        <div class="nav-body">
-          <div class="nav-body-inner">
-            <ul>
-              <li><a href="#history">球队大事记</a></li>
-              <li><a href="#history">三年前 → 今天</a></li>
-            </ul>
-          </div>
+        <span class="side-arrow">→</span>
+      </a>
+      <a class="side-card" href="contact.html">
+        <span class="side-num">08</span>
+        <div>
+          <div class="side-name">联系我们</div>
+          <div class="side-sub">Connect</div>
         </div>
-      </div>
-
-      <div class="nav-item" data-target="story">
-        <div class="nav-head">
-          <div class="label"><span class="num">05</span>我们的故事</div>
-          <span class="caret"></span>
-        </div>
-        <div class="nav-body">
-          <div class="nav-body-inner">
-            <ul>
-              <li><a href="#story">原点的来历</a></li>
-              <li><a href="#story">我们为什么打球</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="nav-item" data-target="contact">
-        <div class="nav-head">
-          <div class="label"><span class="num">06</span>联系我们</div>
-          <span class="caret"></span>
-        </div>
-        <div class="nav-body">
-          <div class="nav-body-inner">
-            <ul>
-              <li><a href="#contact">加入我们</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
+        <span class="side-arrow">→</span>
+      </a>
     </nav>
   </aside>
 </main>
 
 <footer>
-  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
-  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+  <div class="footer-slogan">岂曰无衣？与子同袍。</div>
+  <div>© Davis Origin · 戴维斯原点足球俱乐部 · UC Davis</div>
+  <div class="footer-meta">Davis Origin Football Club · China Origin Family</div>
 </footer>
 
 <script>
-  /* ============ 侧栏可展开 ============ */
-  const items = document.querySelectorAll('#sideNav .nav-item');
-  items.forEach(item => {
-    const head = item.querySelector('.nav-head');
-    const body = item.querySelector('.nav-body');
-    head.addEventListener('click', (e) => {
-      if (e.target.tagName === 'A') return;
-      const isOpen = item.classList.contains('open');
-      items.forEach(other => {
-        other.classList.remove('open');
-        other.querySelector('.nav-body').style.maxHeight = null;
-      });
-      if (!isOpen) {
-        item.classList.add('open');
-        body.style.maxHeight = body.scrollHeight + 'px';
-        const targetId = item.getAttribute('data-target');
-        const el = document.getElementById(targetId);
-        if (el) {
-          setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-        }
-      }
-    });
-  });
-
-  /* ============ 滚动入场动画 ============ */
-  const revealTargets = document.querySelectorAll('.detail');
-  revealTargets.forEach(el => el.classList.add('reveal'));
-
-  const staggerSelectors = [
-    '.roster-grid',
-    '.honors-grid',
-    '.timeline',
-    '.contact-grid'
-  ];
-  staggerSelectors.forEach(sel => {
-    document.querySelectorAll(sel).forEach(el => el.classList.add('reveal-stagger'));
-  });
-
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => io.observe(el));
-
-  /* ============ Stats 数字滚动 ============ */
+  /* Stats 数字滚动 */
   function animateNumber(el) {
     const raw = el.textContent.trim();
     const match = raw.match(/^(\d+)(.*)$/);
@@ -1261,49 +1053,43 @@
     const target = parseInt(match[1], 10);
     const suffix = match[2];
     if (target === 0) return;
-    const duration = 1100;
+    const duration = 1200;
     const start = performance.now();
     function tick(now) {
       const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
-      const current = Math.round(target * eased);
-      el.textContent = current + suffix;
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * eased) + suffix;
       if (t < 1) requestAnimationFrame(tick);
       else el.textContent = target + suffix;
     }
     requestAnimationFrame(tick);
   }
-
-  const statObserver = new IntersectionObserver((entries) => {
+  const statObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         animateNumber(entry.target);
-        statObserver.unobserve(entry.target);
+        statObs.unobserve(entry.target);
       }
     });
   }, { threshold: 0.4 });
+  document.querySelectorAll('.stat-num').forEach(el => statObs.observe(el));
 
-  document.querySelectorAll('.stat-num').forEach(el => statObserver.observe(el));
-
-  /* ============ 锚点平滑滚动 ============ */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', (e) => {
-      const id = a.getAttribute('href');
-      if (id === '#' || id.length < 2) return;
-      const target = document.querySelector(id);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  /* Brief sections fade in on scroll */
+  const briefObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        briefObs.unobserve(entry.target);
       }
     });
-  });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.brief').forEach(el => briefObs.observe(el));
 
-  /* ============ 手机端抽屉菜单 ============ */
+  /* Mobile drawer */
   const menuToggle = document.querySelector('.menu-toggle');
   const drawer = document.querySelector('.mobile-drawer');
   const drawerOverlay = document.querySelector('.drawer-overlay');
   const drawerClose = document.querySelector('.drawer-close');
-
   function openDrawer() {
     drawer.classList.add('open');
     drawerOverlay.classList.add('open');
@@ -1318,48 +1104,41 @@
     menuToggle.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
   }
-  if (menuToggle) {
-    menuToggle.addEventListener('click', () => {
-      drawer.classList.contains('open') ? closeDrawer() : openDrawer();
-    });
-  }
+  if (menuToggle) menuToggle.addEventListener('click', () => {
+    drawer.classList.contains('open') ? closeDrawer() : openDrawer();
+  });
   if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
   if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
-  if (drawer) {
-    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
-  }
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) closeDrawer();
+    if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
   });
 
-  /* ============ 海报视差：图慢、文字快 ============ */
+  /* Hero parallax */
   const heroEl = document.querySelector('.hero');
   const heroContent = document.querySelector('.hero-content');
-  let parallaxTicking = false;
+  let ticking = false;
   function updateParallax() {
     const scrolled = window.scrollY;
     const isMobile = window.matchMedia('(max-width: 960px)').matches;
     if (!isMobile && heroEl) {
-      // 背景图：慢速跟随（0.4 倍滚动速度）
       heroEl.style.backgroundPosition = `50% calc(50% + ${scrolled * 0.4}px)`;
     }
-    if (heroContent) {
-      // 文字：在 hero 范围内额外向上推一点（让文字看上去比图更快滚走）
+    if (heroContent && !isMobile) {
       const heroHeight = heroEl ? heroEl.offsetHeight : window.innerHeight;
-      if (scrolled < heroHeight && !isMobile) {
+      if (scrolled < heroHeight) {
         heroContent.style.transform = `translateY(${-scrolled * 0.18}px)`;
-      } else if (!isMobile) {
-        heroContent.style.transform = `translateY(${-heroHeight * 0.18}px)`;
       } else {
-        heroContent.style.transform = '';
+        heroContent.style.transform = `translateY(${-heroHeight * 0.18}px)`;
       }
+    } else if (heroContent) {
+      heroContent.style.transform = '';
     }
-    parallaxTicking = false;
+    ticking = false;
   }
   window.addEventListener('scroll', () => {
-    if (!parallaxTicking) {
+    if (!ticking) {
       requestAnimationFrame(updateParallax);
-      parallaxTicking = true;
+      ticking = true;
     }
   }, { passive: true });
   window.addEventListener('resize', updateParallax, { passive: true });
