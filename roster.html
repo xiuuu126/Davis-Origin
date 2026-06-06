@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>球员大名单 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #fafaf7;
+    --ink: #0d1224;
+    --ink-soft: #4a4a55;
+    --muted: #8a8a92;
+    --line: #e6e6e2;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --card: #ffffff;
+    --pos-gk: #d49a2a;
+    --pos-def: #1e3a8a;
+    --pos-mid: #1f7a5e;
+    --pos-fwd: #b04646;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* Topbar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(250, 250, 247, 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 38px; height: 38px;
+    object-fit: contain;
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    transition: border-color .25s, color .25s, background .25s, transform .25s;
+  }
+  .back-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(-2px);
+  }
+
+  /* Page hero */
+  .page-hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 72px 32px 32px;
+    text-align: center;
+  }
+  .page-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+    animation: fadeInUp .7s ease .1s both;
+  }
+  .page-title {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+    animation: fadeInUp .8s ease .2s both;
+  }
+  .page-lede {
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 620px;
+    margin: 0 auto 36px;
+    animation: fadeInUp .8s ease .3s both;
+  }
+
+  /* Position stats */
+  .position-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    animation: fadeInUp .9s ease .4s both;
+  }
+  .position-stats .stat {
+    text-align: center;
+    padding: 0 8px;
+    border-right: 1px solid var(--line);
+  }
+  .position-stats .stat:last-child { border-right: none; }
+  .stat-num {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    display: block;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-lbl {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    max-width: 1280px;
+    margin: 32px auto 24px;
+    padding: 0 32px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all .25s ease;
+    font-weight: 500;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.2);
+  }
+  .filter-btn .count {
+    display: inline-block;
+    font-size: 11px;
+    opacity: 0.65;
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-btn.active .count { opacity: 0.85; }
+
+  /* Roster page */
+  main.roster-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 12px 32px 80px;
+  }
+  .position-group {
+    margin-bottom: 48px;
+    animation: fadeInUp .8s ease both;
+  }
+  .position-group[data-position="gk"]  { animation-delay: .50s; --pos: var(--pos-gk); }
+  .position-group[data-position="def"] { animation-delay: .58s; --pos: var(--pos-def); }
+  .position-group[data-position="mid"] { animation-delay: .66s; --pos: var(--pos-mid); }
+  .position-group[data-position="fwd"] { animation-delay: .74s; --pos: var(--pos-fwd); }
+  .position-title {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid var(--line);
+    position: relative;
+  }
+  .position-title::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -2px;
+    width: 64px;
+    height: 2px;
+    background: var(--pos);
+    border-radius: 1px;
+  }
+  .pos-en {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: var(--pos);
+    text-transform: uppercase;
+  }
+  .pos-cn {
+    font-size: clamp(22px, 2.6vw, 28px);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .pos-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .player-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    transition: transform .2s cubic-bezier(.4,0,.2,1),
+                border-color .2s ease,
+                color .2s ease,
+                box-shadow .25s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+  }
+  .player-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(30, 58, 138, 0.08) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform .6s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+  }
+  .player-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--pos, var(--accent));
+    color: var(--pos, var(--accent));
+    box-shadow: 0 10px 22px rgba(13, 18, 36, 0.08);
+  }
+  .player-card:hover::after { transform: translateX(100%); }
+  .position-group[data-position="gk"]  .player-card:hover { border-color: var(--pos-gk); color: var(--pos-gk); }
+  .position-group[data-position="def"] .player-card:hover { border-color: var(--pos-def); color: var(--pos-def); }
+  .position-group[data-position="mid"] .player-card:hover { border-color: var(--pos-mid); color: var(--pos-mid); }
+  .position-group[data-position="fwd"] .player-card:hover { border-color: var(--pos-fwd); color: var(--pos-fwd); }
+
+  /* Filtered out */
+  .position-group.hidden { display: none; }
+
+  /* Footer */
+  footer {
+    padding: 32px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  footer .slogan-cn {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 7px 12px; font-size: 12px; }
+    .page-hero { padding: 48px 20px 20px; }
+    .position-stats { max-width: 100%; }
+    .stat-num { font-size: 24px; }
+    .stat-lbl { font-size: 10px; }
+    .filter-bar { padding: 0 20px; gap: 6px; }
+    .filter-btn { padding: 7px 14px; font-size: 12px; }
+    main.roster-page { padding: 8px 20px 60px; }
+    .position-group { margin-bottom: 36px; }
+    .position-title { gap: 8px; }
+    .pos-en { font-size: 11px; letter-spacing: 0.15em; }
+    .pos-cn { font-size: 20px; }
+    .player-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+    .player-card { font-size: 14px; padding: 12px 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">Roster · 球员大名单</div>
+  <h1 class="page-title">全员阵容</h1>
+  <p class="page-lede">
+    Davis Origin · 戴维斯原点足球俱乐部 · 共 55 名学生与校友球员，按位置分组、字母排序。
+  </p>
+  <div class="position-stats">
+    <div class="stat"><span class="stat-num" style="color: var(--pos-gk);">3</span><span class="stat-lbl">门将 GK</span></div>
+    <div class="stat"><span class="stat-num" style="color: var(--pos-def);">24</span><span class="stat-lbl">后场 DEF</span></div>
+    <div class="stat"><span class="stat-num" style="color: var(--pos-mid);">17</span><span class="stat-lbl">中场 MID</span></div>
+    <div class="stat"><span class="stat-num" style="color: var(--pos-fwd);">11</span><span class="stat-lbl">前场 FWD</span></div>
+  </div>
+</section>
+
+<div class="filter-bar" id="filterBar">
+  <button class="filter-btn active" data-filter="all">全部 <span class="count">55</span></button>
+  <button class="filter-btn" data-filter="gk">门将 <span class="count">3</span></button>
+  <button class="filter-btn" data-filter="def">后场 <span class="count">24</span></button>
+  <button class="filter-btn" data-filter="mid">中场 <span class="count">17</span></button>
+  <button class="filter-btn" data-filter="fwd">前场 <span class="count">11</span></button>
+</div>
+
+<main class="roster-page">
+
+  <!-- 门将 GOALKEEPERS -->
+  <section class="position-group" data-position="gk">
+    <h2 class="position-title">
+      <span class="pos-en">Goalkeepers</span>
+      <span class="pos-cn">门将</span>
+      <span class="pos-count">3 人</span>
+    </h2>
+    <div class="player-grid">
+      <div class="player-card">冯楚明</div>
+      <div class="player-card">相铮</div>
+      <div class="player-card">熊翰川</div>
+    </div>
+  </section>
+
+  <!-- 后场 DEFENDERS -->
+  <section class="position-group" data-position="def">
+    <h2 class="position-title">
+      <span class="pos-en">Defenders</span>
+      <span class="pos-cn">后场</span>
+      <span class="pos-count">24 人</span>
+    </h2>
+    <div class="player-grid">
+      <div class="player-card">蔡毅诚</div>
+      <div class="player-card">柴泓旭</div>
+      <div class="player-card">葛孟宇</div>
+      <div class="player-card">何嘉伦</div>
+      <div class="player-card">吉芸莹</div>
+      <div class="player-card">李静诚</div>
+      <div class="player-card">李金宇</div>
+      <div class="player-card">李明达</div>
+      <div class="player-card">李润泽</div>
+      <div class="player-card">黎元其</div>
+      <div class="player-card">刘富行</div>
+      <div class="player-card">刘效尔</div>
+      <div class="player-card">刘彦君</div>
+      <div class="player-card">刘籽珅</div>
+      <div class="player-card">马俊宇</div>
+      <div class="player-card">马雨辰</div>
+      <div class="player-card">潘颢文</div>
+      <div class="player-card">王钧</div>
+      <div class="player-card">王彦沛</div>
+      <div class="player-card">夏梓宸</div>
+      <div class="player-card">杨乐成</div>
+      <div class="player-card">叶奕承</div>
+      <div class="player-card">张宏毅</div>
+      <div class="player-card">赵天钰</div>
+    </div>
+  </section>
+
+  <!-- 中场 MIDFIELDERS -->
+  <section class="position-group" data-position="mid">
+    <h2 class="position-title">
+      <span class="pos-en">Midfielders</span>
+      <span class="pos-cn">中场</span>
+      <span class="pos-count">17 人</span>
+    </h2>
+    <div class="player-grid">
+      <div class="player-card">Attila</div>
+      <div class="player-card">曹震旦</div>
+      <div class="player-card">Frank Zhu</div>
+      <div class="player-card">黄溆子</div>
+      <div class="player-card">金圣博</div>
+      <div class="player-card">刘铠泽</div>
+      <div class="player-card">刘明硕</div>
+      <div class="player-card">卢嘉玉</div>
+      <div class="player-card">陆子涵</div>
+      <div class="player-card">罗宇航</div>
+      <div class="player-card">欧阳川</div>
+      <div class="player-card">盛天成</div>
+      <div class="player-card">史皓元</div>
+      <div class="player-card">孙楚越</div>
+      <div class="player-card">张铭源</div>
+      <div class="player-card">赵乐涵</div>
+      <div class="player-card">Zoli</div>
+    </div>
+  </section>
+
+  <!-- 前场 FORWARDS -->
+  <section class="position-group" data-position="fwd">
+    <h2 class="position-title">
+      <span class="pos-en">Forwards</span>
+      <span class="pos-cn">前场</span>
+      <span class="pos-count">11 人</span>
+    </h2>
+    <div class="player-grid">
+      <div class="player-card">杜康松</div>
+      <div class="player-card">刘奕</div>
+      <div class="player-card">刘子云</div>
+      <div class="player-card">史佳驰</div>
+      <div class="player-card">王俊皓</div>
+      <div class="player-card">王亚珩</div>
+      <div class="player-card">温子铭</div>
+      <div class="player-card">尹鸣赫</div>
+      <div class="player-card">于霆访</div>
+      <div class="player-card">周元中</div>
+      <div class="player-card">朱超凡</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+<script>
+  /* 位置筛选 */
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const groups = document.querySelectorAll('.position-group');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      groups.forEach(g => {
+        g.classList.toggle('hidden', !(f === 'all' || g.dataset.position === f));
+      });
+      window.scrollTo({ top: document.querySelector('main.roster-page').offsetTop - 80, behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

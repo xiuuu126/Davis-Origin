@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>比赛录像 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #fafaf7;
+    --ink: #0d1224;
+    --ink-soft: #4a4a55;
+    --muted: #8a8a92;
+    --line: #e6e6e2;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* Topbar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(250, 250, 247, 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 38px; height: 38px;
+    object-fit: contain;
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    transition: border-color .25s, color .25s, background .25s, transform .25s;
+  }
+  .back-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(-2px);
+  }
+
+  /* Page hero */
+  .page-hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 72px 32px 40px;
+    text-align: center;
+  }
+  .page-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+    animation: fadeInUp .7s ease .1s both;
+  }
+  .page-title {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+    animation: fadeInUp .8s ease .2s both;
+  }
+  .page-lede {
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 620px;
+    margin: 0 auto;
+    animation: fadeInUp .8s ease .35s both;
+  }
+
+  /* Video list */
+  main.videos-page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px 32px 80px;
+  }
+  .video-list { display: flex; flex-direction: column; gap: 18px; }
+  .video-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 32px;
+    transition: transform .35s cubic-bezier(.4,0,.2,1),
+                border-color .3s ease,
+                box-shadow .35s ease;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: cardIn .7s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .video-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 16px 36px rgba(13, 18, 36, 0.08);
+  }
+  .video-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .video-tournament {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .video-date {
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .video-match {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .video-team {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    letter-spacing: -0.005em;
+  }
+  .video-team.left { text-align: right; }
+  .video-team.right { text-align: left; }
+  .video-team.winner {
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 19px;
+  }
+  .video-team.winner::after {
+    content: ' ✦';
+    color: var(--accent);
+    font-size: 12px;
+    opacity: 0.7;
+    margin-left: 2px;
+  }
+  .video-score {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    padding: 4px 14px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .video-score-num { transition: color .2s; }
+  .video-score-num.winner {
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .video-score-colon { color: var(--muted); font-weight: 400; margin: 0 -2px; }
+  .video-note {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    text-align: center;
+    margin-bottom: 18px;
+    padding: 0 8px;
+  }
+  .video-link-wrap {
+    text-align: center;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+  }
+  .video-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .video-link:hover {
+    background: var(--accent-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(30, 58, 138, 0.25);
+  }
+  .video-link .play {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    font-size: 9px;
+  }
+
+  /* Coming soon card */
+  .video-card.placeholder {
+    border-style: dashed;
+    background: transparent;
+    text-align: center;
+    color: var(--muted);
+    padding: 36px 32px;
+  }
+  .video-card.placeholder:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--line);
+  }
+  .video-card.placeholder p { font-size: 14px; }
+
+  /* Footer */
+  footer {
+    padding: 32px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  footer .slogan-cn {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 7px 12px; font-size: 12px; }
+    .page-hero { padding: 48px 20px 24px; }
+    main.videos-page { padding: 16px 20px 60px; }
+    .video-card { padding: 22px 18px; }
+    .video-match { gap: 10px; }
+    .video-team { font-size: 14px; }
+    .video-team.winner { font-size: 15px; }
+    .video-score { font-size: 22px; padding: 3px 10px; }
+    .video-meta { gap: 4px; }
+    .video-tournament { font-size: 10px; }
+    .video-link { padding: 10px 18px; font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">Match Recordings · 比赛录像</div>
+  <h1 class="page-title">看一场我们的比赛</h1>
+  <p class="page-lede">
+    每一场拼到最后一分钟的比赛都值得被记录。下面是我们这些年的比赛录像存档。
+  </p>
+</section>
+
+<main class="videos-page">
+  <div class="video-list">
+
+    <!-- 1. vs USC -->
+    <article class="video-card" style="animation-delay: .05s;">
+      <div class="video-meta">
+        <span class="video-tournament">2026 加州华人大学生校际杯 · LA</span>
+        <span class="video-date">2026 / 03</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left winner">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num winner">1</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num">0</span>
+        </div>
+        <div class="video-team right">USC</div>
+      </div>
+      <p class="video-note">柴泓旭半场迎球吊射制胜，把 USC 挡在决赛门外。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- 2. vs UCSD -->
+    <article class="video-card" style="animation-delay: .12s;">
+      <div class="video-meta">
+        <span class="video-tournament">2026 加州华人大学生校际杯 · LA</span>
+        <span class="video-date">2026 / 03</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num">1</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num">1</span>
+        </div>
+        <div class="video-team right">UCSD</div>
+      </div>
+      <p class="video-note">小组赛 · 同分同净胜球，差两个进球无缘决赛。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- 3. vs UCLA -->
+    <article class="video-card" style="animation-delay: .19s;">
+      <div class="video-meta">
+        <span class="video-tournament">2026 加州华人大学生校际杯 · LA</span>
+        <span class="video-date">2026 / 03</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num">1</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num">1</span>
+        </div>
+        <div class="video-team right">UCLA</div>
+      </div>
+      <p class="video-note">于霆访角球开到门前，李润泽甩头攻门。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- 4. vs UCI -->
+    <article class="video-card" style="animation-delay: .26s;">
+      <div class="video-meta">
+        <span class="video-tournament">2026 加州华人大学生校际杯 · LA</span>
+        <span class="video-date">2026 / 03</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num">0</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num winner">2</span>
+        </div>
+        <div class="video-team right winner">UCI</div>
+      </div>
+      <p class="video-note">定位赛两球小负，二队最终位列第六。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- 5. 北美湾区贺岁杯 -->
+    <article class="video-card" style="animation-delay: .33s;">
+      <div class="video-meta">
+        <span class="video-tournament">2026 北美湾区贺岁杯</span>
+        <span class="video-date">2026 / 01</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num">—</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num">—</span>
+        </div>
+        <div class="video-team right">两支队伍出战</div>
+      </div>
+      <p class="video-note">详细对阵 & 比分整理中。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- 6. 华体会 亚军 -->
+    <article class="video-card" style="animation-delay: .4s;">
+      <div class="video-meta">
+        <span class="video-tournament">2025 华体会 · 亚军</span>
+        <span class="video-date">2025</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num">—</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num">—</span>
+        </div>
+        <div class="video-team right">对手待补</div>
+      </div>
+      <p class="video-note">华体会决赛 · 亚军战报录像。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- 7. 北加联 冠军 -->
+    <article class="video-card" style="animation-delay: .47s;">
+      <div class="video-meta">
+        <span class="video-tournament">2024 北加联 · 冠军</span>
+        <span class="video-date">2024</span>
+      </div>
+      <div class="video-match">
+        <div class="video-team left winner">Davis Origin</div>
+        <div class="video-score">
+          <span class="video-score-num winner">—</span>
+          <span class="video-score-colon">:</span>
+          <span class="video-score-num">—</span>
+        </div>
+        <div class="video-team right">对手待补</div>
+      </div>
+      <p class="video-note">北加联冠军战录像。</p>
+      <div class="video-link-wrap">
+        <a href="123123" class="video-link" target="_blank" rel="noopener">
+          <span class="play">▶</span>看录像
+        </a>
+      </div>
+    </article>
+
+    <!-- placeholder -->
+    <article class="video-card placeholder" style="animation-delay: .55s;">
+      <p>更多比赛录像陆续上传中 · 想看哪场告诉我，我把链接补上。</p>
+    </article>
+
+  </div>
+</main>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+</body>
+</html>
