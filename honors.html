@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>我们的荣誉 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-soft: #fafaf7;
+    --ink: #0a0e1a;
+    --ink-soft: #3d4151;
+    --muted: #8a8a92;
+    --line: #e6e2d8;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --gold: #c89134;
+    --gold-soft: #f0d896;
+    --silver: #9aa0a9;
+    --silver-soft: #d8dce1;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247, 245, 240, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1400px; margin: 0 auto;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 40px; height: 40px; object-fit: contain;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: 1px solid var(--line);
+    border-radius: 999px; font-size: 13px;
+    color: var(--ink-soft); background: var(--bg-soft);
+    transition: all .3s ease;
+  }
+  .back-link:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft); transform: translateX(-3px);
+  }
+
+  .page-hero {
+    max-width: 1080px; margin: 0 auto;
+    padding: 96px 40px 56px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-eyebrow {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp .8s ease both;
+  }
+  .page-eyebrow::before {
+    content: ''; width: 36px; height: 1.5px; background: var(--accent);
+  }
+  .page-title {
+    font-size: clamp(56px, 9vw, 112px);
+    font-weight: 900; letter-spacing: -0.04em;
+    line-height: 0.95; margin-bottom: 24px;
+    animation: fadeUp .9s ease .1s both;
+  }
+  .page-title em { font-style: italic; font-weight: 400; color: var(--gold); }
+  .page-lede {
+    font-size: 18px; color: var(--ink-soft);
+    max-width: 600px;
+    animation: fadeUp .9s ease .2s both;
+  }
+
+  main.honors-page {
+    max-width: 1080px; margin: 0 auto;
+    padding: 72px 40px 96px;
+  }
+  .honors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+  }
+  .honor-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 40px 36px 36px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .4s cubic-bezier(.4,0,.2,1), box-shadow .4s ease, border-color .3s;
+    opacity: 0; transform: translateY(24px);
+    animation: fadeUp .8s ease forwards;
+  }
+  .honor-card.gold { animation-delay: .2s; }
+  .honor-card.silver { animation-delay: .35s; }
+  .honor-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--gold) 0%, var(--gold-soft) 100%);
+    transition: width .35s ease;
+  }
+  .honor-card.silver::before {
+    background: linear-gradient(180deg, var(--silver) 0%, var(--silver-soft) 100%);
+  }
+  .honor-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px rgba(13, 18, 36, 0.08);
+  }
+  .honor-card.gold:hover { border-color: var(--gold); }
+  .honor-card.silver:hover { border-color: var(--silver); }
+  .honor-card:hover::before { width: 8px; }
+  .honor-medal {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-soft) 100%);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    box-shadow: 0 8px 16px rgba(200, 145, 52, 0.25);
+  }
+  .honor-card.silver .honor-medal {
+    background: linear-gradient(135deg, var(--silver) 0%, var(--silver-soft) 100%);
+    box-shadow: 0 8px 16px rgba(154, 160, 169, 0.25);
+  }
+  .honor-year {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .honor-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .honor-sub-en {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 28px;
+  }
+  .honor-meta {
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .honor-meta-item h5 {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .honor-meta-item p {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  footer {
+    padding: 40px; text-align: center;
+    font-size: 13px; color: var(--muted);
+    background: var(--bg); border-top: 1px solid var(--line);
+  }
+  footer .slogan-cn {
+    font-size: 14px; color: var(--ink-soft);
+    margin-bottom: 8px; letter-spacing: 0.08em; font-weight: 500;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 8px 12px; font-size: 12px; }
+    .page-hero { padding: 56px 22px 32px; }
+    .page-lede { font-size: 15px; }
+    main.honors-page { padding: 40px 22px 64px; }
+    .honors-grid { grid-template-columns: 1fr; }
+    .honor-card { padding: 32px 24px 28px; }
+    .honor-title { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">Honors · 我们的荣誉</div>
+  <h1 class="page-title">Trophies<em>.</em></h1>
+  <p class="page-lede">这些年我们一起捧回的奖杯。</p>
+</section>
+
+<main class="honors-page">
+  <div class="honors-grid">
+    <article class="honor-card gold">
+      <div class="honor-medal">1</div>
+      <div class="honor-year">2024 · Champion</div>
+      <h2 class="honor-title">北加联 · 冠军</h2>
+      <p class="honor-sub-en">Northern California League Champion</p>
+      <div class="honor-meta">
+        <div class="honor-meta-item">
+          <h5>赛事</h5>
+          <p>北加联赛</p>
+        </div>
+        <div class="honor-meta-item">
+          <h5>名次</h5>
+          <p>冠军 · 1st</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="honor-card silver">
+      <div class="honor-medal">2</div>
+      <div class="honor-year">2025 · Runner-up</div>
+      <h2 class="honor-title">华体会 · 亚军</h2>
+      <p class="honor-sub-en">CSGA Runner-up</p>
+      <div class="honor-meta">
+        <div class="honor-meta-item">
+          <h5>赛事</h5>
+          <p>华体会</p>
+        </div>
+        <div class="honor-meta-item">
+          <h5>名次</h5>
+          <p>亚军 · 2nd</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+</body>
+</html>

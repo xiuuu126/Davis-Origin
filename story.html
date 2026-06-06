@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>我们的故事 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-soft: #fafaf7;
+    --ink: #0a0e1a;
+    --ink-soft: #3d4151;
+    --muted: #8a8a92;
+    --line: #e6e2d8;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247, 245, 240, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1400px; margin: 0 auto;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 40px; height: 40px; object-fit: contain;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: 1px solid var(--line);
+    border-radius: 999px; font-size: 13px;
+    color: var(--ink-soft); background: var(--bg-soft);
+    transition: all .3s ease;
+  }
+  .back-link:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft); transform: translateX(-3px);
+  }
+
+  .page-hero {
+    max-width: 1080px; margin: 0 auto;
+    padding: 96px 40px 56px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-eyebrow {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp .8s ease both;
+  }
+  .page-eyebrow::before {
+    content: ''; width: 36px; height: 1.5px; background: var(--accent);
+  }
+  .page-title {
+    font-size: clamp(56px, 9vw, 112px);
+    font-weight: 900; letter-spacing: -0.04em;
+    line-height: 0.95; margin-bottom: 24px;
+    animation: fadeUp .9s ease .1s both;
+  }
+  .page-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+  .page-lede {
+    font-size: 18px; color: var(--ink-soft);
+    max-width: 600px;
+    animation: fadeUp .9s ease .2s both;
+  }
+
+  main.story-page {
+    max-width: 680px; margin: 0 auto;
+    padding: 80px 40px 96px;
+    font-family: "Songti SC", "Source Han Serif SC", "Noto Serif SC",
+                 "STSong", SimSun, Georgia, "Times New Roman", serif;
+    font-size: 19px;
+    line-height: 2.05;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    font-weight: 400;
+  }
+  .story-body p {
+    margin-bottom: 28px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp .8s ease forwards;
+  }
+  .story-body p:nth-child(1) { animation-delay: .15s; }
+  .story-body p:nth-child(2) { animation-delay: .25s; }
+  .story-body p:nth-child(3) { animation-delay: .35s; }
+  .story-body p:nth-child(4) { animation-delay: .45s; }
+  .story-body p:nth-child(5) { animation-delay: .55s; }
+  .story-body p:nth-child(6) { animation-delay: .65s; }
+  .story-body p:last-child { margin-bottom: 0; }
+  .story-quote {
+    margin: 48px 0;
+    padding: 32px 36px;
+    background: var(--card);
+    border-radius: 16px;
+    border-left: 4px solid var(--accent);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+    box-shadow: 0 10px 24px rgba(13, 18, 36, 0.04);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp .8s ease .8s forwards;
+  }
+  .story-quote cite {
+    display: block;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  footer {
+    padding: 40px; text-align: center;
+    font-size: 13px; color: var(--muted);
+    background: var(--bg); border-top: 1px solid var(--line);
+  }
+  footer .slogan-cn {
+    font-size: 14px; color: var(--ink-soft);
+    margin-bottom: 8px; letter-spacing: 0.08em; font-weight: 500;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 8px 12px; font-size: 12px; }
+    .page-hero { padding: 56px 22px 32px; }
+    .page-lede { font-size: 15px; }
+    main.story-page { padding: 48px 22px 64px; font-size: 16px; }
+    .story-body p.lead { font-size: 20px; }
+    .story-quote { padding: 24px 22px; font-size: 19px; margin: 36px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">Story · 我们的故事</div>
+  <h1 class="page-title">Davis Origin<em>.</em></h1>
+  <p class="page-lede">为什么叫"原点"，以及一群人是如何聚到一起的。</p>
+</section>
+
+<main class="story-page">
+  <div class="story-body">
+    <p>戴维斯原点是加州大学戴维斯分校唯一一支华人足球队，也是全球原点足球大家庭的一员。</p>
+
+    <p>我们取名"原点"，是希望每一个来到戴维斯的人——无论第一次踩上这片草坪，还是已经在这里待了好几年——都能找到一个出发点。</p>
+
+    <p>一片可以并肩跑动的草坪，一群愿意把球踢好的人。仅此而已，但也已经足够。</p>
+
+    <p>球队从最初的几个人慢慢长起来，到现在覆盖在校学生和校友球员，一队加预备队几十号人。训练日的风、雨、汗，每一脚传球、每一次回追、每一次为队友补防的瞬间——就是我们在戴维斯一起留下的故事。</p>
+
+    <p>我们不靠光环，也不靠虚名。站在这里的理由很简单：因为爱球，因为爱身边的兄弟。</p>
+
+    <div class="story-quote">
+      爱球队和球队里的人，我们才变成最拼的球队。
+      <cite>— Davis Origin</cite>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+</body>
+</html>

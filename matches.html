@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>比赛 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-soft: #fafaf7;
+    --ink: #0a0e1a;
+    --ink-soft: #3d4151;
+    --muted: #8a8a92;
+    --line: #e6e2d8;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* Topbar */
+  .topbar {
+    position: sticky;
+    top: 0; z-index: 50;
+    background: rgba(247, 245, 240, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 40px; height: 40px;
+    object-fit: contain;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: var(--bg-soft);
+    transition: all .3s ease;
+  }
+  .back-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(-3px);
+  }
+
+  /* Hero */
+  .page-hero {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 96px 40px 56px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 22px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp .8s ease both;
+  }
+  .page-eyebrow::before {
+    content: '';
+    width: 36px; height: 1.5px;
+    background: var(--accent);
+  }
+  .page-title {
+    font-size: clamp(56px, 9vw, 112px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    margin-bottom: 24px;
+    animation: fadeUp .9s ease .1s both;
+  }
+  .page-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+  .page-lede {
+    font-size: 18px;
+    color: var(--ink-soft);
+    max-width: 600px;
+    animation: fadeUp .9s ease .2s both;
+  }
+  .season-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+    animation: fadeUp .9s ease .3s both;
+  }
+  .summary-cell {
+    text-align: center;
+    border-right: 1px solid var(--line);
+    padding: 4px 12px;
+  }
+  .summary-cell:last-child { border-right: none; }
+  .summary-num {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .summary-num.w { color: var(--accent); }
+  .summary-num.d { color: var(--ink-soft); }
+  .summary-num.l { color: #b04646; }
+  .summary-num.upcoming { color: var(--muted); }
+  .summary-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Matches */
+  main.matches-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 40px 96px;
+  }
+  .matches-section + .matches-section { margin-top: 56px; }
+  .matches-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .matches-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .match-row {
+    display: grid;
+    grid-template-columns: 130px 1fr auto;
+    gap: 28px;
+    padding: 24px 20px;
+    margin: 0 -20px 8px;
+    border-radius: 14px;
+    align-items: center;
+    transition: background .25s ease, transform .25s ease;
+  }
+  .match-row:hover {
+    background: var(--card);
+    transform: translateX(2px);
+  }
+  .match-date-col { font-variant-numeric: tabular-nums; }
+  .match-date-day {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .match-date-time {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .match-date-tag {
+    display: inline-block;
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .match-teams {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .match-team {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .match-team.davis { color: var(--ink); font-weight: 600; }
+  .match-team.winner {
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .match-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 8px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 17px;
+    letter-spacing: 0.02em;
+  }
+  .match-score.upcoming {
+    background: transparent;
+    border: 1.5px dashed var(--line);
+    color: var(--muted);
+    font-weight: 600;
+    font-style: italic;
+  }
+  .match-result {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: grid;
+    place-items: center;
+  }
+  .match-result.draw { background: rgba(140,140,148,0.12); color: var(--ink-soft); }
+  .match-result.loss { background: rgba(176, 70, 70, 0.12); color: #b04646; }
+  .match-result.upcoming { background: transparent; border: 1px dashed var(--line); color: var(--muted); font-size: 16px; }
+
+  /* Footer */
+  footer {
+    padding: 40px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  footer .slogan-cn {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 8px 12px; font-size: 12px; }
+    .page-hero { padding: 56px 22px 32px; }
+    .page-lede { font-size: 15px; }
+    .season-summary { grid-template-columns: repeat(4, 1fr); margin-top: 32px; padding-top: 22px; }
+    .summary-num { font-size: 24px; }
+    .summary-label { font-size: 9px; letter-spacing: 0.1em; }
+    main.matches-page { padding: 32px 22px 64px; }
+    .match-row {
+      grid-template-columns: 90px 1fr auto;
+      gap: 14px;
+      padding: 18px 12px;
+      margin: 0 -12px 4px;
+    }
+    .match-team { font-size: 14px; }
+    .match-score { font-size: 14px; padding: 4px 10px; }
+    .match-result { width: 30px; height: 30px; font-size: 11px; }
+    .match-date-day { font-size: 13px; }
+    .match-date-tag { font-size: 9px; padding: 2px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">Matches · 比赛</div>
+  <h1 class="page-title">Schedule<em>.</em></h1>
+  <p class="page-lede">2026 五月 · 北加联赛季正在进行中。Fight on.</p>
+
+  <div class="season-summary">
+    <div class="summary-cell"><div class="summary-num w">1</div><div class="summary-label">胜 · W</div></div>
+    <div class="summary-cell"><div class="summary-num d">2</div><div class="summary-label">平 · D</div></div>
+    <div class="summary-cell"><div class="summary-num l">4</div><div class="summary-label">负 · L</div></div>
+    <div class="summary-cell"><div class="summary-num upcoming">0</div><div class="summary-label">未开赛</div></div>
+  </div>
+</section>
+
+<main class="matches-page">
+
+  <div class="matches-section">
+    <div class="matches-section-title">May 2026 · 北加联</div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 10</div>
+        <div class="match-date-time">19:45</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis">Davis Origin Reverse</span>
+        <span class="match-score">1 : 1</span>
+        <span class="match-team">Jinyue</span>
+      </div>
+      <div class="match-result draw">D</div>
+    </div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 16</div>
+        <div class="match-date-time">10:00</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis">Davis Origin</span>
+        <span class="match-score">0 : 2</span>
+        <span class="match-team winner">HeHe FC</span>
+      </div>
+      <div class="match-result loss">L</div>
+    </div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 16</div>
+        <div class="match-date-time">18:45</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis">Davis Origin Reverse</span>
+        <span class="match-score">2 : 2</span>
+        <span class="match-team">Flying Horse</span>
+      </div>
+      <div class="match-result draw">D</div>
+    </div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 17</div>
+        <div class="match-date-time">11:35</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis">Davis Origin</span>
+        <span class="match-score">1 : 6</span>
+        <span class="match-team winner">SF United</span>
+      </div>
+      <div class="match-result loss">L</div>
+    </div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 17</div>
+        <div class="match-date-time">18:35</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis">Davis Origin Reverse</span>
+        <span class="match-score">0 : 3</span>
+        <span class="match-team winner">Z4</span>
+      </div>
+      <div class="match-result loss">L</div>
+    </div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 23</div>
+        <div class="match-date-time">14:30</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis winner">Davis Origin</span>
+        <span class="match-score">3 : 1</span>
+        <span class="match-team">EBU Rangers</span>
+      </div>
+      <div class="match-result">W</div>
+    </div>
+
+    <div class="match-row">
+      <div class="match-date-col">
+        <div class="match-date-day">May 24</div>
+        <div class="match-date-time">13:20</div>
+        <div class="match-date-tag">北加联</div>
+      </div>
+      <div class="match-teams">
+        <span class="match-team davis">Davis Origin</span>
+        <span class="match-score">1 : 2</span>
+        <span class="match-team winner">GSF</span>
+      </div>
+      <div class="match-result loss">L</div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>过往经历 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-soft: #fafaf7;
+    --ink: #0a0e1a;
+    --ink-soft: #3d4151;
+    --muted: #8a8a92;
+    --line: #e6e2d8;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --gold: #c89134;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* Topbar */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247, 245, 240, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1400px; margin: 0 auto;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 40px; height: 40px; object-fit: contain;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: 1px solid var(--line);
+    border-radius: 999px; font-size: 13px;
+    color: var(--ink-soft); background: var(--bg-soft);
+    transition: all .3s ease;
+  }
+  .back-link:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft); transform: translateX(-3px);
+  }
+
+  /* Hero */
+  .page-hero {
+    max-width: 1080px; margin: 0 auto;
+    padding: 96px 40px 56px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-eyebrow {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp .8s ease both;
+  }
+  .page-eyebrow::before {
+    content: ''; width: 36px; height: 1.5px; background: var(--accent);
+  }
+  .page-title {
+    font-size: clamp(56px, 9vw, 112px);
+    font-weight: 900; letter-spacing: -0.04em;
+    line-height: 0.95; margin-bottom: 24px;
+    animation: fadeUp .9s ease .1s both;
+  }
+  .page-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+  .page-lede {
+    font-size: 18px; color: var(--ink-soft);
+    max-width: 600px;
+    animation: fadeUp .9s ease .2s both;
+  }
+  .page-stats {
+    display: flex; gap: 56px;
+    margin-top: 48px; padding-top: 32px;
+    border-top: 1px solid var(--line);
+    animation: fadeUp .9s ease .3s both;
+  }
+  .page-stat-num {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .page-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Timeline page */
+  main.history-page {
+    max-width: 880px; margin: 0 auto;
+    padding: 96px 40px 96px;
+    position: relative;
+  }
+  .year-divider {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin: 56px 0 36px;
+    padding-left: 64px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .8s, transform .8s;
+  }
+  .year-divider.in { opacity: 1; transform: translateY(0); }
+  .year-divider:first-child { margin-top: 0; }
+  .year-label {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--accent);
+  }
+  .year-label.gold {
+    background: linear-gradient(135deg, var(--gold) 0%, #f4c460 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .year-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .year-tag.gold { background: rgba(200,145,52,0.15); color: var(--gold); }
+  .year-tag.silver { background: rgba(154,160,169,0.18); color: #6a7079; }
+
+  .timeline {
+    position: relative;
+    padding-left: 64px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--line) 0%, var(--line) 95%, transparent 100%);
+  }
+  .t-item {
+    position: relative;
+    padding-bottom: 40px;
+    opacity: 0;
+    transform: translateX(-12px);
+    transition: opacity .8s, transform .8s;
+  }
+  .t-item.in { opacity: 1; transform: translateX(0); }
+  .t-item:last-child { padding-bottom: 0; }
+  .t-item::before {
+    content: '';
+    position: absolute;
+    left: -56px; top: 6px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 3px solid var(--accent);
+    z-index: 2;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .t-item:hover::before {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 6px var(--accent-soft);
+  }
+  .t-item.gold::before {
+    border-color: var(--gold);
+  }
+  .t-item.gold:hover::before {
+    box-shadow: 0 0 0 6px rgba(200,145,52,0.18);
+  }
+  .t-item.silver::before {
+    border-color: #9aa0a9;
+  }
+  .t-item.now::before {
+    background: var(--accent);
+    border-color: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px var(--accent-soft); }
+    50% { box-shadow: 0 0 0 12px rgba(30,58,138,0.06); }
+  }
+  .t-date {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .t-item.gold .t-date { color: var(--gold); }
+  .t-item.silver .t-date { color: #6a7079; }
+  .t-now-badge {
+    padding: 2px 8px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+  .t-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 14px;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  .t-title-trophy::before {
+    content: '🏆';
+    margin-right: 10px;
+  }
+  .t-desc {
+    font-size: 15.5px;
+    color: var(--ink-soft);
+    line-height: 1.85;
+    margin-bottom: 12px;
+  }
+  .t-desc strong { color: var(--accent); font-weight: 700; }
+  .t-item.gold .t-desc strong { color: var(--gold); }
+  .t-desc em {
+    font-style: normal;
+    border-bottom: 2px solid var(--accent-soft);
+    padding-bottom: 1px;
+  }
+  .t-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .t-tag {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+  .t-quote {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: var(--card);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .t-item.gold .t-quote { border-left-color: var(--gold); }
+
+  /* Footer */
+  footer {
+    padding: 56px 40px;
+    text-align: center;
+    background: var(--ink);
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+  }
+  footer .footer-slogan {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 14px;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+  }
+  footer .footer-meta {
+    margin-top: 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 8px 12px; font-size: 12px; }
+    .page-hero { padding: 56px 22px 32px; }
+    .page-lede { font-size: 15px; }
+    .page-stats { gap: 32px; margin-top: 32px; padding-top: 22px; }
+    .page-stat-num { font-size: 24px; }
+
+    main.history-page { padding: 48px 22px 64px; }
+    .year-divider { margin: 40px 0 24px; padding-left: 48px; gap: 12px; }
+    .timeline { padding-left: 48px; }
+    .t-item::before { left: -48px; width: 16px; height: 16px; top: 4px; }
+    .t-item { padding-bottom: 32px; }
+    .t-title { font-size: 19px; }
+    .t-desc { font-size: 14.5px; }
+    footer { padding: 40px 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">History · 过往经历</div>
+  <h1 class="page-title">Roadmap<em>.</em></h1>
+  <p class="page-lede">从人员凋敝到 50+ 整装待发。我们一路走来的脚印，全在这里。</p>
+  <div class="page-stats">
+    <div>
+      <div class="page-stat-num">5</div>
+      <div class="page-stat-label">届足联杯</div>
+    </div>
+    <div>
+      <div class="page-stat-num">2</div>
+      <div class="page-stat-label">个赛事奖牌</div>
+    </div>
+    <div>
+      <div class="page-stat-num">3</div>
+      <div class="page-stat-label">年涅槃重建</div>
+    </div>
+  </div>
+</section>
+
+<main class="history-page">
+
+  <!-- 2023 -->
+  <div class="year-divider">
+    <span class="year-label">2023</span>
+    <span class="year-tag">起点</span>
+  </div>
+  <div class="timeline">
+    <div class="t-item">
+      <div class="t-date">三年前</div>
+      <h3 class="t-title">人员凋敝，阵容单薄</h3>
+      <p class="t-desc">
+        球队被掏空，但仍有兄弟坚持下来。<strong>第一次南下出征</strong>，球队还很瘦弱，
+        每一场都是硬扛。这一年我们记住了"再次站起来"的代价。
+      </p>
+      <div class="t-tags">
+        <span class="t-tag">出征</span>
+        <span class="t-tag">重建期</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2024 -->
+  <div class="year-divider">
+    <span class="year-label gold">2024</span>
+    <span class="year-tag gold">高光</span>
+  </div>
+  <div class="timeline">
+    <div class="t-item gold">
+      <div class="t-date">2024 · Champion</div>
+      <h3 class="t-title t-title-trophy">北加联 · 冠军</h3>
+      <p class="t-desc">
+        <strong>真正意义上的崛起</strong>。这一座冠军奖杯，是过去几年坚持的回报，
+        也是戴维斯新时代的开端。
+      </p>
+      <div class="t-tags">
+        <span class="t-tag">北加联</span>
+        <span class="t-tag">冠军</span>
+        <span class="t-tag">里程碑</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2025 -->
+  <div class="year-divider">
+    <span class="year-label" style="background:linear-gradient(135deg,#9aa0a9,#d8dce1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">2025</span>
+    <span class="year-tag silver">银牌</span>
+  </div>
+  <div class="timeline">
+    <div class="t-item silver">
+      <div class="t-date">2025 · Runner-up</div>
+      <h3 class="t-title t-title-trophy">华体会 · 亚军</h3>
+      <p class="t-desc">
+        在更大的舞台上证明自己。<strong>预备队建队</strong>，
+        让更多对足球有兴趣但缺乏经验的队员有了第一站。
+      </p>
+      <div class="t-tags">
+        <span class="t-tag">华体会</span>
+        <span class="t-tag">亚军</span>
+        <span class="t-tag">预备队建队</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2026 -->
+  <div class="year-divider">
+    <span class="year-label">2026</span>
+    <span class="year-tag">第二年</span>
+  </div>
+  <div class="timeline">
+
+    <div class="t-item">
+      <div class="t-date">2026 · 01 · 06</div>
+      <h3 class="t-title">让我们在一起的时光一直璀璨</h3>
+      <p class="t-desc">
+        戴维斯训练剪影 · 油画风。新年从一张训练剪影开始，温柔地把我们带回出发的样子。
+      </p>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 01 · 16</div>
+      <h3 class="t-title">出征北美湾区贺岁杯</h3>
+      <p class="t-desc">
+        <strong>两支队伍同时出战</strong>。一队遭遇 Hunter / South Bay，预备队迎战 SF United。
+        同时也是<strong>刘琨的告别赛</strong>——身披 10 号，完成与球队、与青葱大学时光的道别。
+      </p>
+      <div class="t-quote">莫愁前路无知己，天下谁人不识君。</div>
+      <div class="t-tags">
+        <span class="t-tag">贺岁杯</span>
+        <span class="t-tag">10 号刘琨</span>
+        <span class="t-tag">两队出战</span>
+      </div>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 03 · 09</div>
+      <h3 class="t-title">2026 加州华人大学生足球校际杯（预告）</h3>
+      <p class="t-desc">
+        七个学校，八支队伍集结尔湾。<em>戴维斯华盛顿长途跋涉，尔湾洛杉矶以逸待劳。</em>
+      </p>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 03 · 20</div>
+      <h3 class="t-title">在一起，去战斗</h3>
+      <p class="t-desc">
+        时隔三年再次南下尔湾。三年前我们人员凋敝，<strong>三年后两支队伍 40+ 球员整装待发</strong>。
+        我们更在意可以和兄弟们打出属于我们的比赛，在南加留下我们戴维斯的足迹。
+      </p>
+      <div class="t-quote">岂曰无衣？与子同袍！</div>
+      <div class="t-tags">
+        <span class="t-tag">出征尔湾</span>
+        <span class="t-tag">校际杯</span>
+        <span class="t-tag">40+ 阵容</span>
+      </div>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 03 · 21–23</div>
+      <h3 class="t-title">LA 三天鏖战 · 校际杯战报</h3>
+      <p class="t-desc">
+        一队小组赛<strong>一胜两平</strong>。和 UCSD 同分同净胜球，差两个进球进决赛；
+        击败 USC（柴泓旭半场迎球吊射）；对阵 UCLA 由<strong>于霆访</strong>角球助攻
+        <strong>李润泽</strong>头球破门。最后一队第四，二队第六。
+      </p>
+      <div class="t-quote">爱球队和球队里的人，我们才变成最拼的球队。</div>
+      <div class="t-tags">
+        <span class="t-tag">vs UCSD</span>
+        <span class="t-tag">vs USC</span>
+        <span class="t-tag">vs UCLA</span>
+        <span class="t-tag">vs UCI</span>
+      </div>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 04 · 05</div>
+      <h3 class="t-title">南加备战结束，北加备战开启</h3>
+      <p class="t-desc">
+        南下未尝败绩，回到北加开始新一轮赛季。<em>下一段征程在路上。</em>
+      </p>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 05 · 10–17</div>
+      <h3 class="t-title">北加联 · 前几轮</h3>
+      <p class="t-desc">
+        预备队 1:1 平 Jinyue；一队 0:2 负 HeHe FC；预备队 2:2 平 Flying Horse；
+        一队 1:6 负 SF United；预备队 0:3 负 Z4。
+        <strong>但我们没停过——下一周就是反弹的时候</strong>。
+      </p>
+      <div class="t-tags">
+        <span class="t-tag">北加联</span>
+        <span class="t-tag">五月赛季</span>
+      </div>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 05 · 23</div>
+      <h3 class="t-title t-title-trophy">3:1 击败 EBU Rangers · 赛季收官</h3>
+      <p class="t-desc">
+        感谢一二队队员这几个周末辛勤付出，<strong>大家劳苦功高，结果也非常不错</strong>。
+        在死亡之组的围剿之下，我们还是顽强地挺了过来。感谢大家的努力付出。
+      </p>
+      <p class="t-desc">
+        随着北加联的结束，球队的正式赛季拉下帷幕。
+        <strong>大家好好准备期末，回国享受假期</strong>。野球什么的，还是会有的。
+      </p>
+      <div class="t-quote">我们可以被击倒，但我们永远都会选择再次站起来。</div>
+      <div class="t-tags">
+        <span class="t-tag">vs EBU Rangers</span>
+        <span class="t-tag">3:1 胜</span>
+        <span class="t-tag">死亡之组</span>
+        <span class="t-tag">赛季收官</span>
+      </div>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 05 · 24</div>
+      <h3 class="t-title">vs GSF · 北加联</h3>
+      <p class="t-desc">
+        1:2 小负。但我们已经习惯了：<em>今日之失败只会变成下一次潮水涌回的前奏</em>。
+      </p>
+    </div>
+
+    <div class="t-item">
+      <div class="t-date">2026 · 现在</div>
+      <h3 class="t-title">预备队最好成绩 · 13 场 1 胜 2 平</h3>
+      <p class="t-desc">
+        建队两年的预备队，今年成绩较去年进步良多——
+        去年几乎全负，<strong>今年 13 场已经取得一胜两平</strong>。
+        预备队建队的意义是让更多队员踢上比赛，找到适合自己的踢球环境。我们做到了，但还可以更好。
+      </p>
+      <div class="t-tags">
+        <span class="t-tag">预备队</span>
+        <span class="t-tag">建队两年</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NOW -->
+  <div class="year-divider">
+    <span class="year-label">NOW</span>
+    <span class="year-tag" style="background:var(--accent);color:#fff;">收官</span>
+  </div>
+  <div class="timeline">
+    <div class="t-item now">
+      <div class="t-date">现在 · NOW</div>
+      <h3 class="t-title">赛季落幕，短暂休整</h3>
+      <p class="t-desc">
+        2026 北加联、加州校际杯、北美湾区贺岁杯——这一年的征程都已经收官。
+        <strong>南下未尝败绩，北上手起刀落</strong>。
+      </p>
+      <p class="t-desc">
+        赛季落幕，短暂休整。<strong>下一段征程，仍在路上</strong>。
+      </p>
+      <div class="t-quote">谢谢这一年。Davis Origin，期待再见。</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-slogan">岂曰无衣？与子同袍。</div>
+  <div>© Davis Origin · 戴维斯原点足球俱乐部 · UC Davis</div>
+  <div class="footer-meta">Davis Origin Football Club · China Origin Family</div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.year-divider, .t-item').forEach(el => obs.observe(el));
+</script>
+
+</body>
+</html>
