@@ -457,83 +457,79 @@
     color: var(--muted);
   }
 
-  /* ===== History brief (mini timeline) ===== */
+  /* ===== History brief (capsule fills on scroll) ===== */
   .history-mini {
     position: relative;
-    padding-left: 32px;
+    padding-left: 44px;
   }
-  .history-mini::before {
-    content: '';
+  /* 只有蓝色填充胶囊，没有背景轨道 */
+  .history-mini-fill {
     position: absolute;
-    left: 7px; top: 8px; bottom: 8px;
-    width: 2px;
-    background: var(--line);
+    left: 3px; top: 4px;
+    width: 16px;
+    height: var(--fill-h, 0px);
+    border-radius: 999px;
+    background: linear-gradient(180deg,
+      var(--accent-deep) 0%,
+      var(--accent) 70%,
+      var(--accent) 100%);
+    pointer-events: none;
+    z-index: 1;
+    transition: height 0.18s ease-out;
   }
   .history-mini-item {
     position: relative;
     padding-bottom: 28px;
+    transition: opacity .55s cubic-bezier(.4,0,.2,1),
+                transform .55s cubic-bezier(.4,0,.2,1);
   }
   .history-mini-item:last-child { padding-bottom: 0; }
-  .history-mini-item::before {
-    content: '';
-    position: absolute;
-    left: -32px; top: 6px;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--card);
-    border: 3px solid var(--accent);
-    transition: transform .3s, box-shadow .3s;
+  /* JS 启用后才把文字默认隐藏，没 JS 时所有文字正常显示 */
+  .history-mini.js-init .history-mini-item {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  .history-mini-item:hover::before {
-    transform: scale(1.15);
-    box-shadow: 0 0 0 6px var(--accent-soft);
-  }
-  .history-mini-item.now::before {
-    background: var(--accent);
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 4px var(--accent-soft); }
-    50% { box-shadow: 0 0 0 10px rgba(30,58,138,0.05); }
+  .history-mini.js-init .history-mini-item.passed {
+    opacity: 1;
+    transform: translateY(0);
   }
   .history-mini-year {
     font-size: 11px;
-    color: var(--accent);
+    color: var(--muted);
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    transition: color .35s ease;
   }
-  .now-tag {
-    padding: 2px 7px;
-    background: var(--accent);
-    color: #fff;
-    border-radius: 4px;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-  }
+  .history-mini-item.passed .history-mini-year { color: var(--accent); }
   .history-mini-title {
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ink);
-    line-height: 1.35;
+    line-height: 1.4;
+    transition: color .35s ease;
   }
 
   /* ===== Story brief ===== */
   .story-mini {
-    font-family: "Songti SC", "Source Han Serif SC", "Noto Serif SC",
-                 "STSong", SimSun, Georgia, "Times New Roman", serif;
-    font-size: 18px;
-    line-height: 2;
+    position: relative;
+    padding-left: 28px;
+    font-size: 17px;
+    line-height: 1.95;
     color: var(--ink);
     max-width: 620px;
-    letter-spacing: 0.02em;
     font-weight: 400;
   }
-  .story-mini p { margin-bottom: 18px; }
+  .story-mini::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-soft) 100%);
+    border-radius: 2px;
+  }
+  .story-mini p { margin-bottom: 20px; }
   .story-mini p:last-child { margin-bottom: 0; }
 
   /* ===== Contact brief ===== */
@@ -1112,6 +1108,54 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
   });
+
+  /* History mini timeline — 胶囊从上往下渐变填充 */
+  (function() {
+    const tl = document.querySelector('.history-mini');
+    if (!tl) return;
+    tl.classList.add('js-init');
+    const fill = document.createElement('div');
+    fill.className = 'history-mini-fill';
+    tl.insertBefore(fill, tl.firstChild);
+    const items = tl.querySelectorAll('.history-mini-item');
+
+    const PILL_TOP = 4;     // 跟 CSS 里 .history-mini::before top 一致
+
+    let raf = false;
+    function update() {
+      const rect = tl.getBoundingClientRect();
+      const containerH = tl.offsetHeight;
+      const viewportH = window.innerHeight;
+      const trigger = viewportH * 0.55;
+      const pillLen = containerH - 8;     // top:4 + bottom:4
+
+      const top = rect.top;
+      let progress;
+      if (trigger < top + PILL_TOP) progress = 0;
+      else if (trigger > top + PILL_TOP + pillLen) progress = 1;
+      else progress = (trigger - top - PILL_TOP) / pillLen;
+
+      const fillH = progress * pillLen;
+      tl.style.setProperty('--fill-h', fillH + 'px');
+
+      // 文字颜色根据填充进度切换
+      items.forEach(item => {
+        const itemMid = item.offsetTop + item.offsetHeight / 2;
+        if (fillH + PILL_TOP >= itemMid) item.classList.add('passed');
+        else item.classList.remove('passed');
+      });
+      raf = false;
+    }
+    function onScroll() {
+      if (!raf) {
+        requestAnimationFrame(update);
+        raf = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    update();
+  })();
 
   /* Hero parallax */
   const heroEl = document.querySelector('.hero');
