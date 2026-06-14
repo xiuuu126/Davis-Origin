@@ -1,1 +1,469 @@
-
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>世界杯 2026 · 每日深度比分预测</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080B12;--bg2:#0C111C;--panel:#0F1622;--panel2:#131C2B;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);
+--ink:#EAF1FA;--muted:#8593A8;--faint:#56627A;--green:#1FE07A;--green-d:#13a85b;--gold:#FFC93C;--coral:#FF5A4D;--sky:#5BC0FF;--A:#1FE07A;--B:#FFC93C;
+--display:'Bebas Neue',sans-serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;line-height:1.55;overflow-x:hidden}
+.pitch-bg{position:fixed;inset:0;z-index:0;opacity:.4;pointer-events:none}.pitch-bg svg{width:100%;height:100%}
+.glow{position:fixed;z-index:0;border-radius:50%;filter:blur(120px);opacity:.14;pointer-events:none}
+.glow.g1{width:460px;height:460px;background:var(--green);top:-160px;left:-120px}.glow.g2{width:500px;height:500px;background:var(--gold);bottom:-220px;right:-160px}
+.wrap{position:relative;z-index:2;max-width:940px;margin:0 auto;padding:0 18px 80px}
+header{padding:30px 0 14px}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--green);text-transform:uppercase;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:var(--display);font-size:clamp(38px,7.5vw,72px);line-height:.92;margin:8px 0 2px;font-weight:400}
+h1 .yr{color:var(--gold)}
+.sub{color:var(--muted);font-size:14px;max-width:640px}
+.tstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.tstat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.tstat .v{font-family:var(--display);font-size:28px;line-height:1;color:var(--green)}.tstat .v.gold{color:var(--gold)}
+.tstat .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:5px}
+.datenav{position:sticky;top:0;z-index:20;display:flex;gap:7px;overflow-x:auto;padding:13px 18px;margin:16px -18px 0;background:linear-gradient(180deg,var(--bg) 72%,transparent);scrollbar-width:none}
+.datenav::-webkit-scrollbar{display:none}
+.dchip{flex:0 0 auto;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:7px 12px;cursor:pointer;text-align:center;transition:all .18s;min-width:58px}
+.dchip:hover{border-color:var(--green)}.dchip.today{border-color:var(--green);background:rgba(31,224,122,.08)}
+.dchip .d{font-family:var(--display);font-size:20px;line-height:.9}
+.dchip .m{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;margin-top:2px}.dchip.today .m{color:var(--green)}
+.day{margin-top:28px}
+.day-h{display:flex;align-items:baseline;gap:11px;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.day-h .dn{font-family:var(--display);font-size:28px}.day-h .dl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.day-h .tb{font-family:var(--mono);font-size:10px;color:#04210f;background:var(--green);padding:3px 9px;border-radius:20px;font-weight:700}
+.day-h .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.match{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:11px;overflow:hidden;transition:border-color .2s}
+.match:hover{border-color:var(--line2)}.match.done{background:linear-gradient(90deg,rgba(31,224,122,.03),var(--panel))}
+.mhead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:15px 18px;cursor:pointer}
+.mteam{display:flex;align-items:center;gap:11px;min-width:0}.mteam.away{flex-direction:row-reverse;text-align:right}
+.mteam .fl{font-size:30px;line-height:1;flex:0 0 auto}.mteam .nm{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mteam .rk{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.mscore{text-align:center;flex:0 0 auto;padding:0 4px}
+.mscore .sc{font-family:var(--display);font-size:36px;line-height:.85;white-space:nowrap}
+.mscore .sc .pa{color:var(--A)}.mscore .sc .pb{color:var(--B)}.mscore .sc .sep{color:var(--faint);font-size:.7em;margin:0 2px}
+.mscore .badge{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 7px;border-radius:20px;margin-top:4px;display:inline-block}
+.badge.ft{background:#283246;color:var(--muted)}.badge.pred{background:rgba(31,224,122,.12);color:var(--green)}
+.mmeta{display:flex;align-items:center;gap:9px;padding:0 18px 12px;font-family:var(--mono);font-size:10px;color:var(--faint);flex-wrap:wrap}
+.mmeta .gp{color:var(--sky)}.mmeta .ven{color:var(--muted)}.mmeta .ko{color:var(--ink)}.mmeta .wx{color:var(--sky)}.mmeta .heat{color:var(--coral)}
+.mmeta .exp{margin-left:auto;color:var(--green);cursor:pointer}
+.miniprob{height:6px;border-radius:4px;overflow:hidden;display:flex;margin:0 18px 13px}
+.miniprob>div{transition:width .6s}.mp-w{background:var(--green)}.mp-d{background:#2b3650}.mp-l{background:var(--gold)}
+.detail{display:none;padding:2px 18px 20px;border-top:1px solid var(--line)}.match.open .detail{display:block}
+.sech{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin:18px 0 9px;display:flex;align-items:center;gap:8px}
+.sech::after{content:"";flex:1;height:1px;background:var(--line)}
+/* verdict */
+.verdict{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:13px 15px}
+.verdict .lean{font-size:15px;font-weight:700}.verdict .lean.a{color:var(--A)}.verdict .lean.b{color:var(--B)}.verdict .lean.d{color:var(--muted)}
+.verdict .stars{font-size:14px;color:var(--gold);letter-spacing:1px}
+.verdict .conf{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.verdict .ps{font-family:var(--display);font-size:24px;margin-left:auto}.verdict .ps .pa{color:var(--A)}.verdict .ps .pb{color:var(--B)}.verdict .ps .sep{color:var(--faint);font-size:.7em}
+.problabels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);margin:8px 0 0}
+.detail .miniprob{height:9px;margin:7px 0 0}
+/* dimension splits */
+.dims{display:grid;gap:7px}
+.dim{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center}
+.dim .dnm{font-size:12px;color:var(--muted)}.dim .dnm small{display:block;font-family:var(--mono);font-size:8.5px;color:var(--faint)}
+.dim .gbar{position:relative;height:24px;border-radius:7px;overflow:hidden;transition:background .5s}
+.dim .gbar .xline{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.65);transform:translateX(-1px);box-shadow:0 0 4px rgba(0,0,0,.5)}
+.dim .gbar .la,.dim .gbar .lb{position:absolute;top:50%;transform:translateY(-50%);font:700 11px var(--mono);color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.85)}
+.dleg{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-bottom:8px}.dleg b{font-weight:700}
+/* scoreline chips */
+.scores{display:flex;flex-wrap:wrap;gap:7px}
+.scchip{font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--line);border-left-width:3px;border-radius:7px;padding:6px 10px;color:var(--muted)}
+.scchip b{color:var(--ink);font-weight:700;margin-right:5px}
+/* totals */
+.totals{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end}
+.tg{text-align:center}
+.tg .tbar{height:56px;display:flex;align-items:flex-end;justify-content:center}
+.tg .tbar i{display:block;width:64%;border-radius:4px 4px 0 0;min-height:3px;transition:height .5s}
+.tg .pv{font-family:var(--mono);font-size:10.5px;color:var(--ink);margin-top:5px;font-weight:700}
+.tg .tl{font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:1px}
+.wdl{display:flex;gap:6px;font-family:var(--mono);font-size:11px;margin-top:9px;flex-wrap:wrap}
+.wdl span{padding:3px 9px;border-radius:20px;background:var(--bg2);border:1px solid var(--line)}
+/* weather card */
+.wxcard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.wxc{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.wxc .v{font-family:var(--display);font-size:21px;line-height:1;color:var(--sky)}.wxc .v.hot{color:var(--coral)}.wxc .v.gold{color:var(--gold)}
+.wxc .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+.wxnote{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+/* xi */
+.xis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.xi{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px}
+.xi .xh{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;margin-bottom:7px}
+.xi.a .xh{color:var(--A)}.xi.b .xh{color:var(--B)}
+.xi .form{font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-bottom:6px}
+.xi .lineup{font-size:11.5px;line-height:1.7;color:var(--muted)}
+/* players */
+.players{display:grid;gap:8px}
+.pl{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pl .pdot{width:8px;height:8px;border-radius:50%;margin-top:5px}.pl .pdot.a{background:var(--A)}.pl .pdot.b{background:var(--B)}
+.pl .pn{font-size:13px;font-weight:700}.pl .pc{font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-left:6px;font-weight:400}
+.pl .pd{font-size:12px;color:var(--muted);line-height:1.55;margin-top:2px}
+/* notes */
+.note{border-radius:10px;padding:11px 14px;font-size:12.5px;line-height:1.7;margin-top:8px}
+.note.inj{background:rgba(255,90,77,.06);border-left:2px solid var(--coral)}
+.note.mut{background:rgba(255,201,60,.06);border-left:2px solid var(--gold)}
+.note.ana{background:linear-gradient(90deg,rgba(31,224,122,.05),transparent);border-left:2px solid var(--green)}
+.note b{color:var(--ink)}.note .tagA{color:var(--A);font-weight:700}.note .tagB{color:var(--B);font-weight:700}.note .hot{color:var(--coral);font-weight:600}
+.mutlev{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;margin-right:6px}
+.mutlev.low{background:#283246;color:var(--muted)}.mutlev.mid{background:rgba(255,201,60,.18);color:var(--gold)}
+/* settings */
+.settings{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line2);border-radius:16px;margin-top:32px;overflow:hidden}
+.settings .sh{display:flex;align-items:center;gap:10px;padding:15px 18px;cursor:pointer}
+.settings .sh h3{font-family:var(--display);font-size:20px;font-weight:400}.settings .sh .chev{margin-left:auto;color:var(--faint);transition:transform .2s}
+.settings.open .sh .chev{transform:rotate(180deg)}.settings .sbody{display:none;padding:0 18px 18px}.settings.open .sbody{display:block}
+.settings .desc{font-size:12.5px;color:var(--muted);margin-bottom:13px}
+.wrow{display:grid;grid-template-columns:92px 1fr 42px;gap:11px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}.wrow:last-child{border-bottom:none}
+.wrow .wn{font-size:12px}.wrow .wn small{display:block;font-size:9px;color:var(--faint);font-family:var(--mono)}
+.wrow input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:#27313f;outline:none}
+.wrow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--green)}
+.wrow input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);border:2px solid var(--green)}
+.wrow .wv{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}
+.sbtns{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}
+.gbtn{background:var(--bg2);border:1px solid var(--line2);color:var(--muted);border-radius:9px;padding:8px 14px;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s}.gbtn:hover{border-color:var(--green);color:var(--ink)}
+footer{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint);line-height:1.7}footer b{color:var(--muted)}
+@media(max-width:620px){.tstats{grid-template-columns:repeat(2,1fr)}.mteam .nm{font-size:13.5px}.mscore .sc{font-size:30px}.xis{grid-template-columns:1fr}.wxcard{grid-template-columns:repeat(2,1fr)}.dim{grid-template-columns:54px 1fr}.wrow{grid-template-columns:78px 1fr 38px}.verdict .ps{margin-left:0;width:100%}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="pitch-bg"><svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" fill="none" stroke="rgba(31,224,122,.10)" stroke-width="1.4"><rect x="40" y="40" width="920" height="520"/><line x1="500" y1="40" x2="500" y2="560"/><circle cx="500" cy="300" r="78"/><rect x="40" y="180" width="120" height="240"/><rect x="840" y="180" width="120" height="240"/></svg></div>
+<div class="glow g1"></div><div class="glow g2"></div>
+<div class="wrap">
+<header>
+<div class="kicker"><span class="dot"></span>实时数据更新于 6月14日 · 含真实阵容/伤病/天气</div>
+<h1>世界杯 <span class="yr">2026</span><br>每日深度预测</h1>
+<p class="sub">已赛=官方比分。未赛=九维泊松模型预测,展开可见<b style="color:var(--ink)">各维度左右占比、预计首发+核心球员档案、当地开赛时间与气温湿度、默契球风险、胜负可信度</b>。重点对决均已查证真实阵容与伤情。</p>
+<div class="tstats" id="tstats"></div>
+</header>
+<div class="datenav" id="datenav"></div>
+<div id="days"></div>
+<div class="settings" id="settings">
+<div class="sh" id="settingsHead"><h3>⚙ 模型设置 · 调整九维权重</h3><span class="chev">▾</span></div>
+<div class="sbody"><p class="desc">权重影响占比与胜负概率。拉到 0 = 忽略该维度(占比回到 50/50);拉高 = 放大其影响。所有未赛预测实时重算。</p>
+<div id="wrows"></div>
+<div class="sbtns"><button class="gbtn" id="reset">↺ 全部归 100%</button><button class="gbtn" id="onlystrength">⚡ 只看硬实力</button><button class="gbtn" id="maxchaos">🎲 放大玄学</button></div></div>
+</div>
+<footer>
+<b>数据来源</b> · 赛程/比分/阵容/伤病来自 FIFA、ESPN、Al Jazeera、Sports Mole、CBS、Goal、FourFourTwo 等公开报道(截至6月14日);气候为各主办城市六月常态值(封顶球场已注明控温)。基础实力锚定6月11日 FIFA 排名,状态值已计入首轮真实结果。<br>
+<b>方法</b> · 胜平负与最可能比分来自联合泊松模型;各维度"占比"为该维度上双方相对强弱(受权重调节);可信度由结果分布的决断度换算。<b>默契球</b>风险为启发式判断,小组赛末轮才是真正高发期。预测仅供分析娱乐。
+</footer>
+</div>
+<script>
+/* 球队 [en,zh,旗,FIFA,实力,bias,form,squad,inj,psy,heat,host,alt,dia] */
+const T=[
+["Argentina","阿根廷","🇦🇷",1,94,4,88,88,25,96,78,null,0,70],["Spain","西班牙","🇪🇸",2,93,6,85,92,45,78,80,null,0,40],
+["France","法国","🇫🇷",3,93,5,84,95,34,86,70,null,0,45],["England","英格兰","🏴",4,90,3,80,90,28,72,60,null,0,50],
+["Portugal","葡萄牙","🇵🇹",5,89,5,82,86,30,80,76,null,0,55],["Brazil","巴西","🇧🇷",6,89,7,74,88,32,82,85,null,0,60],
+["Netherlands","荷兰","🇳🇱",7,87,3,80,84,32,78,62,null,0,40],["Morocco","摩洛哥","🇲🇦",8,84,0,86,80,28,84,82,null,0,40],
+["Belgium","比利时","🇧🇪",9,85,4,74,82,35,70,64,null,0,35],["Germany","德国","🇩🇪",10,86,4,75,85,33,80,60,null,0,45],
+["Croatia","克罗地亚","🇭🇷",11,83,1,76,78,30,85,66,null,0,35],["Colombia","哥伦比亚","🇨🇴",13,82,3,82,80,30,76,82,null,0,70],
+["Senegal","塞内加尔","🇸🇳",14,80,1,78,80,32,76,85,null,0,35],["Mexico","墨西哥","🇲🇽",15,80,2,84,76,28,74,88,"MEX",1,95],
+["USA","美国","🇺🇸",17,79,2,86,78,26,72,80,"USA",0,100],["Uruguay","乌拉圭","🇺🇾",16,82,1,78,80,32,84,80,null,0,60],
+["Switzerland","瑞士","🇨🇭",19,79,0,66,76,30,72,62,null,0,30],["Japan","日本","🇯🇵",18,79,3,90,80,30,76,78,null,0,40],
+["Ecuador","厄瓜多尔","🇪🇨",24,77,0,76,74,28,72,80,null,1,55],["Austria","奥地利","🇦🇹",22,77,2,78,76,30,72,64,null,0,25],
+["Norway","挪威","🇳🇴",23,78,8,80,74,28,70,60,null,0,30],["Australia","澳大利亚","🇦🇺",26,74,-1,80,70,30,76,76,null,0,35],
+["Korea Republic","韩国","🇰🇷",21,76,2,80,76,28,78,78,null,0,45],["Sweden","瑞典","🇸🇪",28,76,4,78,76,30,70,60,null,0,30],
+["Egypt","埃及","🇪🇬",31,76,1,76,74,30,74,88,null,0,30],["Ivory Coast","科特迪瓦","🇨🇮",40,76,1,75,76,30,74,85,null,0,30],
+["Algeria","阿尔及利亚","🇩🇿",36,76,2,80,76,30,74,84,null,0,30],["Paraguay","巴拉圭","🇵🇾",37,74,-2,64,70,28,74,82,null,0,50],
+["Scotland","苏格兰","🏴",44,73,0,76,68,32,72,58,null,0,30],["Czechia","捷克","🇨🇿",42,73,0,66,70,30,68,62,null,0,25],
+["Turkiye","土耳其","🇹🇷",27,75,3,66,76,30,68,72,null,0,35],["Tunisia","突尼斯","🇹🇳",45,72,-1,70,70,30,72,86,null,0,25],
+["Iran","伊朗","🇮🇷",20,73,0,72,72,30,76,84,null,0,25],["Qatar","卡塔尔","🇶🇦",52,70,0,76,66,28,70,88,null,0,20],
+["Saudi Arabia","沙特阿拉伯","🇸🇦",58,70,0,64,68,38,64,88,null,0,20],["Bosnia","波黑","🇧🇦",46,73,2,72,70,32,70,62,null,0,25],
+["Canada","加拿大","🇨🇦",30,74,2,74,72,28,68,70,"CAN",0,80],["Curacao","库拉索","🇨🇼",82,62,1,68,56,30,64,86,null,0,40],
+["DR Congo","刚果(金)","🇨🇩",56,72,1,74,72,32,70,85,null,0,25],["Uzbekistan","乌兹别克斯坦","🇺🇿",54,70,0,72,68,30,70,80,null,0,20],
+["Ghana","加纳","🇬🇭",73,73,1,72,74,32,72,86,null,0,30],["Iraq","伊拉克","🇮🇶",59,69,0,72,66,32,72,86,null,0,20],
+["Jordan","约旦","🇯🇴",62,68,-1,74,66,30,72,86,null,0,20],["Haiti","海地","🇭🇹",83,62,1,66,58,32,68,84,null,0,45],
+["South Africa","南非","🇿🇦",61,70,1,62,64,34,70,82,null,0,25],["New Zealand","新西兰","🇳🇿",86,64,0,68,60,30,70,70,null,0,25],
+["Cape Verde","佛得角","🇨🇻",70,64,1,72,60,28,70,84,null,0,25],["Panama","巴拿马","🇵🇦",31,67,0,70,64,30,72,82,null,0,55],
+];
+const TEAMS={};T.forEach(r=>TEAMS[r[0]]={en:r[0],zh:r[1],flag:r[2],rank:r[3],rating:r[4],bias:r[5],form:r[6],squad:r[7],inj:r[8],psy:r[9],heat:r[10],host:r[11],alt:r[12],dia:r[13]});
+/* 球队代表色(在深色底上可辨识) */
+const COL={Argentina:'#7CB6E8',Spain:'#E63946',France:'#3C78C8',England:'#F05545',Portugal:'#1AA85A',Brazil:'#F5D547',Netherlands:'#FF7A1A',Morocco:'#D7263D',Belgium:'#F4C430',Germany:'#F2C94C',Croatia:'#2D6CDF',Colombia:'#F2C94C',Senegal:'#2EAD5B',Mexico:'#16A36A',USA:'#4D7AEE',Uruguay:'#6FB1E0',Switzerland:'#E5484D',Japan:'#1F5FC0',Ecuador:'#F2C94C',Austria:'#E5484D',Norway:'#EF4B5C',Australia:'#F4C430',"Korea Republic":'#D7384A',Sweden:'#3D8FD1',Egypt:'#E5484D',"Ivory Coast":'#FF8A3D',Algeria:'#1EA85C',Paraguay:'#E5484D',Scotland:'#3D8FD1',Czechia:'#E5484D',Turkiye:'#EF3B45',Tunisia:'#E5484D',Iran:'#2EAD5B',Qatar:'#B23A5E',"Saudi Arabia":'#1FA363',Bosnia:'#F2C94C',Canada:'#EF3B45',Curacao:'#3D6EE8',"DR Congo":'#3DA8E8',Uzbekistan:'#22B0B5',Ghana:'#F2C94C',Iraq:'#E5484D',Jordan:'#E5484D',Haiti:'#E5484D',"South Africa":'#1FA363',"New Zealand":'#5C8AE0',"Cape Verde":'#3D6EE8',Panama:'#5C8AE0'};
+/* 客场/备用色(主色相近时启用) */
+const COL2={Norway:'#1F3A93',Jordan:'#15B8B8',Qatar:'#2D6CDF',Iraq:'#0E7C5A',Austria:'#111B3A',Switzerland:'#D9D9D9',Tunisia:'#0E5AA8',Egypt:'#111B3A',Canada:'#111B3A',Croatia:'#D7141A',England:'#1F3A93'};
+function _hx(c){c=c.replace('#','');return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];}
+function cdist(a,b){const x=_hx(a),y=_hx(b);return Math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2+(x[2]-y[2])**2);}
+function _comp(c){const pal=['#3D6EE8','#FF7A1A','#1FA363','#F2C94C','#B23A5E','#22B0B5','#1F5FC0'];let best=pal[0],bd=-1;pal.forEach(p=>{const d=cdist(c,p);if(d>bd){bd=d;best=p;}});return best;}
+function pickColors(an,bn){let cA=COL[an]||'#1FE07A',cB=COL[bn]||'#FFC93C';
+ if(cdist(cA,cB)<95){const b2=COL2[bn];if(b2&&cdist(cA,b2)>=95)cB=b2;else{const a2=COL2[an];if(a2&&cdist(a2,cB)>=95)cA=a2;else cB=_comp(cA);}}
+ return[cA,cB];}
+/* 球场 [主办,热,海拔] */
+const V={"墨西哥城·阿兹特克":["MEX",55,95],"瓜达拉哈拉·Akron":["MEX",60,65],"蒙特雷·BBVA":["MEX",90,15],"洛杉矶·SoFi":["USA",55,5],"西雅图·Lumen":["USA",25,5],"旧金山湾区·Levi's":["USA",35,5],"堪萨斯城·Arrowhead":["USA",70,15],"达拉斯·AT&T":["USA",82,10],"休斯顿·NRG":["USA",85,5],"亚特兰大·奔驰":["USA",72,20],"迈阿密·Hard Rock":["USA",90,5],"费城·Lincoln":["USA",70,5],"波士顿·Gillette":["USA",55,5],"纽约/新泽西·MetLife":["USA",65,5],"多伦多·BMO":["CAN",50,5],"温哥华·BC Place":["CAN",30,5]};
+/* 气候 [气温°C,湿度%,天气,封顶roof] */
+const CL={"墨西哥城·阿兹特克":[22,55,"多云有阵雨·高原2240m",0],"瓜达拉哈拉·Akron":[26,50,"午后雷阵雨·海拔1566m",0],"蒙特雷·BBVA":[35,45,"烈日酷热",0],"洛杉矶·SoFi":[26,50,"晴·顶棚半遮",1],"西雅图·Lumen":[21,60,"凉爽多云",0],"旧金山湾区·Levi's":[24,55,"晴爽",0],"堪萨斯城·Arrowhead":[30,60,"闷热",0],"达拉斯·AT&T":[23,50,"封顶空调(外35°C)",1],"休斯顿·NRG":[23,55,"封顶空调(外34°C)",1],"亚特兰大·奔驰":[24,60,"封顶可控温(外30°C多雨)",1],"迈阿密·Hard Rock":[33,73,"闷热·体感34°C·多雷雨",0],"费城·Lincoln":[28,60,"温热",0],"波士顿·Gillette":[24,55,"温和",0],"纽约/新泽西·MetLife":[27,60,"温热",0],"多伦多·BMO":[24,55,"温和",0],"温哥华·BC Place":[20,55,"凉爽·室内固定顶",1]};
+/* 赛程 [日期,组,A,B,球场,结果|null,备注,当地开赛] */
+const FIX=[
+["06-11","A","Mexico","South Africa","墨西哥城·阿兹特克",[2,0],"揭幕战:沙基拉献唱,南非两度染红仅余9人。","20:00"],
+["06-12","A","Korea Republic","Czechia","瓜达拉哈拉·Akron",[2,1],"孙兴慜领衔,韩国第80分钟替补奥贤揆绝杀。","19:00"],
+["06-12","B","Canada","Bosnia","多伦多·BMO",[1,1],"东道主加拿大主场被波黑逼平。","18:00"],
+["06-13","D","USA","Paraguay","洛杉矶·SoFi",[4,1],"巴洛贡+普利西奇爆发,美国大胜,被誉队史最佳。","18:00"],
+["06-13","B","Qatar","Switzerland","旧金山湾区·Levi's",[1,1],"卡塔尔顽强逼平瑞士,后者表现低迷。","17:00"],
+["06-13","C","Brazil","Morocco","纽约/新泽西·MetLife",[1,1],"维尼修斯救主,巴西仍是半成品;摩洛哥拿分。","19:00"],
+["06-14","D","Australia","Turkiye","温哥华·BC Place",[2,0],"袋鼠军团爆冷2-0,土耳其揭幕折戟。","18:00"],
+["06-14","C","Scotland","Haiti","波士顿·Gillette",[1,0],"苏格兰终结28年世界杯进球荒,小胜海地。","15:00"],
+["06-14","E","Germany","Curacao","休斯顿·NRG",null,"实力鸿沟巨大;库拉索史上首次世界杯。","12:00"],
+["06-14","F","Netherlands","Japan","达拉斯·AT&T",null,"今日焦点:日本技术流能否搅动橙衣军团。","15:00"],
+["06-14","E","Ivory Coast","Ecuador","费城·Lincoln",null,"厄瓜多尔被普遍看好为本届黑马,防线稳固。","18:00"],
+["06-14","F","Sweden","Tunisia","蒙特雷·BBVA",null,"蒙特雷湿热如蒸笼,突尼斯耐热是隐形优势。","21:00"],
+["06-15","H","Spain","Cape Verde","亚特兰大·奔驰",null,"亚马尔伤愈复出但被严格管理,西班牙绝对上风。","12:00"],
+["06-15","G","Belgium","Egypt","西雅图·Lumen",null,"萨拉赫领衔埃及;西雅图凉爽利于双方发挥。","15:00"],
+["06-15","H","Saudi Arabia","Uruguay","迈阿密·Hard Rock",null,"迈阿密酷热;沙特赛前换帅,乌拉圭整体压制。","18:00"],
+["06-15","G","Iran","New Zealand","洛杉矶·SoFi",null,"伊朗防守稳健,新西兰为大洋洲独苗。","21:00"],
+["06-16","I","France","Senegal","纽约/新泽西·MetLife",null,"至今分量最重的强强对话!塞内加尔非洲头号劲旅。","15:00"],
+["06-16","I","Iraq","Norway","波士顿·Gillette",null,"哈兰德火力点燃挪威,伊拉克时隔40年回归。","18:00"],
+["06-16","J","Argentina","Algeria","堪萨斯城·Arrowhead",null,"卫冕冠军揭幕,梅西最后一届;阿尔及利亚不容小觑。","20:00"],
+["06-17","J","Austria","Jordan","旧金山湾区·Levi's",null,"奥地利欧洲中坚,约旦世界杯首秀搏冷门。","23:00"],
+["06-17","K","Portugal","DR Congo","休斯顿·NRG",null,"C罗领衔葡萄牙;休斯顿封顶控温。","12:00"],
+["06-17","L","England","Croatia","达拉斯·AT&T",null,"另一焦点:三狮对阵魔笛余晖的克罗地亚。","15:00"],
+["06-17","L","Ghana","Panama","多伦多·BMO",null,"加纳身体流劲旅,巴拿马拼防守。","18:00"],
+["06-17","K","Uzbekistan","Colombia","墨西哥城·阿兹特克",null,"阿兹特克高原,哥伦比亚需适应海拔。","21:00"],
+["06-18","A","Czechia","South Africa","亚特兰大·奔驰",null,"捷克首轮憾负需取胜;南非减员且低迷。","12:00"],
+["06-18","B","Switzerland","Bosnia","洛杉矶·SoFi",null,"两队首轮都没赢,几乎是出线生死战。","15:00"],
+["06-18","B","Canada","Qatar","温哥华·BC Place",null,"加拿大坐镇温哥华主场,力争首胜。","18:00"],
+["06-18","A","Mexico","Korea Republic","瓜达拉哈拉·Akron",null,"小组头名直接对话,两队首轮全胜。","21:00"],
+];
+const DAYLABEL={"06-11":"周四 揭幕","06-12":"周五","06-13":"周六","06-14":"周日","06-15":"周一","06-16":"周二","06-17":"周三","06-18":"周四"};
+const TODAY="06-14";
+/* 深度档案 key=A|B : {xiA,xiB,formA,formB,key:[{t,n,c,d}],inj,mut,ana} */
+const DOSS={
+"Germany|Curacao":{xiA:"诺伊尔; 基米希·吕迪格·施洛特贝克·劳姆; 帕夫洛维奇·施蒂勒; 萨内·维尔茨·穆夏拉; 沃尔特马德",xiB:"门将后接荷甲/荷乙班底,5后卫深蹲防守",formA:"资格赛6轮5胜·热身3-4负瑞士暴露后防",formB:"世界杯处子秀·中北美预选黑马出线",
+key:[{t:"A",n:"弗洛里安·维尔茨",c:"利物浦",d:"身价约€1.3亿,FourFourTwo评全球第一前腰,世界杯首秀,夏窗刚加盟红军。"},{t:"A",n:"贾马尔·穆夏拉",c:"拜仁",d:"去年重伤(断腿)后复出,纳格尔斯曼称'95%状态也是世界顶级',德国最不可预测攻击手。"},{t:"A",n:"曼努埃尔·诺伊尔",c:"拜仁",d:"40岁结束退役复出,第五届也是最后一届世界杯,小腿伤已愈担纲首发门将。"}],
+inj:"德国:卡尔(大腿)退队由乌埃德拉奥戈顶替、格纳布里伤缺;诺伊尔小腿已痊愈。",mut:["low","实力碾压,无任何默契空间。"],
+ana:"<span class='tagA'>德国</span>各维度全面压制,封顶控温抵消了休斯顿酷暑。库拉索作为史上最小人口参赛国之一(约15万),首秀目标是少丢球。模型看好德国2-3球大胜,唯一变量是德国后防近期热身失球偏多,可能让库拉索偷到一球。"},
+"Netherlands|Japan":{xiA:"费尔布鲁根; 邓弗里斯·范戴克·范德文·阿克; 德容·赫拉芬贝赫·赖恩德斯; 马伦·德佩·加克波",xiB:"铃木彩艳; 谷口·板仓·伊藤洋辉; 堂安·镰田·田中·中村; 久保·伊东; 上田(3-4-2-1)",formA:"资格赛跌跌撞撞,2022八强后重建",formB:"赛前6连胜全胜·5场零封·含3-2胜巴西、胜英格兰",
+key:[{t:"A",n:"范戴克",c:"利物浦",d:"队长兼后防定海神针,大赛经验丰富。"},{t:"A",n:"加克波",c:"利物浦",d:"锋线驱动点,荷兰主要爆点,首发铁定。"},{t:"A",n:"马伦",c:"罗马",d:"2026年在意甲状态火热进球如麻,力压历史射手王德佩抢九号位。"},{t:"B",n:"久保建英",c:"皇家社会",d:"三笘缺阵后日本头号创造力,小快灵突破+直塞。"},{t:"B",n:"上田绮世",c:"费耶诺德",d:"上赛季荷甲金靴,身体与门前嗅觉俱佳,客战荷甲对手心理无惧。"}],
+inj:"日本重大减员:三笘薫(腿筋)、队长远藤航(脚伤并宣布退出国家队)、南野拓实 三大主力全部缺阵。荷兰:蒂姆贝尔伤退,费尔布鲁根髋部小伤可出战。",
+mut:["mid","两队均判断'拿一分、后面对瑞典/突尼斯再发力'未必吃亏(SI明确点出),存在默契平局的暗流——但日本火热状态更想直接拿下。"],
+ana:"账面<span class='tagA'>荷兰</span>更强,但<span class='tagB'>日本</span>是状态最炸的球队之一(连胜含3-2掀翻巴西)。森保一的3-4-2-1边翼卫极具威胁,荷兰若轻敌极易被反击打穿。模型账面给荷兰小胜,但<b>我综合研判 1-1</b>:日本的化学反应与连胜势头(3-2掀翻巴西、零封英格兰)足以抵消荷兰的个人身价优势,加上两队都可接受一分(后面对瑞典/突尼斯更好打),这是今日最可能打平甚至爆冷的一场——德佩状态欠佳、荷兰中卫转身偏慢是隐患。"},
+"Ivory Coast|Ecuador":{formA:"非洲身体流·2023非洲杯主场夺冠底蕴",formB:"被ESPN等列为本届最大黑马·防守稳固",
+key:[{t:"A",n:"科特迪瓦锋线",c:"CAF",d:"非洲杯冠军班底,身体对抗与边路冲击强,主打高强度逼抢。"},{t:"B",n:"莫伊塞斯·凯塞多",c:"切尔西",d:"英超顶级后腰,身价高,是厄瓜多尔中场屏障与出球核心。"},{t:"B",n:"皮耶罗·因卡皮耶",c:"勒沃库森",d:"年轻左脚中卫,厄瓜多尔稳固防线的支柱;球队来自基多高原,体能与抗逆性强。"}],
+inj:"双方无重大伤情公布。",mut:["low","E组首轮,各自抢分,无默契动机。"],
+ana:"势均力敌的一场。<span class='tagB'>厄瓜多尔</span>防守纪律+高原体能略占心理与稳定性,科特迪瓦则强在个人爆发力。费城温热不极端。模型微微看好厄瓜多尔,但比分大概率低位,1-0 / 1-1 都在射程内。"},
+"Sweden|Tunisia":{formA:"锋线豪华·北欧技术流",formB:"北非铁桶·耐热是主场般优势",
+key:[{t:"A",n:"亚历山大·伊萨克",c:"英超顶级中锋",d:"瑞典头号射手,身价高、跑动与终结俱佳。"},{t:"A",n:"维克托·约克雷斯",c:"英超前锋",d:"近两季欧洲炙手可热的进球机器,与伊萨克组豪华锋线。"},{t:"B",n:"突尼斯防线",c:"CAF",d:"组织严密、擅长低位防反;蒙特雷35°C酷热湿闷,对北欧球员是额外消耗,突尼斯耐热占便宜。"}],
+inj:"无重大伤情。",mut:["low","F组首轮,无默契动机。"],
+ana:"<span class='tagA'>瑞典</span>锋线火力更胜一筹,但<span class='hot'>蒙特雷的酷暑</span>是突尼斯的隐形第十二人——瑞典球员体能折损会拉近差距。<b>我研判 1-1</b>:瑞典锋线更强,但蒙特雷的酷暑会持续放血,突尼斯耐热+铁桶很可能把瑞典拖成1-1。"},
+"Spain|Cape Verde":{xiA:"西蒙; 波罗·库巴尔西·拉波尔特·库库雷利亚; 法比安·鲁伊斯·罗德里·佩德里; 费兰·托雷斯·奥亚萨瓦尔·巴埃纳",xiB:"门将后五后卫密集防守,门德斯单箭头",formA:"欧洲杯卫冕冠军·近10场不败7胜",formB:"世界杯处子秀·排名第69",
+key:[{t:"A",n:"拉明·亚马尔",c:"巴萨",d:"18岁天才,身价约€2亿;4月点球时拉伤腿筋,刚复训,首战大概率替补登场找节奏,留力淘汰赛。"},{t:"A",n:"罗德里",c:"曼城",d:"2024金球奖得主,西班牙中场大脑与节拍器。"},{t:"A",n:"佩德里",c:"巴萨",d:"控场与推进核心,本赛季状态出色。"},{t:"B",n:"瑞安·门德斯",c:"佛得角",d:"队史第一射手(97场22球),36岁老将,佛得角首秀的精神领袖。"}],
+inj:"西班牙:亚马尔、尼科·威廉姆斯(均腿筋)、维克托·穆尼奥斯(肌肉负荷)首战或替补;德拉富恩特称无大碍。佛得角无伤情。",
+mut:["low","实力悬殊,无默契空间。"],
+ana:"<span class='tagA'>西班牙</span>即便雪藏两翼亚马尔/尼科,仍全方位碾压。亚特兰大封顶控温利于技术流。佛得角史诗级处子秀,目标是体面。模型看西班牙2-3球完胜,失球概率很低。"},
+"Belgium|Egypt":{formA:"黄金一代尾声·仍具个人天赋",formB:"萨拉赫领衔·非洲强队",
+key:[{t:"A",n:"凯文·德布劳内",c:"中场大师",d:"比利时进攻发动机,传球视野顶级,黄金一代核心。"},{t:"A",n:"杰雷米·多库",c:"曼城",d:"爆点边锋,速度与突破撕裂防线。"},{t:"B",n:"穆罕默德·萨拉赫",c:"利物浦",d:"埃及绝对核心与精神图腾,身价/产量俱佳,一人可定胜负。"},{t:"B",n:"奥马尔·马尔穆什",c:"曼城",d:"速度型射手,与萨拉赫形成双快锋线。"}],
+inj:"无重大伤情公布。",mut:["low","G组首轮,各自抢分。"],
+ana:"<span class='tagA'>比利时</span>整体厚度更高,但<span class='tagB'>埃及</span>有萨拉赫这种'单点解决比赛'的存在。西雅图凉爽不构成体能负担。<b>我研判 1-1</b>:比利时黄金一代的化学反应已显疲态,而埃及有萨拉赫这种'单点解决比赛'的存在,逼平比利时完全在能力范围内。"},
+"Saudi Arabia|Uruguay":{formA:"赛前56天换帅·动荡",formB:"整体实力压制·南美劲旅",
+key:[{t:"B",n:"费德里科·巴尔韦德",c:"皇马",d:"全能中场,攻防覆盖+远射,乌拉圭引擎。"},{t:"B",n:"达尔文·努涅斯",c:"前锋",d:"冲击力射手,身体与速度俱佳。"},{t:"B",n:"罗纳德·阿劳霍",c:"后卫",d:"乌拉圭防线支柱,对抗强硬。"},{t:"A",n:"萨勒姆·道萨里",c:"利雅得新月",d:"沙特核心爆点(2022曾破阿根廷),团队赛前换帅(雷纳尔离任)士气受影响;迈阿密酷热反而合沙特口味。"}],
+inj:"无重大伤情。沙特主帅赛前临阵更换是最大不稳定因素。",mut:["low","H组首轮,无默契动机。"],
+ana:"<span class='tagB'>乌拉圭</span>个人质量与中场控制全面占优,沙特的换帅动荡+迈阿密湿热(对沙特反而适应)是仅有变量。模型看乌拉圭1-2球取胜,但比耶尔萨体系若磨合不畅,闷热中也可能被沙特拖住。"},
+"Iran|New Zealand":{formA:"亚洲铁桶·防守稳健",formB:"大洋洲独苗·身体流",
+key:[{t:"A",n:"梅赫迪·塔雷米",c:"前锋",d:"伊朗头号射手,支点与终结俱佳。"},{t:"A",n:"伊朗防线",c:"AFC",d:"组织严密、擅长1-0,大赛经验丰富。"},{t:"B",n:"克里斯·伍德",c:"诺丁汉森林",d:"新西兰头号射手,高点与抢点能力强,定位球威胁大。"}],
+inj:"无重大伤情。",mut:["low","G组首轮。"],
+ana:"<span class='tagA'>伊朗</span>更成熟、更稳,擅长把比赛拖进自己的节奏。新西兰靠身体和定位球搏一城。模型看伊朗小胜,低比分(1-0最典型),双方破门率不高。"},
+"France|Senegal":{xiA:"迈尼昂; 孔德·萨利巴·乌帕梅卡诺·特奥; 琼阿梅尼·坎特·拉比奥; 奥利塞·登贝莱·姆巴佩(c)",xiB:"门迪; 迪亚塔·库利巴利(c)·尼亚卡特·雅各布斯; 盖耶·P.M.萨尔·L.卡马拉; I.萨尔·杰克逊·马内",formA:"近5场4胜·3月双友谊赛胜巴西/哥伦比亚",formB:"CAF区不败·10场仅失3球·卫冕非洲杯冠军",
+key:[{t:"A",n:"基利安·姆巴佩",c:"皇马",d:"法国队长,56球队史第二(仅次吉鲁57球),近期有大腿伤需管理负荷。"},{t:"A",n:"乌斯曼·登贝莱",c:"巴黎",d:"2025金球热门,爆点与节奏,法国前场最危险变量之一。"},{t:"A",n:"德西雷·杜埃",c:"巴黎",d:"热身赛上演帽子戏法,德尚替补席深度的代表。"},{t:"B",n:"萨迪奥·马内",c:"攻击核心",d:"34岁仍是塞内加尔锋线焦点,2022因伤缺席,这次满血出战。"},{t:"B",n:"库利巴利",c:"队长",d:"100+次国脚,后防领袖与精神支柱,带队复刻2002冷门是动力。"}],
+inj:"法国:萨利巴(训练缺席)、特奥·埃尔南德斯、琼阿梅尼 三人伤情存疑,德尚需在开赛前定夺;但替补深度极厚。塞内加尔:杰克逊热身对沙特染红、盖耶(36岁)年龄+负荷需监控。",
+mut:["low","本届至今最重强强对话,各为出线与荣誉全力争胜,无默契。"],
+ana:"<span class='tagA'>法国</span>整体班底与替补深度世界顶级,夺冠第二热门;<span class='tagB'>塞内加尔</span>是2002曾1-0淘汰法国的非洲冠军,中卫与中场身体对抗能逼出'难看的法国'。变量在法国后防三人伤情:若萨利巴/特奥缺阵,塞内加尔的快马反击有机会。模型看法国小胜,但这是强强博弈,平局乃至冷门概率高于纸面。"},
+"Iraq|Norway":{formA:"时隔40年重返·全国沸腾",formB:"28年来首进世界杯·哈兰德领衔",
+key:[{t:"B",n:"埃尔林·哈兰德",c:"曼城",d:"当世第一中锋,身价顶级,资格赛狂轰滥炸是挪威晋级核心引擎。"},{t:"B",n:"马丁·厄德高",c:"阿森纳",d:"挪威队长与中场组织者,为哈兰德输送弹药。"},{t:"A",n:"伊拉克",c:"AFC",d:"防反搏命,门前一旦把握住机会就能掀翻强敌,背靠全国情绪。"}],
+inj:"无重大伤情。",mut:["low","I组首轮,无默契。"],
+ana:"<span class='tagB'>挪威</span>有哈兰德+厄德高这对欧洲级别的攻击轴心,纸面明显占优。伊拉克靠铁桶与反击。模型看挪威取胜(哈兰德破门概率高),但波士顿温和、伊拉克若守得住前30分钟,有机会拖成低比分搏冷。"},
+"Argentina|Algeria":{xiA:"E.马丁内斯; 莫利纳·罗梅罗·奥塔门迪·塔利亚菲科; 德保罗·麦卡利斯特·E.费尔南德斯; 梅西(c)·劳塔罗·阿尔瓦雷斯",xiB:"L.齐达内; 贝尔加利·曼迪·图盖·阿伊特-努里; 泽鲁基·本塔莱布·沙伊比; 马赫雷斯(c)·阿穆拉·古伊里",formA:"近5场全胜·17名2022夺冠功臣仍在",formB:"近期1-0胜荷兰、0-0平乌拉圭、4-0胜玻利维亚",
+key:[{t:"A",n:"莱昂内尔·梅西",c:"迈阿密",d:"第六届也是最后一届世界杯,赛中年满39岁;2025赛季MLS 29球16助攻,带轻微腿筋小伤,仍是核心。"},{t:"A",n:"劳塔罗·马丁内斯",c:"国米",d:"锋线尖刀,门前嗅觉一流,与梅西/阿尔瓦雷斯组合灵活。"},{t:"A",n:"埃米利亚诺·马丁内斯",c:"门神",d:"2022最佳门将,大赛与点球大战的定心丸。"},{t:"B",n:"里亚德·马赫雷斯",c:"利雅得胜利",d:"阿尔及利亚队长与技术核心,右路内切与定位球危险。"},{t:"B",n:"穆罕默德·阿穆拉",c:"速度型射手",d:"国家队19球,直插式跑动专打身后,是冲击阿根廷老化中卫的利刃。"}],
+inj:"阿根廷:梅西轻微腿筋,预计首发;主力健康。阿尔及利亚:无重大伤情,彼得科维奇调教下防守组织出色。",
+mut:["low","卫冕冠军揭幕志在全取三分,无默契。"],
+ana:"<span class='tagA'>阿根廷</span>是卫冕冠军且近5战全胜,但<span class='tagB'>阿尔及利亚</span>绝非鱼腩——刚1-0赢过荷兰、0-0逼平乌拉圭,防守organized且有阿穆拉的速度。阿根廷中卫(罗梅罗/奥塔门迪合计181次国脚但偏老)面对快马是隐患。模型看阿根廷小胜,梅西的灵光一现或定位球大概率打破僵局,但别期待大比分。"},
+"Austria|Jordan":{formA:"欧洲中坚·身体与纪律",formB:"世界杯首秀·2024亚洲杯亚军底蕴",
+key:[{t:"A",n:"奥地利中场",c:"UEFA",d:"萨比策、莱默等德甲班底,跑动与逼抢强,整体大于个体。"},{t:"B",n:"穆萨·塔马里",c:"蒙彼利埃",d:"约旦头号爆点边锋,速度突破是亚洲黑马的奇兵。"}],
+inj:"无重大伤情。",mut:["low","J组首轮。"],
+ana:"<span class='tagA'>奥地利</span>体系成熟、对抗占优;约旦凭2024亚洲杯亚军的冲劲搏冷门。模型看奥地利取胜,约旦若塔马里发挥+守住定位球可拖低比分。"},
+"Portugal|DR Congo":{formA:"黄金阵容·C罗领衔",formB:"非洲身体流·首秀冲击",
+key:[{t:"A",n:"克里斯蒂亚诺·罗纳尔多",c:"利雅得胜利",d:"41岁,第六届世界杯(与梅西并列纪录),仍是葡萄牙锋线图腾与点球手。"},{t:"A",n:"布鲁诺·费尔南德斯",c:"曼联",d:"中场组织核心,传球与远射,串联全队。"},{t:"A",n:"拉法埃尔·莱昂",c:"米兰",d:"左路爆点,速度+突破撕裂防线。"},{t:"B",n:"刚果(金)",c:"CAF",d:"身体强壮、边路冲击快,靠对抗和反击搏强敌。"}],
+inj:"无重大伤情。",mut:["low","K组首轮。"],
+ana:"<span class='tagA'>葡萄牙</span>个人质量碾压,休斯顿封顶控温利于技术发挥。刚果(金)靠身体与反击搏机会。模型看葡萄牙2球左右取胜,C罗/B费/莱昂任一爆发都够用。"},
+"England|Croatia":{xiA:"皮克福德; ……(图赫尔执教·佛州热身); 赖斯·贝林厄姆; 萨卡·福登·边路; 凯恩",xiB:"利瓦科维奇; ……; 莫德里奇·科瓦契奇·组织; 格瓦迪奥尔后防",formA:"图赫尔执教·锋线人才济济",formB:"老化但经验丰富·2018亚军2022季军",
+key:[{t:"A",n:"哈里·凯恩",c:"拜仁",d:"英格兰队长兼历史第一射手,身价/产量俱佳,支点+终结全能。"},{t:"A",n:"裘德·贝林厄姆",c:"皇马",d:"中场天王,box-to-box带走比赛,大赛大心脏。"},{t:"A",n:"布卡约·萨卡",c:"阿森纳",d:"右路爆点,内切+助攻,英格兰最稳定的边路威胁。"},{t:"B",n:"卢卡·莫德里奇",c:"米兰",d:"40岁魔笛余晖,仍是克罗地亚的大脑与节奏掌控者,大赛阅读比赛无人能及。"},{t:"B",n:"约什科·格瓦迪奥尔",c:"曼城",d:"顶级中卫,出球+防守,克罗地亚后防支柱。"}],
+inj:"双方无重大伤情公布。",mut:["low","L组双强争头名,无默契。"],
+ana:"<span class='tagA'>英格兰</span>球员身价与冲击力整体更高,<span class='tagB'>克罗地亚</span>胜在中场经验与比赛阅读(莫德里奇)。达拉斯封顶控温利于技术。<b>我研判 1-1</b>:英格兰身价与冲击力整体更高,但莫德里奇坐镇的克罗地亚最擅长把强队拖进中场泥潭,这种顶级对话踢成1-1的拉锯并不意外——本日另一焦点战。"},
+"Ghana|Panama":{formA:"非洲身体流·边路冲击",formB:"中北美硬汉·拼防守",
+key:[{t:"A",n:"穆罕默德·库杜斯",c:"热刺",d:"加纳核心攻击手,盘带+终结,一人提速。"},{t:"B",n:"巴拿马",c:"CONCACAF",d:"防守硬朗、身体对抗强,擅长打乱强队节奏。"}],
+inj:"无重大伤情。",mut:["low","L组首轮。"],
+ana:"<span class='tagA'>加纳</span>个人爆发力略胜,巴拿马靠纪律与对抗。多伦多温和。<b>我研判 1-1</b>:加纳个人爆发力略胜,但巴拿马的硬度与纪律足以咬住,低比分的平局是合理结果。"},
+"Uzbekistan|Colombia":{formA:"世界杯首秀·亚洲新军",formB:"中场组织出色·需适应高原",
+key:[{t:"B",n:"哈梅斯·罗德里格斯",c:"队长",d:"哥伦比亚中场组织核心,定位球与最后一传,大赛经验丰富。"},{t:"B",n:"路易斯·迪亚斯",c:"利物浦",d:"左路爆点,速度+突破,身价高,哥伦比亚最锋利的尖刀。"},{t:"A",n:"乌兹别克斯坦",c:"AFC",d:"世界杯处子秀,身体与纪律不错;阿兹特克2240m高原对双方都是消耗。"}],
+inj:"无重大伤情。",mut:["low","K组首轮。"],
+ana:"<span class='tagB'>哥伦比亚</span>个人质量明显更高,但<span class='hot'>阿兹特克高原</span>稀薄空气会拖慢双方节奏,来自低地的哥伦比亚需要时间适应——这给乌兹别克斯坦守反留了缝隙。模型看哥伦比亚取胜,但开场阶段或踢得粘滞,低比分可能性大。"},
+"Czechia|South Africa":{formA:"首轮1-2负韩国·急需取胜",formB:"首轮0-2负墨西哥且两黄变红减员",
+key:[{t:"A",n:"帕特里克·希克",c:"勒沃库森",d:"捷克头号射手,高点与门前嗅觉,定位球危险。"},{t:"B",n:"南非",c:"CAF",d:"首轮染红+失利,士气与人员都受挫,需重整旗鼓。"}],
+inj:"南非首轮停赛/减员影响阵容。",mut:["low","A组次轮,捷克输不起。"],
+ana:"<span class='tagA'>捷克</span>首轮虽负但表现不差,面对状态低迷、可能减员的<span class='tagB'>南非</span>占据主动。模型看捷克取胜,希克的高空与定位球是破局点。"},
+"Switzerland|Bosnia":{formA:"首轮1-1闷平卡塔尔·表现低迷",formB:"首轮1-1平加拿大·需要分数",
+key:[{t:"A",n:"格拉尼特·扎卡",c:"中场队长",d:"瑞士节奏掌控与防守覆盖,经验丰富。"},{t:"A",n:"曼努埃尔·阿坎吉",c:"后卫",d:"瑞士后防支柱,出球+防守稳健。"},{t:"B",n:"埃丁·哲科",c:"老将射手",d:"波黑锋线经验与门前把握,定位球争顶仍有威胁。"}],
+inj:"无重大伤情。",mut:["mid","两队首轮都没赢,理论上若再平则双双被动——所以不会算计比分,反而更可能对攻搏三分,这是一场'伪默契、真生死'的较量。"],
+ana:"两队首轮都丢分,这几乎是<span class='hot'>出线生死战</span>。<b>我研判 1-1</b>:瑞士整体略强但状态低迷,波黑有哲科的经验与高点;双方都输不起、反而会拉开对攻,但实力接近,最可能踢成各得一分却谁都不满意的1-1。"},
+"Canada|Qatar":{formA:"东道主·主场作战",formB:"首轮1-1平瑞士·士气高",
+key:[{t:"A",n:"阿尔方索·戴维斯",c:"拜仁",d:"边路飞翼,速度顶级身价高,主场作战的加拿大头号武器。"},{t:"A",n:"乔纳森·戴维",c:"射手",d:"加拿大锋线终结点,跑位与把握机会能力强。"},{t:"B",n:"阿克拉姆·阿菲夫",c:"核心",d:"卡塔尔进攻组织与终结点,首轮逼平瑞士后信心十足。"}],
+inj:"无重大伤情。",mut:["low","B组次轮,加拿大主场求胜。"],
+ana:"<span class='tagA'>加拿大</span>坐拥温哥华主场(封顶凉爽)+戴维斯的速度,占据主动;卡塔尔首轮拿分士气可用。模型看加拿大取胜,但卡塔尔的耐热与团队防守可能让比分胶着。"},
+"Mexico|Korea Republic":{formA:"首轮2-0胜南非·东道主+海拔",formB:"首轮2-1胜捷克·孙兴慜领衔",
+key:[{t:"A",n:"圣地亚哥·希门尼斯",c:"米兰",d:"墨西哥锋线尖刀,门前把握与跑位俱佳。"},{t:"A",n:"埃德森·阿尔瓦雷斯",c:"中场屏障",d:"拦截与覆盖,墨西哥攻防转换枢纽。"},{t:"B",n:"孙兴慜",c:"韩国队长",d:"核心攻击手与精神领袖,速度+终结,首轮已展现统治力。"},{t:"B",n:"金玟哉",c:"拜仁",d:"韩国后防支柱,对抗与速度俱佳,镇守禁区。"}],
+inj:"无重大伤情。",mut:["low","A组头名直接对话,两队都全胜,争小组第一,无默契。"],
+ana:"小组头名之争。<span class='tagA'>墨西哥</span>坐拥<span class='hot'>瓜达拉哈拉海拔(1566m)+主场气氛+东道主红利</span>,首轮也已取胜;<span class='tagB'>韩国</span>有孙兴慜与金玟哉,技术与速度不俗。模型在主场加成下微微看好墨西哥。<b>我研判 2-1</b>:瓜达拉哈拉海拔+主场气氛+东道主红利让墨西哥占先手,且首轮已取胜手感正;但孙兴慜领衔的韩国技术速度俱佳,必有还手之力,大概率是墨西哥险胜的一场对攻。"},
+};
+/* 我的综合研判比分(结合模型+表现/化学反应/身价/战术判断,允许平局) */
+const PICKS={
+"Germany|Curacao":[3,0],"Netherlands|Japan":[1,1],"Ivory Coast|Ecuador":[1,1],"Sweden|Tunisia":[1,1],
+"Spain|Cape Verde":[3,0],"Belgium|Egypt":[1,1],"Saudi Arabia|Uruguay":[0,2],"Iran|New Zealand":[1,0],
+"France|Senegal":[2,1],"Iraq|Norway":[1,2],"Argentina|Algeria":[2,1],"Austria|Jordan":[2,0],
+"Portugal|DR Congo":[2,0],"England|Croatia":[1,1],"Ghana|Panama":[1,1],"Uzbekistan|Colombia":[0,1],
+"Czechia|South Africa":[2,0],"Switzerland|Bosnia":[1,1],"Canada|Qatar":[2,0],"Mexico|Korea Republic":[2,1],
+};
+const pickFor=(an,bn)=>PICKS[an+'|'+bn]||null;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function mul(s){let t=s+0x6D2B79F5;return()=>{t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function fc(n){let f=1;for(let i=2;i<=n;i++)f*=i;return f;}
+function pois(k,l){return Math.exp(-l)*Math.pow(l,k)/fc(k);}
+const FK=[["squad","大名单","深度星味"],["inj","伤病","伤停负担"],["form","状态","近期手感"],["psy","心理","大赛抗压"],["weather","天气","气候体能"],["stadium","球场","海拔主场"],["tactics","战术","进攻威胁"],["culture","人文","球迷支持"],["chaos","玄学","门框点球"]];
+const W={};FK.forEach(f=>W[f[0]]=1);
+function effHeat(vk){const v=V[vk];return CL[vk][3]?v[1]*0.45:v[1];}
+function predict(A,B,vk,seed){
+ const v=V[vk],vh=effHeat(vk),va=v[2],host=v[0];
+ let atkA=A.rating+A.bias,defA=A.rating-A.bias*0.4,atkB=B.rating+B.bias,defB=B.rating-B.bias*0.4;
+ const cA={},cB={};
+ cA.squad=(A.squad-50)*0.10*W.squad;cB.squad=(B.squad-50)*0.10*W.squad;
+ cA.inj=-(A.inj)*0.09*W.inj;cB.inj=-(B.inj)*0.09*W.inj;
+ cA.form=(A.form-50)*0.16*W.form;cB.form=(B.form-50)*0.16*W.form;
+ cA.psy=(A.psy-50)*0.09*W.psy;cB.psy=(B.psy-50)*0.09*W.psy;
+ cA.weather=-(vh/100)*((100-A.heat)/100)*9*W.weather;cB.weather=-(vh/100)*((100-B.heat)/100)*9*W.weather;
+ let stA=(A.alt?(va/100)*4:-(va/100)*8)*W.stadium,stB=(B.alt?(va/100)*4:-(va/100)*8)*W.stadium;
+ if(A.host&&A.host===host)stA+=7*W.stadium;if(B.host&&B.host===host)stB+=7*W.stadium;
+ cA.stadium=stA;cB.stadium=stB;
+ cA.tactics=(A.bias-B.bias)*0.6*W.tactics;cB.tactics=(B.bias-A.bias)*0.6*W.tactics;
+ if(host==='USA'){cA.culture=((A.dia-50)/50)*4*W.culture;cB.culture=((B.dia-50)/50)*4*W.culture;}else{cA.culture=((A.dia-55)/50)*1.5*W.culture;cB.culture=((B.dia-55)/50)*1.5*W.culture;}
+ const r=mul(seed);cA.chaos=(r()-0.5)*2*5*W.chaos;cB.chaos=(r()-0.5)*2*5*W.chaos;
+ const sA=Object.values(cA).reduce((a,b)=>a+b,0),sB=Object.values(cB).reduce((a,b)=>a+b,0);
+ let eAtkA=clamp(atkA+sA,32,99),eDefA=clamp(defA+sA*0.7,32,99),eAtkB=clamp(atkB+sB,32,99),eDefB=clamp(defB+sB*0.7,32,99);
+ let lamA=clamp(1.32*Math.pow(eAtkA/eDefB,1.05),0.18,4.2),lamB=clamp(1.32*Math.pow(eAtkB/eDefA,1.05),0.18,4.2);
+ const M=9;let pA=[],pB=[];for(let i=0;i<M;i++){pA.push(pois(i,lamA));pB.push(pois(i,lamB));}
+ let win=0,draw=0,loss=0;const all=[];const totals=[0,0,0,0,0,0];
+ for(let i=0;i<M;i++)for(let j=0;j<M;j++){const p=pA[i]*pB[j];if(i>j)win+=p;else if(i===j)draw+=p;else loss+=p;all.push({i,j,p});totals[Math.min(i+j,5)]+=p;}
+ all.sort((a,b)=>b.p-a.p);const modal=all[0];const scores=all.slice(0,6);
+ let o25=0;for(let i=0;i<M;i++)for(let j=0;j<M;j++)if(i+j>=3)o25+=pA[i]*pB[j];
+ const btts=1-(pA[0]+pB[0]-pA[0]*pB[0]);
+ return{lamA,lamB,win,draw,loss,modal,scores,totals,o25,btts};
+}
+/* 各维度占比(0-100 给A) */
+function dims(A,B,vk){
+ const v=V[vk],vh=effHeat(vk),va=v[2],host=v[0];
+ const heatFit=t=>100-(vh/100)*(100-t.heat);
+ const stad=t=>{let s=50;if(t.host&&t.host===host)s+=22;s+=t.alt?(va/100)*14:-(va/100)*16;return Math.max(15,s);};
+ const raw={squad:[A.squad,B.squad],inj:[100-A.inj,100-B.inj],form:[A.form,B.form],psy:[A.psy,B.psy],
+  weather:[heatFit(A),heatFit(B)],stadium:[stad(A),stad(B)],tactics:[A.rating+A.bias,B.rating+B.bias],
+  culture:[host==='USA'?A.dia:50+(A.dia-55)*.4,host==='USA'?B.dia:50+(B.dia-55)*.4],chaos:[50,50]};
+ const out={};FK.forEach(f=>{const k=f[0];let[a,b]=raw[k];let pa=a/(a+b)*100;pa=50+(pa-50)*Math.min(W[k],1.5);out[k]=clamp(pa,6,94);});
+ return out;
+}
+/* 可信度 */
+function conf(R){const arr=[R.win,R.draw,R.loss].sort((a,b)=>b-a);const gap=arr[0]-arr[1];
+ let s=gap>0.25?5:gap>0.17?4:gap>0.10?3:gap>0.05?2:1;
+ const lab=['','胶着难料','偏低','中等','较高','很高'][s];return{stars:s,lab,gap};}
+/* 渲染 */
+const $=id=>document.getElementById(id);
+function seedFor(i){let s=0;FK.forEach(f=>s+=Math.round(W[f[0]]*100));return i*101+s+700;}
+function renderStats(){const done=FIX.filter(f=>f[5]);let g=0;done.forEach(f=>g+=f[5][0]+f[5][1]);const up=FIX.filter(f=>!f[5]).length;
+ $('tstats').innerHTML=[['已赛',done.length,''],['总进球',g,'gold'],['待预测',up,''],['场均进球',(g/done.length).toFixed(1),'gold']].map(s=>`<div class="tstat"><div class="v ${s[2]}">${s[1]}</div><div class="k">${s[0]}</div></div>`).join('');}
+function renderNav(){const days=[...new Set(FIX.map(f=>f[0]))];
+ $('datenav').innerHTML=days.map(d=>{const dd=d.split('-')[1];return `<div class="dchip ${d===TODAY?'today':''}" data-go="${d}"><div class="d">${+dd}</div><div class="m">${d===TODAY?'今天':'6月'}</div></div>`;}).join('');
+ document.querySelectorAll('[data-go]').forEach(c=>c.onclick=()=>{const el=document.getElementById('day-'+c.dataset.go);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});});}
+function renderDays(){const days=[...new Set(FIX.map(f=>f[0]))];let html='';
+ days.forEach(d=>{const list=FIX.filter(f=>f[0]===d);const dd=d.split('-')[1];
+  html+=`<div class="day" id="day-${d}"><div class="day-h"><span class="dn">6月${+dd}日</span><span class="dl">${DAYLABEL[d]||''}</span>${d===TODAY?'<span class="tb">今天</span>':''}<span class="cnt">${list.length} 场</span></div>`;
+  list.forEach(f=>{html+=card(f,FIX.indexOf(f));});html+='</div>';});
+ $('days').innerHTML=html;bindCards();}
+function card(f,idx){const[date,grp,an,bn,vk,res,note,ko]=f;const A=TEAMS[an],B=TEAMS[bn];const cl=CL[vk];const done=!!res;
+ const R=predict(A,B,vk,seedFor(idx));const pk=pickFor(an,bn);const sc=done?res:(pk||[R.modal.i,R.modal.j]);
+ const w=Math.round(R.win*100),dr=Math.round(R.draw*100),l=100-w-dr;
+ const wxIcon=cl[3]?'🏟️':cl[0]>=33?'🥵':cl[0]>=29?'☀️':'🌤️';
+ return `<div class="match ${done?'done':''}" data-idx="${idx}">
+ <div class="mhead"><div class="mteam home"><span class="fl">${A.flag}</span><span><span class="nm">${A.zh}</span><span class="rk">FIFA #${A.rank}</span></span></div>
+ <div class="mscore"><div class="sc"><span class="pa">${sc[0]}</span><span class="sep">:</span><span class="pb">${sc[1]}</span></div><span class="badge ${done?'ft':'pred'}">${done?'完场':(pk?'研判':'预测')}</span></div>
+ <div class="mteam away"><span class="fl">${B.flag}</span><span><span class="nm">${B.zh}</span><span class="rk">FIFA #${B.rank}</span></span></div></div>
+ <div class="mmeta"><span class="gp">${grp}组</span><span class="ko">🕐${ko}</span><span class="ven">📍${vk}</span><span class="wx">${wxIcon}${cl[0]}°C/湿${cl[1]}%</span><span class="exp">展开深度分析 ▾</span></div>
+ ${done?'':`<div class="miniprob"><div class="mp-w" style="width:${w}%"></div><div class="mp-d" style="width:${dr}%"></div><div class="mp-l" style="width:${l}%"></div></div>`}
+ <div class="detail">${detail(A,B,vk,R,done,res,note,ko,an,bn)}</div></div>`;}
+function detail(A,B,vk,R,done,res,note,ko,an,bn){
+ const cl=CL[vk];const D=dims(A,B,vk);const C=conf(R);const pk=pickFor(an,bn);
+ const _pc=pickColors(an,bn);const colA=_pc[0],colB=_pc[1];
+ const w=Math.round(R.win*100),dr=Math.round(R.draw*100),l=100-w-dr;
+ const dk=DOSS[an+'|'+bn]||{};
+ const head=done?res:(pk||[R.modal.i,R.modal.j]);
+ const lean=R.win>=R.draw&&R.win>=R.loss?['a',A.zh+' 占优']:R.loss>=R.draw?['b',B.zh+' 占优']:['d','倾向平局'];
+ // verdict
+ let html=`<div class="sech">综合研判${pk?' · 我的预测比分':''}</div>
+ <div class="verdict"><span class="lean ${lean[0]}">${lean[1]}</span><span class="stars">${'★'.repeat(C.stars)}${'☆'.repeat(5-C.stars)}</span><span class="conf">可信度 ${C.lab}</span>
+ ${done?`<span class="ps">真实 <span class="pa">${res[0]}</span><span class="sep">:</span><span class="pb">${res[1]}</span></span>`:`<span class="ps"><span class="pa">${head[0]}</span><span class="sep">:</span><span class="pb">${head[1]}</span></span>`}</div>`;
+ if(!done){
+  html+=`<div class="wdl"><span style="border-color:${colA}66"><b style="color:${colA}">${A.zh}胜</b> ${w}%</span><span><b>平局</b> ${dr}%</span><span style="border-color:${colB}66"><b style="color:${colB}">${B.zh}胜</b> ${l}%</span></div>
+  <div class="miniprob"><div style="width:${w}%;background:${colA}"></div><div class="mp-d" style="width:${dr}%"></div><div style="width:${l}%;background:${colB}"></div></div>`;
+  // 比分概率分布
+  html+=`<div class="sech">比分概率分布(模型)</div><div class="scores">`;
+  R.scores.forEach(s=>{const c=s.i>s.j?colA:s.i<s.j?colB:'#8593A8';html+=`<span class="scchip" style="border-left-color:${c}"><b>${s.i}-${s.j}</b>${(s.p*100).toFixed(0)}%</span>`;});
+  html+=`</div>`;
+  // 总进球概率
+  const tmax=Math.max(...R.totals);const tmodal=R.totals.indexOf(tmax);
+  html+=`<div class="sech">总进球概率</div><div class="totals">`;
+  R.totals.forEach((p,k)=>{const h=Math.round(p/tmax*56);const c=k===tmodal?'linear-gradient(180deg,var(--gold),#caa02f)':'linear-gradient(180deg,var(--green),var(--green-d))';
+   html+=`<div class="tg"><div class="tbar"><i style="height:${h}px;background:${c}"></i></div><div class="pv">${(p*100).toFixed(0)}%</div><div class="tl">${k===5?'5+':k}球</div></div>`;});
+  html+=`</div>`;
+ }
+ // 九维占比 gradient + team colors
+ html+=`<div class="sech">九维占比</div><div class="dleg"><span><b style="color:${colA}">●</b> ${A.zh}</span><span><b style="color:${colB}">●</b> ${B.zh}</span></div><div class="dims">`;
+ FK.forEach(f=>{const pa=Math.round(D[f[0]]),pb=100-pa;const lp=clamp(pa,17,83);
+  const g=`linear-gradient(90deg,${colA} 0%,${colA} ${Math.max(2,pa-16)}%,${colB} ${Math.min(98,pa+16)}%,${colB} 100%)`;
+  html+=`<div class="dim"><span class="dnm">${f[1]}<small>${f[2]}</small></span><div class="gbar" style="background:${g}"><span class="xline" style="left:${pa}%"></span><span class="la" style="right:calc(${100-lp}% + 6px)">${pa}%</span><span class="lb" style="left:calc(${lp}% + 6px)">${pb}%</span></div></div>`;});
+ html+=`</div>`;
+ // weather
+ html+=`<div class="sech">开赛时间 & 当地天气</div><div class="wxcard">
+ <div class="wxc"><div class="v gold">${ko}</div><div class="k">当地开赛</div></div>
+ <div class="wxc"><div class="v ${cl[0]>=33?'hot':''}">${cl[0]}°C</div><div class="k">气温</div></div>
+ <div class="wxc"><div class="v ${cl[1]>=70?'hot':''}">${cl[1]}%</div><div class="k">湿度</div></div>
+ <div class="wxc"><div class="v" style="font-size:13px;padding-top:4px">${cl[3]?'封顶':'露天'}</div><div class="k">球场</div></div></div>
+ <div class="wxnote">🌡️ ${cl[2]}。${cl[3]?'封顶/控温球场,高温湿度对体能影响被大幅削弱,利于技术发挥。':(cl[0]>=33?'<span class="hot">高温湿热是关键变量</span>,下半场体能墙后失误与补时丢球概率上升,耐热球队占便宜。':(V[vk][2]>=60?'高原稀薄空气拖慢节奏,未适应球队消耗更大。':'气候温和,对双方体能影响有限。'))}</div>`;
+ // XI
+ if(dk.xiA||dk.xiB){html+=`<div class="sech">预计首发</div><div class="xis">
+  <div class="xi a"><div class="xh">${A.flag} ${A.zh}</div>${dk.formA?`<div class="form">近况:${dk.formA}</div>`:''}<div class="lineup">${dk.xiA||'阵容待官方公布'}</div></div>
+  <div class="xi b"><div class="xh">${B.flag} ${B.zh}</div>${dk.formB?`<div class="form">近况:${dk.formB}</div>`:''}<div class="lineup">${dk.xiB||'阵容待官方公布'}</div></div></div>`;}
+ // key players
+ if(dk.key){html+=`<div class="sech">核心球员 · 状态/身价/俱乐部/新闻</div><div class="players">`;
+  dk.key.forEach(p=>{html+=`<div class="pl"><span class="pdot ${p.t==='A'?'a':'b'}"></span><div><div><span class="pn">${p.n}</span><span class="pc">${p.c}</span></div><div class="pd">${p.d}</div></div></div>`;});
+  html+=`</div>`;}
+ if(dk.inj){html+=`<div class="note inj">🩹 <b>伤病/减员</b> · ${dk.inj}</div>`;}
+ if(dk.mut){const m=dk.mut;html+=`<div class="note mut"><span class="mutlev ${m[0]}">默契球 ${m[0]==='mid'?'中':'低'}</span>${m[1]}</div>`;}
+ else if(!done){html+=`<div class="note mut"><span class="mutlev low">默契球 低</span>小组赛中前期,双方仍需抢分,默契做球动机低。真正高发期是小组末轮当某一比分能让双方同时出线时。</div>`;}
+ if(dk.ana){html+=`<div class="note ana">📊 ${dk.ana}</div>`;}
+ else if(done){html+=`<div class="note ana">📌 已完场,真实比分 <b>${res[0]}-${res[1]}</b>。${note||''} 结果已写回两队状态值用于后续预测。</div>`;}
+ else if(note){html+=`<div class="note ana">📊 ${note}</div>`;}
+ return html;}
+function bindCards(){document.querySelectorAll('.match').forEach(m=>{
+ m.querySelector('.mhead').onclick=()=>m.classList.toggle('open');
+ m.querySelector('.exp').onclick=e=>{e.stopPropagation();m.classList.toggle('open');e.target.textContent=m.classList.contains('open')?'收起 ▴':'展开深度分析 ▾';};});}
+function renderWeights(){$('wrows').innerHTML=FK.map(f=>`<div class="wrow"><span class="wn">${f[1]}<small>${f[2]}</small></span><input type="range" min="0" max="150" value="${Math.round(W[f[0]]*100)}" data-wk="${f[0]}"><span class="wv" data-wv="${f[0]}">${Math.round(W[f[0]]*100)}%</span></div>`).join('');
+ document.querySelectorAll('[data-wk]').forEach(inp=>inp.oninput=e=>{const k=e.target.dataset.wk;W[k]=(+e.target.value)/100;document.querySelector(`[data-wv="${k}"]`).textContent=e.target.value+'%';renderDays();renderStats();});}
+function syncW(){document.querySelectorAll('[data-wk]').forEach(i=>{i.value=Math.round(W[i.dataset.wk]*100);document.querySelector(`[data-wv="${i.dataset.wk}"]`).textContent=i.value+'%';});}
+$('settingsHead').onclick=()=>$('settings').classList.toggle('open');
+$('reset').onclick=()=>{FK.forEach(f=>W[f[0]]=1);syncW();renderDays();renderStats();};
+$('onlystrength').onclick=()=>{FK.forEach(f=>W[f[0]]=0);syncW();renderDays();};
+$('maxchaos').onclick=()=>{W.chaos=1.5;syncW();renderDays();};
+renderStats();renderNav();renderDays();renderWeights();
+setTimeout(()=>{const t=FIX.find(f=>f[0]===TODAY&&!f[5]);if(t){const el=document.querySelector(`.match[data-idx="${FIX.indexOf(t)}"]`);if(el){el.classList.add('open');el.querySelector('.exp').textContent='收起 ▴';}}},100);
+</script>
+</body>
+</html>
