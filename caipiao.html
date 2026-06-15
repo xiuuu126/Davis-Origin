@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>世界杯 2026 · 每日深度比分预测</title>
+<title>2026 美加墨世界杯 · 每日比分预测</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -38,20 +38,27 @@ h1 .yr{color:var(--gold)}
 .day-h .dn{font-family:var(--display);font-size:28px}.day-h .dl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .day-h .tb{font-family:var(--mono);font-size:10px;color:#04210f;background:var(--green);padding:3px 9px;border-radius:20px;font-weight:700}
 .day-h .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
-.match{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:11px;overflow:hidden;transition:border-color .2s}
-.match:hover{border-color:var(--line2)}.match.done{background:linear-gradient(90deg,rgba(31,224,122,.03),var(--panel))}
-.mhead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:15px 18px;cursor:pointer}
-.mteam{display:flex;align-items:center;gap:11px;min-width:0}.mteam.away{flex-direction:row-reverse;text-align:right}
-.mteam .fl{font-size:30px;line-height:1;flex:0 0 auto}.mteam .nm{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match{background:var(--panel);border:1px solid var(--line);border-left:3px solid transparent;border-radius:14px;margin-bottom:11px;overflow:hidden;transition:border-color .2s}
+.match:hover{border-color:var(--line2)}
+.match.done{background:#0c1018;border-left-color:#3a4458;opacity:.96}
+.match.up{background:linear-gradient(180deg,rgba(31,224,122,.05),var(--panel) 60%);border-left-color:var(--green)}
+.mhead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:13px 18px 15px;cursor:pointer}
+.mteam{display:flex;align-items:center;gap:12px;min-width:0}.mteam.away{flex-direction:row-reverse;text-align:right}
+.mteam .fl{font-size:38px;line-height:1;flex:0 0 auto;display:inline-flex;align-items:center}.mteam .nm{font-size:17.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mteam .rk{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.flagimg{object-fit:cover;border-radius:3px;background:#1a2336;display:inline-block;box-shadow:0 1px 3px rgba(0,0,0,.4);vertical-align:middle}
+.mteam .fl .flagimg{width:42px;height:28px;display:block}
 .mscore{text-align:center;flex:0 0 auto;padding:0 4px}
-.mscore .sc{font-family:var(--display);font-size:36px;line-height:.85;white-space:nowrap}
-.mscore .sc .pa{color:var(--A)}.mscore .sc .pb{color:var(--B)}.mscore .sc .sep{color:var(--faint);font-size:.7em;margin:0 2px}
+.mscore .sc{font-family:var(--display);font-size:38px;line-height:.85;white-space:nowrap}
+.mscore .sc .pa{color:var(--A)}.mscore .sc .pb{color:var(--B)}.mscore .sc .scn{color:#AEB9CA}.mscore .sc .sep{color:var(--faint);font-size:.7em;margin:0 2px}
 .mscore .badge{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 7px;border-radius:20px;margin-top:4px;display:inline-block}
 .badge.ft{background:#283246;color:var(--muted)}.badge.pred{background:rgba(31,224,122,.12);color:var(--green)}
-.mmeta{display:flex;align-items:center;gap:9px;padding:0 18px 12px;font-family:var(--mono);font-size:10px;color:var(--faint);flex-wrap:wrap}
+.mmeta{display:flex;align-items:center;gap:9px;padding:12px 18px 8px;font-family:var(--mono);font-size:10.5px;color:var(--faint);flex-wrap:wrap;border-bottom:1px solid var(--line)}
 .mmeta .gp{color:var(--sky)}.mmeta .ven{color:var(--muted)}.mmeta .ko{color:var(--ink)}.mmeta .wx{color:var(--sky)}.mmeta .heat{color:var(--coral)}
-.mmeta .exp{margin-left:auto;color:var(--green);cursor:pointer}
+.mmeta .right{margin-left:auto;display:flex;gap:9px;align-items:center}
+.mmeta .status{padding:2px 8px;border-radius:20px;font-weight:700;letter-spacing:.05em}
+.mmeta .s-done{background:#2a3142;color:#9aa6ba}.mmeta .s-up{background:rgba(31,224,122,.16);color:var(--green)}
+.mmeta .exp{color:var(--green);cursor:pointer}
 .miniprob{height:6px;border-radius:4px;overflow:hidden;display:flex;margin:0 18px 13px}
 .miniprob>div{transition:width .6s}.mp-w{background:var(--green)}.mp-d{background:#2b3650}.mp-l{background:var(--gold)}
 .detail{display:none;padding:2px 18px 20px;border-top:1px solid var(--line)}.match.open .detail{display:block}
@@ -82,10 +89,14 @@ h1 .yr{color:var(--gold)}
 .tg{text-align:center}
 .tg .tbar{height:56px;display:flex;align-items:flex-end;justify-content:center}
 .tg .tbar i{display:block;width:64%;border-radius:4px 4px 0 0;min-height:3px;transition:height .5s}
-.tg .pv{font-family:var(--mono);font-size:10.5px;color:var(--ink);margin-top:5px;font-weight:700}
-.tg .tl{font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:1px}
+.tg .pv{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:5px;font-weight:700}
+.tg .tl{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:2px;font-weight:700}
 .wdl{display:flex;gap:6px;font-family:var(--mono);font-size:11px;margin-top:9px;flex-wrap:wrap}
 .wdl span{padding:3px 9px;border-radius:20px;background:var(--bg2);border:1px solid var(--line)}
+.wdl .cap{background:none;border:none;color:var(--faint);font-size:9px;padding:3px 2px}
+.srcs{margin-top:9px;display:flex;flex-direction:column;gap:5px;font-family:var(--mono);font-size:10.5px;color:var(--muted);background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.srcs .srl{display:inline-block;min-width:128px;color:var(--faint)}
+.srcs .srl.mkt{color:var(--gold)}.srcs .srl.cal{color:var(--green)}
 /* weather card */
 .wxcard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .wxc{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
@@ -127,6 +138,62 @@ h1 .yr{color:var(--gold)}
 .wrow .wv{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}
 .sbtns{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}
 .gbtn{background:var(--bg2);border:1px solid var(--line2);color:var(--muted);border-radius:9px;padding:8px 14px;font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s}.gbtn:hover{border-color:var(--green);color:var(--ink)}
+/* standings & bracket */
+.kosec{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line2);border-radius:16px;margin-top:18px;overflow:hidden}
+.kosec .sh{display:flex;align-items:center;gap:10px;padding:15px 18px;cursor:pointer}
+.kosec .sh h3{font-family:var(--display);font-size:21px;font-weight:400}.kosec .sh .chev{margin-left:auto;color:var(--faint);transition:transform .2s}
+.kosec.open .sh .chev{transform:rotate(180deg)}.kosec .kbody{display:none;padding:0 16px 18px}.kosec.open .kbody{display:block}
+.kosec .desc{font-size:12px;color:var(--muted);margin:0 2px 14px;line-height:1.6}
+.grpgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grp{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px 12px}
+.grp h4{font-family:var(--display);font-size:18px;font-weight:400;color:var(--sky);margin-bottom:6px;letter-spacing:.04em}
+.stbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.stbl th{font-family:var(--mono);font-size:8.5px;letter-spacing:.04em;color:var(--faint);text-transform:uppercase;text-align:center;padding:2px 2px;font-weight:500}
+.stbl th.tl{text-align:left}.stbl th.c{width:24px}
+.stbl td{padding:5px 2px;text-align:center;border-top:1px solid var(--line)}
+.stbl td.tm{text-align:left;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stbl td.tm .ff{font-size:15px;margin-right:5px;vertical-align:middle}.stbl td.tm .ff .flagimg{width:22px;height:15px}
+.stbl td.pts{font-weight:800;color:var(--ink)}
+.stbl tr.q1 td{background:rgba(31,224,122,.09)}.stbl tr.q1 .pos{color:var(--green);font-weight:800}
+.stbl tr.q2 td{background:rgba(91,192,255,.08)}.stbl tr.q2 .pos{color:var(--sky);font-weight:800}
+.stbl tr.q3 .pos{color:var(--gold);font-weight:700}
+.stbl .pos{font-family:var(--mono);font-weight:700}
+.qlegend{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:12px;flex-wrap:wrap}
+.qlegend b{font-style:normal}.qlegend .d1{color:var(--green)}.qlegend .d2{color:var(--sky)}.qlegend .d3{color:var(--gold)}
+.bracket{display:flex;gap:0;overflow-x:auto;padding:6px 2px 14px;align-items:stretch}
+.bround{display:flex;flex-direction:column;min-width:140px;flex:0 0 auto}
+.brlabel{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;text-align:center;height:14px;line-height:14px;margin-bottom:8px;flex:0 0 auto}
+.bcol{flex:1;display:flex;flex-direction:column}
+.slot{flex:1;min-height:48px;display:flex;align-items:center;position:relative;padding:0 13px}
+.slot .bmatch{width:100%}
+.bround:not(.firstr) .slot::before{content:'';position:absolute;left:0;top:50%;width:13px;height:2px;background:var(--line2);transform:translateY(-1px)}
+.slot::after{content:'';position:absolute;right:0;top:50%;width:13px;height:2px;background:var(--line2);transform:translateY(-1px)}
+.slot .vline{position:absolute;right:0;top:50%;height:100%;width:2px;background:var(--line2)}
+.bmatch{background:var(--bg2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.brow{display:flex;align-items:center;gap:5px;padding:4px 7px;font-size:11px}
+.brow+.brow{border-top:1px solid var(--line)}
+.brow .bf{font-size:13px;flex:0 0 auto}.brow .bf .flagimg{width:18px;height:12px}
+.brow .bnm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.brow.win .bnm{color:var(--ink);font-weight:700}.brow .bsc{font-family:var(--mono);font-weight:700;color:var(--faint)}.brow.win .bsc{color:var(--green)}
+.champ{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:132px;flex:0 0 auto;text-align:center;position:relative;padding-left:13px}
+.champ::before{content:'';position:absolute;left:0;top:50%;width:13px;height:2px;background:var(--gold);transform:translateY(-1px)}
+.champ .cup{font-size:42px}.champ .cf{font-size:36px;margin:6px 0}.champ .cf .flagimg{width:48px;height:32px}
+.champ .cn{font-family:var(--display);font-size:25px;color:var(--gold);letter-spacing:.04em}.champ .cl{font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:.1em;margin-top:3px}
+.stbl tr.q3in td{background:rgba(255,201,60,.11)}.stbl tr.q3in .pos{color:var(--gold);font-weight:800}
+.stbl tr.q3out td{opacity:.55}
+.tg-in{color:var(--gold);font-size:9px;font-family:var(--mono);margin-left:2px}.tg-out{color:var(--faint);font-size:9px;font-family:var(--mono);margin-left:2px}
+.kotabs{display:flex;gap:8px;margin:0 0 16px}
+.kotab{flex:1;text-align:center;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s}
+.kotab.on{background:rgba(31,224,122,.12);border-color:var(--green);color:var(--green)}
+.kopanel{display:none}.kopanel.on{display:block}
+.kohd{font-family:var(--display);font-weight:400;font-size:19px;margin:24px 2px 4px;color:var(--ink)}
+.thirds{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.thd{font-size:11.5px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 9px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.thd .flagimg{width:18px;height:12px;object-fit:cover;border-radius:2px}
+.thd.in{border-color:rgba(255,201,60,.45);color:var(--ink)}.thd.in b{color:var(--gold)}
+.thd.out{opacity:.5}
+.brow.tbd .bnm{color:var(--faint)}
+@media(max-width:600px){.grpgrid{grid-template-columns:1fr}}
 footer{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint);line-height:1.7}footer b{color:var(--muted)}
 @media(max-width:620px){.tstats{grid-template-columns:repeat(2,1fr)}.mteam .nm{font-size:13.5px}.mscore .sc{font-size:30px}.xis{grid-template-columns:1fr}.wxcard{grid-template-columns:repeat(2,1fr)}.dim{grid-template-columns:54px 1fr}.wrow{grid-template-columns:78px 1fr 38px}.verdict .ps{margin-left:0;width:100%}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -137,13 +204,14 @@ footer{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);font-si
 <div class="glow g1"></div><div class="glow g2"></div>
 <div class="wrap">
 <header>
-<div class="kicker"><span class="dot"></span>实时数据更新于 6月14日 · 含真实阵容/伤病/天气</div>
+<div class="kicker"><span class="dot"></span>更新于 6月14日</div>
 <h1>世界杯 <span class="yr">2026</span><br>每日深度预测</h1>
-<p class="sub">已赛=官方比分。未赛=九维泊松模型预测,展开可见<b style="color:var(--ink)">各维度左右占比、预计首发+核心球员档案、当地开赛时间与气温湿度、默契球风险、胜负可信度</b>。重点对决均已查证真实阵容与伤情。</p>
+<p class="sub">已赛=官方比分。未赛=模型预测,展开可见<b style="color:var(--ink)">各维度左右占比、预计首发+核心球员档案、当地开赛时间与气温湿度、默契球风险、胜负可信度</b>。重点对决均已查证真实阵容与伤情。</p>
 <div class="tstats" id="tstats"></div>
 </header>
 <div class="datenav" id="datenav"></div>
 <div id="days"></div>
+<div class="kosec open" id="kosec"><div class="sh" id="kosecHead"><h3>📊 积分表 & 淘汰赛</h3><span class="chev">▾</span></div><div class="kbody"><div class="kotabs"><div class="kotab on" data-tab="real">真实 · 目前战况</div><div class="kotab" data-tab="pred">预测 · 最终推演</div></div><div class="kopanel on" id="panel-real"></div><div class="kopanel" id="panel-pred"></div></div></div>
 <div class="settings" id="settings">
 <div class="sh" id="settingsHead"><h3>⚙ 模型设置 · 调整九维权重</h3><span class="chev">▾</span></div>
 <div class="sbody"><p class="desc">权重影响占比与胜负概率。拉到 0 = 忽略该维度(占比回到 50/50);拉高 = 放大其影响。所有未赛预测实时重算。</p>
@@ -158,46 +226,49 @@ footer{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);font-si
 <script>
 /* 球队 [en,zh,旗,FIFA,实力,bias,form,squad,inj,psy,heat,host,alt,dia] */
 const T=[
-["Argentina","阿根廷","🇦🇷",1,94,4,88,88,25,96,78,null,0,70],["Spain","西班牙","🇪🇸",2,93,6,85,92,45,78,80,null,0,40],
-["France","法国","🇫🇷",3,93,5,84,95,34,86,70,null,0,45],["England","英格兰","🏴",4,90,3,80,90,28,72,60,null,0,50],
-["Portugal","葡萄牙","🇵🇹",5,89,5,82,86,30,80,76,null,0,55],["Brazil","巴西","🇧🇷",6,89,7,74,88,32,82,85,null,0,60],
-["Netherlands","荷兰","🇳🇱",7,87,3,80,84,32,78,62,null,0,40],["Morocco","摩洛哥","🇲🇦",8,84,0,86,80,28,84,82,null,0,40],
-["Belgium","比利时","🇧🇪",9,85,4,74,82,35,70,64,null,0,35],["Germany","德国","🇩🇪",10,86,4,75,85,33,80,60,null,0,45],
-["Croatia","克罗地亚","🇭🇷",11,83,1,76,78,30,85,66,null,0,35],["Colombia","哥伦比亚","🇨🇴",13,82,3,82,80,30,76,82,null,0,70],
-["Senegal","塞内加尔","🇸🇳",14,80,1,78,80,32,76,85,null,0,35],["Mexico","墨西哥","🇲🇽",15,80,2,84,76,28,74,88,"MEX",1,95],
-["USA","美国","🇺🇸",17,79,2,86,78,26,72,80,"USA",0,100],["Uruguay","乌拉圭","🇺🇾",16,82,1,78,80,32,84,80,null,0,60],
-["Switzerland","瑞士","🇨🇭",19,79,0,66,76,30,72,62,null,0,30],["Japan","日本","🇯🇵",18,79,3,90,80,30,76,78,null,0,40],
-["Ecuador","厄瓜多尔","🇪🇨",24,77,0,76,74,28,72,80,null,1,55],["Austria","奥地利","🇦🇹",22,77,2,78,76,30,72,64,null,0,25],
-["Norway","挪威","🇳🇴",23,78,8,80,74,28,70,60,null,0,30],["Australia","澳大利亚","🇦🇺",26,74,-1,80,70,30,76,76,null,0,35],
-["Korea Republic","韩国","🇰🇷",21,76,2,80,76,28,78,78,null,0,45],["Sweden","瑞典","🇸🇪",28,76,4,78,76,30,70,60,null,0,30],
-["Egypt","埃及","🇪🇬",31,76,1,76,74,30,74,88,null,0,30],["Ivory Coast","科特迪瓦","🇨🇮",40,76,1,75,76,30,74,85,null,0,30],
-["Algeria","阿尔及利亚","🇩🇿",36,76,2,80,76,30,74,84,null,0,30],["Paraguay","巴拉圭","🇵🇾",37,74,-2,64,70,28,74,82,null,0,50],
-["Scotland","苏格兰","🏴",44,73,0,76,68,32,72,58,null,0,30],["Czechia","捷克","🇨🇿",42,73,0,66,70,30,68,62,null,0,25],
-["Turkiye","土耳其","🇹🇷",27,75,3,66,76,30,68,72,null,0,35],["Tunisia","突尼斯","🇹🇳",45,72,-1,70,70,30,72,86,null,0,25],
-["Iran","伊朗","🇮🇷",20,73,0,72,72,30,76,84,null,0,25],["Qatar","卡塔尔","🇶🇦",52,70,0,76,66,28,70,88,null,0,20],
-["Saudi Arabia","沙特阿拉伯","🇸🇦",58,70,0,64,68,38,64,88,null,0,20],["Bosnia","波黑","🇧🇦",46,73,2,72,70,32,70,62,null,0,25],
-["Canada","加拿大","🇨🇦",30,74,2,74,72,28,68,70,"CAN",0,80],["Curacao","库拉索","🇨🇼",82,62,1,68,56,30,64,86,null,0,40],
-["DR Congo","刚果(金)","🇨🇩",56,72,1,74,72,32,70,85,null,0,25],["Uzbekistan","乌兹别克斯坦","🇺🇿",54,70,0,72,68,30,70,80,null,0,20],
-["Ghana","加纳","🇬🇭",73,73,1,72,74,32,72,86,null,0,30],["Iraq","伊拉克","🇮🇶",59,69,0,72,66,32,72,86,null,0,20],
-["Jordan","约旦","🇯🇴",62,68,-1,74,66,30,72,86,null,0,20],["Haiti","海地","🇭🇹",83,62,1,66,58,32,68,84,null,0,45],
-["South Africa","南非","🇿🇦",61,70,1,62,64,34,70,82,null,0,25],["New Zealand","新西兰","🇳🇿",86,64,0,68,60,30,70,70,null,0,25],
-["Cape Verde","佛得角","🇨🇻",70,64,1,72,60,28,70,84,null,0,25],["Panama","巴拿马","🇵🇦",31,67,0,70,64,30,72,82,null,0,55],
+["Argentina","阿根廷","🇦🇷",1,92,4,88,88,25,96,78,null,0,70],["Spain","西班牙","🇪🇸",2,93,6,85,92,45,78,80,null,0,40],
+["France","法国","🇫🇷",3,90,5,84,95,34,86,70,null,0,45],["England","英格兰","🏴󠁧󠁢󠁥󠁮󠁧󠁿",4,87,3,80,90,28,72,60,null,0,50],
+["Portugal","葡萄牙","🇵🇹",5,85,5,82,86,30,80,76,null,0,55],["Brazil","巴西","🇧🇷",6,84,7,74,88,32,82,85,null,0,60],
+["Netherlands","荷兰","🇳🇱",7,82,3,76,84,32,78,62,null,0,40],["Morocco","摩洛哥","🇲🇦",8,77,0,86,80,28,84,82,null,0,40],
+["Belgium","比利时","🇧🇪",9,77,4,74,82,35,70,64,null,0,35],["Germany","德国","🇩🇪",10,81,4,82,85,33,80,60,null,0,45],
+["Croatia","克罗地亚","🇭🇷",11,79,1,76,78,30,85,66,null,0,35],["Colombia","哥伦比亚","🇨🇴",13,81,3,82,80,30,76,82,null,0,70],
+["Senegal","塞内加尔","🇸🇳",14,76,1,78,80,32,76,85,null,0,35],["Mexico","墨西哥","🇲🇽",15,74,2,84,76,28,74,88,"MEX",1,95],
+["USA","美国","🇺🇸",17,73,2,86,78,26,72,80,"USA",0,100],["Uruguay","乌拉圭","🇺🇾",16,78,1,78,80,32,84,80,null,0,60],
+["Switzerland","瑞士","🇨🇭",19,76,0,66,76,30,72,62,null,0,30],["Japan","日本","🇯🇵",18,76,3,86,80,30,76,78,null,0,40],
+["Ecuador","厄瓜多尔","🇪🇨",24,77,0,70,74,28,72,80,null,1,55],["Austria","奥地利","🇦🇹",22,71,2,78,76,30,72,64,null,0,25],
+["Norway","挪威","🇳🇴",23,76,8,80,74,28,70,60,null,0,30],["Australia","澳大利亚","🇦🇺",26,68,-1,80,70,30,76,76,null,0,35],
+["Korea Republic","韩国","🇰🇷",21,71,2,80,76,28,78,78,null,0,45],["Sweden","瑞典","🇸🇪",28,71,4,88,76,30,70,60,null,0,30],
+["Egypt","埃及","🇪🇬",31,71,1,76,74,30,74,88,null,0,30],["Ivory Coast","科特迪瓦","🇨🇮",40,71,1,81,76,30,74,85,null,0,30],
+["Algeria","阿尔及利亚","🇩🇿",36,71,2,80,76,30,74,84,null,0,30],["Paraguay","巴拉圭","🇵🇾",37,68,-2,64,70,28,74,82,null,0,50],
+["Scotland","苏格兰","🏴󠁧󠁢󠁳󠁣󠁴󠁿",44,68,0,76,68,32,72,58,null,0,30],["Czechia","捷克","🇨🇿",42,69,0,66,70,30,68,62,null,0,25],
+["Turkiye","土耳其","🇹🇷",27,74,3,66,76,30,68,72,null,0,35],["Tunisia","突尼斯","🇹🇳",45,66,-1,60,70,30,72,86,null,0,25],
+["Iran","伊朗","🇮🇷",20,69,0,72,72,30,76,84,null,0,25],["Qatar","卡塔尔","🇶🇦",52,64,0,76,66,28,70,88,null,0,20],
+["Saudi Arabia","沙特阿拉伯","🇸🇦",58,63,0,64,68,38,64,88,null,0,20],["Bosnia","波黑","🇧🇦",46,68,2,72,70,32,70,62,null,0,25],
+["Canada","加拿大","🇨🇦",30,70,2,74,72,28,68,70,"CAN",0,80],["Curacao","库拉索","🇨🇼",82,59,1,56,56,30,64,86,null,0,40],
+["DR Congo","刚果(金)","🇨🇩",56,67,1,74,72,32,70,85,null,0,25],["Uzbekistan","乌兹别克斯坦","🇺🇿",54,64,0,72,68,30,70,80,null,0,20],
+["Ghana","加纳","🇬🇭",73,68,1,72,74,32,72,86,null,0,30],["Iraq","伊拉克","🇮🇶",59,63,0,72,66,32,72,86,null,0,20],
+["Jordan","约旦","🇯🇴",62,63,-1,74,66,30,72,86,null,0,20],["Haiti","海地","🇭🇹",83,59,1,66,58,32,68,84,null,0,45],
+["South Africa","南非","🇿🇦",61,66,1,62,64,34,70,82,null,0,25],["New Zealand","新西兰","🇳🇿",86,60,0,68,60,30,70,70,null,0,25],
+["Cape Verde","佛得角","🇨🇻",70,62,1,72,60,28,70,84,null,0,25],["Panama","巴拿马","🇵🇦",31,64,0,70,64,30,72,82,null,0,55],
 ];
 const TEAMS={};T.forEach(r=>TEAMS[r[0]]={en:r[0],zh:r[1],flag:r[2],rank:r[3],rating:r[4],bias:r[5],form:r[6],squad:r[7],inj:r[8],psy:r[9],heat:r[10],host:r[11],alt:r[12],dia:r[13]});
 /* 球队代表色(在深色底上可辨识) */
 const COL={Argentina:'#7CB6E8',Spain:'#E63946',France:'#3C78C8',England:'#F05545',Portugal:'#1AA85A',Brazil:'#F5D547',Netherlands:'#FF7A1A',Morocco:'#D7263D',Belgium:'#F4C430',Germany:'#F2C94C',Croatia:'#2D6CDF',Colombia:'#F2C94C',Senegal:'#2EAD5B',Mexico:'#16A36A',USA:'#4D7AEE',Uruguay:'#6FB1E0',Switzerland:'#E5484D',Japan:'#1F5FC0',Ecuador:'#F2C94C',Austria:'#E5484D',Norway:'#EF4B5C',Australia:'#F4C430',"Korea Republic":'#D7384A',Sweden:'#3D8FD1',Egypt:'#E5484D',"Ivory Coast":'#FF8A3D',Algeria:'#1EA85C',Paraguay:'#E5484D',Scotland:'#3D8FD1',Czechia:'#E5484D',Turkiye:'#EF3B45',Tunisia:'#E5484D',Iran:'#2EAD5B',Qatar:'#B23A5E',"Saudi Arabia":'#1FA363',Bosnia:'#F2C94C',Canada:'#EF3B45',Curacao:'#3D6EE8',"DR Congo":'#3DA8E8',Uzbekistan:'#22B0B5',Ghana:'#F2C94C',Iraq:'#E5484D',Jordan:'#E5484D',Haiti:'#E5484D',"South Africa":'#1FA363',"New Zealand":'#5C8AE0',"Cape Verde":'#3D6EE8',Panama:'#5C8AE0'};
 /* 客场/备用色(主色相近时启用) */
 const COL2={Norway:'#1F3A93',Jordan:'#15B8B8',Qatar:'#2D6CDF',Iraq:'#0E7C5A',Austria:'#111B3A',Switzerland:'#D9D9D9',Tunisia:'#0E5AA8',Egypt:'#111B3A',Canada:'#111B3A',Croatia:'#D7141A',England:'#1F3A93'};
+const CODE={Argentina:'ar',Spain:'es',France:'fr',England:'gb-eng',Portugal:'pt',Brazil:'br',Netherlands:'nl',Morocco:'ma',Belgium:'be',Germany:'de',Croatia:'hr',Colombia:'co',Senegal:'sn',Mexico:'mx',USA:'us',Uruguay:'uy',Switzerland:'ch',Japan:'jp',Ecuador:'ec',Austria:'at',Norway:'no',Australia:'au',"Korea Republic":'kr',Sweden:'se',Egypt:'eg',"Ivory Coast":'ci',Algeria:'dz',Paraguay:'py',Scotland:'gb-sct',Czechia:'cz',Turkiye:'tr',Tunisia:'tn',Iran:'ir',Qatar:'qa',"Saudi Arabia":'sa',Bosnia:'ba',Canada:'ca',Curacao:'cw',"DR Congo":'cd',Uzbekistan:'uz',Ghana:'gh',Iraq:'iq',Jordan:'jo',Haiti:'ht',"South Africa":'za',"New Zealand":'nz',"Cape Verde":'cv',Panama:'pa'};
+function flagSrc(t){return 'https://flagcdn.com/'+(CODE[t.en]||'un')+'.svg';}
 function _hx(c){c=c.replace('#','');return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];}
 function cdist(a,b){const x=_hx(a),y=_hx(b);return Math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2+(x[2]-y[2])**2);}
 function _comp(c){const pal=['#3D6EE8','#FF7A1A','#1FA363','#F2C94C','#B23A5E','#22B0B5','#1F5FC0'];let best=pal[0],bd=-1;pal.forEach(p=>{const d=cdist(c,p);if(d>bd){bd=d;best=p;}});return best;}
 function pickColors(an,bn){let cA=COL[an]||'#1FE07A',cB=COL[bn]||'#FFC93C';
  if(cdist(cA,cB)<95){const b2=COL2[bn];if(b2&&cdist(cA,b2)>=95)cB=b2;else{const a2=COL2[an];if(a2&&cdist(a2,cB)>=95)cA=a2;else cB=_comp(cA);}}
  return[cA,cB];}
+function flagOf(t){return `<span class="fl"><img class="flagimg" src="${flagSrc(t)}" alt="${t.zh}" onerror="this.outerHTML='${t.flag}'"></span>`;}
 /* 球场 [主办,热,海拔] */
-const V={"墨西哥城·阿兹特克":["MEX",55,95],"瓜达拉哈拉·Akron":["MEX",60,65],"蒙特雷·BBVA":["MEX",90,15],"洛杉矶·SoFi":["USA",55,5],"西雅图·Lumen":["USA",25,5],"旧金山湾区·Levi's":["USA",35,5],"堪萨斯城·Arrowhead":["USA",70,15],"达拉斯·AT&T":["USA",82,10],"休斯顿·NRG":["USA",85,5],"亚特兰大·奔驰":["USA",72,20],"迈阿密·Hard Rock":["USA",90,5],"费城·Lincoln":["USA",70,5],"波士顿·Gillette":["USA",55,5],"纽约/新泽西·MetLife":["USA",65,5],"多伦多·BMO":["CAN",50,5],"温哥华·BC Place":["CAN",30,5]};
+const V={"墨西哥城·阿兹特克":["MEX",55,95],"瓜达拉哈拉·Akron":["MEX",60,65],"蒙特雷·BBVA":["MEX",90,15],"洛杉矶·SoFi":["USA",55,5],"西雅图·Lumen":["USA",25,5],"旧金山湾区·Levi's":["USA",35,5],"堪萨斯城·Arrowhead":["USA",70,15],"达拉斯·AT&T":["USA",82,10],"休斯顿·NRG":["USA",85,5],"亚特兰大·奔驰":["USA",72,20],"迈阿密·Hard Rock":["USA",90,5],"费城·Lincoln":["USA",70,5],"波士顿·Gillette":["USA",55,5],"纽约/新泽西·MetLife":["USA",65,5],"多伦多·BMO":["CAN",50,5],"温哥华·BC Place":["CAN",30,5],"中立场":[null,45,5]};
 /* 气候 [气温°C,湿度%,天气,封顶roof] */
-const CL={"墨西哥城·阿兹特克":[22,55,"多云有阵雨·高原2240m",0],"瓜达拉哈拉·Akron":[26,50,"午后雷阵雨·海拔1566m",0],"蒙特雷·BBVA":[35,45,"烈日酷热",0],"洛杉矶·SoFi":[26,50,"晴·顶棚半遮",1],"西雅图·Lumen":[21,60,"凉爽多云",0],"旧金山湾区·Levi's":[24,55,"晴爽",0],"堪萨斯城·Arrowhead":[30,60,"闷热",0],"达拉斯·AT&T":[23,50,"封顶空调(外35°C)",1],"休斯顿·NRG":[23,55,"封顶空调(外34°C)",1],"亚特兰大·奔驰":[24,60,"封顶可控温(外30°C多雨)",1],"迈阿密·Hard Rock":[33,73,"闷热·体感34°C·多雷雨",0],"费城·Lincoln":[28,60,"温热",0],"波士顿·Gillette":[24,55,"温和",0],"纽约/新泽西·MetLife":[27,60,"温热",0],"多伦多·BMO":[24,55,"温和",0],"温哥华·BC Place":[20,55,"凉爽·室内固定顶",1]};
+const CL={"墨西哥城·阿兹特克":[22,55,"多云有阵雨·高原2240m",0],"瓜达拉哈拉·Akron":[26,50,"午后雷阵雨·海拔1566m",0],"蒙特雷·BBVA":[35,45,"烈日酷热",0],"洛杉矶·SoFi":[26,50,"晴·顶棚半遮",1],"西雅图·Lumen":[21,60,"凉爽多云",0],"旧金山湾区·Levi's":[24,55,"晴爽",0],"堪萨斯城·Arrowhead":[30,60,"闷热",0],"达拉斯·AT&T":[23,50,"封顶空调(外35°C)",1],"休斯顿·NRG":[23,55,"封顶空调(外34°C)",1],"亚特兰大·奔驰":[24,60,"封顶可控温(外30°C多雨)",1],"迈阿密·Hard Rock":[33,73,"闷热·体感34°C·多雷雨",0],"费城·Lincoln":[28,60,"温热",0],"波士顿·Gillette":[24,55,"温和",0],"纽约/新泽西·MetLife":[27,60,"温热",0],"多伦多·BMO":[24,55,"温和",0],"温哥华·BC Place":[20,55,"凉爽·室内固定顶",1],"中立场":[24,55,"中立",0]};
 /* 赛程 [日期,组,A,B,球场,结果|null,备注,当地开赛] */
 const FIX=[
 ["06-11","A","Mexico","South Africa","墨西哥城·阿兹特克",[2,0],"揭幕战:沙基拉献唱,南非两度染红仅余9人。","20:00"],
@@ -208,10 +279,10 @@ const FIX=[
 ["06-13","C","Brazil","Morocco","纽约/新泽西·MetLife",[1,1],"维尼修斯救主,巴西仍是半成品;摩洛哥拿分。","19:00"],
 ["06-14","D","Australia","Turkiye","温哥华·BC Place",[2,0],"袋鼠军团爆冷2-0,土耳其揭幕折戟。","18:00"],
 ["06-14","C","Scotland","Haiti","波士顿·Gillette",[1,0],"苏格兰终结28年世界杯进球荒,小胜海地。","15:00"],
-["06-14","E","Germany","Curacao","休斯顿·NRG",null,"实力鸿沟巨大;库拉索史上首次世界杯。","12:00"],
-["06-14","F","Netherlands","Japan","达拉斯·AT&T",null,"今日焦点:日本技术流能否搅动橙衣军团。","15:00"],
-["06-14","E","Ivory Coast","Ecuador","费城·Lincoln",null,"厄瓜多尔被普遍看好为本届黑马,防线稳固。","18:00"],
-["06-14","F","Sweden","Tunisia","蒙特雷·BBVA",null,"蒙特雷湿热如蒸笼,突尼斯耐热是隐形优势。","21:00"],
+["06-14","E","Germany","Curacao","休斯顿·NRG",[7,1],"德国7-1血洗:科门西亚一度扳平点燃加勒比梦,半场后德国连灌6球(哈弗茨梅开二度,穆夏拉、舒洛特贝克、布朗、温达夫破门)。","12:00"],
+["06-14","F","Netherlands","Japan","达拉斯·AT&T",[2,2],"本届最佳战役之一!镰田大地第88分钟头球绝平,日本用纪律与反击2-2逼平荷兰,F组全面打开。","15:00"],
+["06-14","E","Ivory Coast","Ecuador","费城·Lincoln",[1,0],"阿马德·迪亚洛第90分钟绝杀,科特迪瓦1-0残忍带走被看好的厄瓜多尔。","18:00"],
+["06-14","F","Sweden","Tunisia","蒙特雷·BBVA",[5,1],"瑞典5-1狂胜!亚里梅开二度+伊萨克、约克雷斯、斯万贝里破门,自1938年来首次世界杯单场5球;突尼斯防线神话破灭。","21:00"],
 ["06-15","H","Spain","Cape Verde","亚特兰大·奔驰",null,"亚马尔伤愈复出但被严格管理,西班牙绝对上风。","12:00"],
 ["06-15","G","Belgium","Egypt","西雅图·Lumen",null,"萨拉赫领衔埃及;西雅图凉爽利于双方发挥。","15:00"],
 ["06-15","H","Saudi Arabia","Uruguay","迈阿密·Hard Rock",null,"迈阿密酷热;沙特赛前换帅,乌拉圭整体压制。","18:00"],
@@ -322,11 +393,23 @@ ana:"小组头名之争。<span class='tagA'>墨西哥</span>坐拥<span class='
 const PICKS={
 "Germany|Curacao":[3,0],"Netherlands|Japan":[1,1],"Ivory Coast|Ecuador":[1,1],"Sweden|Tunisia":[1,1],
 "Spain|Cape Verde":[3,0],"Belgium|Egypt":[1,1],"Saudi Arabia|Uruguay":[0,2],"Iran|New Zealand":[1,0],
-"France|Senegal":[2,1],"Iraq|Norway":[1,2],"Argentina|Algeria":[2,1],"Austria|Jordan":[2,0],
+"France|Senegal":[2,1],"Iraq|Norway":[0,2],"Argentina|Algeria":[2,0],"Austria|Jordan":[2,0],
 "Portugal|DR Congo":[2,0],"England|Croatia":[1,1],"Ghana|Panama":[1,1],"Uzbekistan|Colombia":[0,1],
 "Czechia|South Africa":[2,0],"Switzerland|Bosnia":[1,1],"Canada|Qatar":[2,0],"Mexico|Korea Republic":[2,1],
 };
 const pickFor=(an,bn)=>PICKS[an+'|'+bn]||null;
+/* 真实1X2盘口(bet365/oddschecker, 6/14),已去水换算成[主胜,平,客胜]概率 */
+const ODDS={
+"Spain|Cape Verde":[.876,.079,.045],"Belgium|Egypt":[.587,.249,.165],"Saudi Arabia|Uruguay":[.126,.219,.655],
+"Iran|New Zealand":[.519,.280,.201],"France|Senegal":[.644,.220,.136],"Iraq|Norway":[.073,.136,.791],
+"Argentina|Algeria":[.684,.199,.118],"Austria|Jordan":[.710,.172,.118],"Portugal|DR Congo":[.739,.165,.095],
+"England|Croatia":[.550,.249,.200],"Ghana|Panama":[.441,.271,.288],"Uzbekistan|Colombia":[.112,.211,.677],
+"Czechia|South Africa":[.540,.251,.209],
+};
+const marketWDL=(an,bn)=>ODDS[an+'|'+bn]||null;
+function wdlBlend(an,bn,R){const mk=marketWDL(an,bn);if(!mk)return{win:R.win,draw:R.draw,loss:R.loss,mk:null};
+ const a=0.6,bw=a*mk[0]+(1-a)*R.win,bd=a*mk[1]+(1-a)*R.draw,bl=a*mk[2]+(1-a)*R.loss,sm=bw+bd+bl;
+ return{win:bw/sm,draw:bd/sm,loss:bl/sm,mk};}
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function mul(s){let t=s+0x6D2B79F5;return()=>{t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
 function fc(n){let f=1;for(let i=2;i<=n;i++)f*=i;return f;}
@@ -390,29 +473,34 @@ function renderDays(){const days=[...new Set(FIX.map(f=>f[0]))];let html='';
  $('days').innerHTML=html;bindCards();}
 function card(f,idx){const[date,grp,an,bn,vk,res,note,ko]=f;const A=TEAMS[an],B=TEAMS[bn];const cl=CL[vk];const done=!!res;
  const R=predict(A,B,vk,seedFor(idx));const pk=pickFor(an,bn);const sc=done?res:(pk||[R.modal.i,R.modal.j]);
- const w=Math.round(R.win*100),dr=Math.round(R.draw*100),l=100-w-dr;
+ const[cA,cB]=pickColors(an,bn);
+ const UW=wdlBlend(an,bn,R);const w=Math.round(UW.win*100),dr=Math.round(UW.draw*100),l=100-w-dr;
  const wxIcon=cl[3]?'🏟️':cl[0]>=33?'🥵':cl[0]>=29?'☀️':'🌤️';
- return `<div class="match ${done?'done':''}" data-idx="${idx}">
- <div class="mhead"><div class="mteam home"><span class="fl">${A.flag}</span><span><span class="nm">${A.zh}</span><span class="rk">FIFA #${A.rank}</span></span></div>
- <div class="mscore"><div class="sc"><span class="pa">${sc[0]}</span><span class="sep">:</span><span class="pb">${sc[1]}</span></div><span class="badge ${done?'ft':'pred'}">${done?'完场':(pk?'研判':'预测')}</span></div>
- <div class="mteam away"><span class="fl">${B.flag}</span><span><span class="nm">${B.zh}</span><span class="rk">FIFA #${B.rank}</span></span></div></div>
- <div class="mmeta"><span class="gp">${grp}组</span><span class="ko">🕐${ko}</span><span class="ven">📍${vk}</span><span class="wx">${wxIcon}${cl[0]}°C/湿${cl[1]}%</span><span class="exp">展开深度分析 ▾</span></div>
- ${done?'':`<div class="miniprob"><div class="mp-w" style="width:${w}%"></div><div class="mp-d" style="width:${dr}%"></div><div class="mp-l" style="width:${l}%"></div></div>`}
+ const scoreHtml=done?`<span class="scn">${sc[0]}</span><span class="sep">:</span><span class="scn">${sc[1]}</span>`:`<span class="pa" style="color:${cA}">${sc[0]}</span><span class="sep">:</span><span class="pb" style="color:${cB}">${sc[1]}</span>`;
+ return `<div class="match ${done?'done':'up'}" data-idx="${idx}">
+ <div class="mmeta"><span class="gp">${grp}组</span><span class="ko">🕐${ko}</span><span class="ven">📍${vk}</span><span class="wx">${wxIcon}${cl[0]}°C/湿${cl[1]}%</span><span class="right"><span class="status ${done?'s-done':'s-up'}">${done?'已完赛':'未开赛'}</span><span class="exp">展开 ▾</span></span></div>
+ <div class="mhead"><div class="mteam home">${flagOf(A)}<span><span class="nm">${A.zh}</span><span class="rk">FIFA #${A.rank}</span></span></div>
+ <div class="mscore"><div class="sc">${scoreHtml}</div><span class="badge ${done?'ft':'pred'}">${done?'完场':(pk?'研判':'预测')}</span></div>
+ <div class="mteam away">${flagOf(B)}<span><span class="nm">${B.zh}</span><span class="rk">FIFA #${B.rank}</span></span></div></div>
+ ${done?'':`<div class="miniprob"><div style="width:${w}%;background:${cA}"></div><div class="mp-d" style="width:${dr}%"></div><div style="width:${l}%;background:${cB}"></div></div>`}
  <div class="detail">${detail(A,B,vk,R,done,res,note,ko,an,bn)}</div></div>`;}
 function detail(A,B,vk,R,done,res,note,ko,an,bn){
- const cl=CL[vk];const D=dims(A,B,vk);const C=conf(R);const pk=pickFor(an,bn);
+ const cl=CL[vk];const D=dims(A,B,vk);const pk=pickFor(an,bn);
  const _pc=pickColors(an,bn);const colA=_pc[0],colB=_pc[1];
- const w=Math.round(R.win*100),dr=Math.round(R.draw*100),l=100-w-dr;
+ const UW=wdlBlend(an,bn,R);const mk=UW.mk;const C=conf(UW);
+ const w=Math.round(UW.win*100),dr=Math.round(UW.draw*100),l=100-w-dr;
  const dk=DOSS[an+'|'+bn]||{};
  const head=done?res:(pk||[R.modal.i,R.modal.j]);
- const lean=R.win>=R.draw&&R.win>=R.loss?['a',A.zh+' 占优']:R.loss>=R.draw?['b',B.zh+' 占优']:['d','倾向平局'];
+ const lean=UW.win>=UW.draw&&UW.win>=UW.loss?['a',A.zh+' 占优']:UW.loss>=UW.draw?['b',B.zh+' 占优']:['d','倾向平局'];
  // verdict
  let html=`<div class="sech">综合研判${pk?' · 我的预测比分':''}</div>
  <div class="verdict"><span class="lean ${lean[0]}">${lean[1]}</span><span class="stars">${'★'.repeat(C.stars)}${'☆'.repeat(5-C.stars)}</span><span class="conf">可信度 ${C.lab}</span>
  ${done?`<span class="ps">真实 <span class="pa">${res[0]}</span><span class="sep">:</span><span class="pb">${res[1]}</span></span>`:`<span class="ps"><span class="pa">${head[0]}</span><span class="sep">:</span><span class="pb">${head[1]}</span></span>`}</div>`;
  if(!done){
-  html+=`<div class="wdl"><span style="border-color:${colA}66"><b style="color:${colA}">${A.zh}胜</b> ${w}%</span><span><b>平局</b> ${dr}%</span><span style="border-color:${colB}66"><b style="color:${colB}">${B.zh}胜</b> ${l}%</span></div>
+  html+=`<div class="wdl"><span style="border-color:${colA}66"><b style="color:${colA}">${A.zh}胜</b> ${w}%</span><span><b>平局</b> ${dr}%</span><span style="border-color:${colB}66"><b style="color:${colB}">${B.zh}胜</b> ${l}%</span>${mk?'<span class="cap">模型×市场校准</span>':''}</div>
   <div class="miniprob"><div style="width:${w}%;background:${colA}"></div><div class="mp-d" style="width:${dr}%"></div><div style="width:${l}%;background:${colB}"></div></div>`;
+  if(mk){const Mw=Math.round(R.win*100),Md=Math.round(R.draw*100),Ml=100-Mw-Md;const mw=Math.round(mk[0]*100),md=Math.round(mk[1]*100),ml=100-mw-md;const sa=A.zh.slice(0,4),sb=B.zh.slice(0,4);
+   html+=`<div class="srcs"><div><span class="srl">九维模型</span>${sa} ${Mw}% · 平 ${Md}% · ${sb} ${Ml}%</div><div><span class="srl mkt">真实盘口</span>${sa} ${mw}% · 平 ${md}% · ${sb} ${ml}%</div><div><span class="srl cal">校准后(0.6市场+0.4模型)</span>${sa} ${w}% · 平 ${dr}% · ${sb} ${l}%</div></div>`;}
   // 比分概率分布
   html+=`<div class="sech">比分概率分布(模型)</div><div class="scores">`;
   R.scores.forEach(s=>{const c=s.i>s.j?colA:s.i<s.j?colB:'#8593A8';html+=`<span class="scchip" style="border-left-color:${c}"><b>${s.i}-${s.j}</b>${(s.p*100).toFixed(0)}%</span>`;});
@@ -448,21 +536,102 @@ function detail(A,B,vk,R,done,res,note,ko,an,bn){
  if(dk.inj){html+=`<div class="note inj">🩹 <b>伤病/减员</b> · ${dk.inj}</div>`;}
  if(dk.mut){const m=dk.mut;html+=`<div class="note mut"><span class="mutlev ${m[0]}">默契球 ${m[0]==='mid'?'中':'低'}</span>${m[1]}</div>`;}
  else if(!done){html+=`<div class="note mut"><span class="mutlev low">默契球 低</span>小组赛中前期,双方仍需抢分,默契做球动机低。真正高发期是小组末轮当某一比分能让双方同时出线时。</div>`;}
- if(dk.ana){html+=`<div class="note ana">📊 ${dk.ana}</div>`;}
- else if(done){html+=`<div class="note ana">📌 已完场,真实比分 <b>${res[0]}-${res[1]}</b>。${note||''} 结果已写回两队状态值用于后续预测。</div>`;}
+ if(done){let pn='';const pk2=pickFor(an,bn);if(pk2){const ok=Math.sign(res[0]-res[1])===Math.sign(pk2[0]-pk2[1]);pn=` 我赛前研判 <b>${pk2[0]}-${pk2[1]}</b>(${ok?'方向命中 ✓':'未命中 ✗'})。`;}
+  html+=`<div class="note ana">📌 完场回看 · 真实比分 <b>${res[0]}-${res[1]}</b>。${note||''}${pn} 结果已写回两队状态值用于后续预测。</div>`;}
+ else if(dk.ana){html+=`<div class="note ana">📊 ${dk.ana}</div>`;}
  else if(note){html+=`<div class="note ana">📊 ${note}</div>`;}
  return html;}
+function flagMini(t){return `<img class="flagimg" src="${flagSrc(t)}" alt="" onerror="this.outerHTML='${t.flag}'">`;}
+function groupsFromFix(){const g={};FIX.forEach(f=>{g[f[1]]=g[f[1]]||new Set();g[f[1]].add(f[2]);g[f[1]].add(f[3]);});const o={};Object.keys(g).sort().forEach(k=>o[k]=[...g[k]]);return o;}
+function fixResult(x,y){for(const f of FIX){if(f[2]===x&&f[3]===y){if(f[5])return f[5];const p=PICKS[x+'|'+y];return p||null;}if(f[2]===y&&f[3]===x){if(f[5])return[f[5][1],f[5][0]];const p=PICKS[y+'|'+x];return p?[p[1],p[0]]:null;}}return null;}
+function simResult(x,y){const R=predict(TEAMS[x],TEAMS[y],"中立场",(x.length*7+y.length*13+x.charCodeAt(0)+y.charCodeAt(0))*3+5);return[R.modal.i,R.modal.j];}
+function computeStandings(){const G=groupsFromFix();const out={};
+ Object.keys(G).forEach(grp=>{const teams=G[grp];const tab={};teams.forEach(t=>tab[t]={t,P:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0});
+  for(let i=0;i<teams.length;i++)for(let j=i+1;j<teams.length;j++){const x=teams[i],y=teams[j];let r=fixResult(x,y);if(!r)r=simResult(x,y);const[gx,gy]=r;
+   tab[x].P++;tab[y].P++;tab[x].GF+=gx;tab[x].GA+=gy;tab[y].GF+=gy;tab[y].GA+=gx;
+   if(gx>gy){tab[x].W++;tab[y].L++;tab[x].Pts+=3;}else if(gx<gy){tab[y].W++;tab[x].L++;tab[y].Pts+=3;}else{tab[x].D++;tab[y].D++;tab[x].Pts++;tab[y].Pts++;}}
+  const arr=Object.values(tab).map(o=>({...o,GD:o.GF-o.GA}));
+  arr.sort((a,b)=>b.Pts-a.Pts||b.GD-a.GD||b.GF-a.GF||TEAMS[b.t].rating-TEAMS[a.t].rating);
+  out[grp]=arr;});
+ return out;}
+function strength(t){return TEAMS[t].rating+(TEAMS[t].form-50)/8;}
+function seedOrder(n){let a=[1,2];while(a.length<n){const m=a.length*2+1;const b=[];a.forEach(s=>{b.push(s);b.push(m-s);});a=b;}return a;}
+function playKO(x,y){const R=predict(TEAMS[x],TEAMS[y],"中立场",(x.charCodeAt(0)+y.charCodeAt(0)+x.length+y.length)*17+3);
+ let wn=R.win>=R.loss?0:1;let s=[R.modal.i,R.modal.j];
+ if(s[0]===s[1]){if(wn===0)s=[s[0]+1,s[1]];else s=[s[0],s[1]+1];}
+ else{const mw=s[0]>s[1]?0:1;if(mw!==wn){if(wn===0)s=[Math.max(s[1]+1,s[0]),s[1]];else s=[s[0],Math.max(s[0]+1,s[1])];}}
+ return[s[0],s[1],wn];}
+function computeKnockout(st){const grps=Object.keys(st).sort();const firsts=[],seconds=[],thirds=[];
+ grps.forEach(g=>{firsts.push({...st[g][0],pos:'1'+g});seconds.push({...st[g][1],pos:'2'+g});thirds.push({...st[g][2],pos:'3'+g});});
+ thirds.sort((a,b)=>b.Pts-a.Pts||b.GD-a.GD||b.GF-a.GF||TEAMS[b.t].rating-TEAMS[a.t].rating);
+ let pool=[...firsts,...seconds,...thirds.slice(0,8)];
+ pool.sort((a,b)=>strength(b.t)-strength(a.t));
+ const order=seedOrder(32);let round=order.map(s=>pool[s-1]);const rounds=[];
+ while(round.length>1){const ms=[],next=[];
+  for(let i=0;i<round.length;i+=2){const A=round[i],B=round[i+1];const[sa,sb,wn]=playKO(A.t,B.t);ms.push({A,B,sa,sb,win:wn});next.push(wn===0?A:B);}
+  rounds.push(ms);round=next;}
+ return{rounds,champion:round[0]};}
+function computeRealStandings(){const G=groupsFromFix();const out={};
+ Object.keys(G).forEach(grp=>{const teams=G[grp];const tab={};teams.forEach(t=>tab[t]={t,P:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0});
+  FIX.forEach(f=>{if(f[1]!==grp||!f[5])return;const x=f[2],y=f[3],gx=f[5][0],gy=f[5][1];if(!tab[x]||!tab[y])return;
+   tab[x].P++;tab[y].P++;tab[x].GF+=gx;tab[x].GA+=gy;tab[y].GF+=gy;tab[y].GA+=gx;
+   if(gx>gy){tab[x].W++;tab[y].L++;tab[x].Pts+=3;}else if(gx<gy){tab[y].W++;tab[x].L++;tab[y].Pts+=3;}else{tab[x].D++;tab[y].D++;tab[x].Pts++;tab[y].Pts++;}});
+  const arr=Object.values(tab).map(o=>({...o,GD:o.GF-o.GA}));
+  arr.sort((a,b)=>b.Pts-a.Pts||b.GD-a.GD||b.GF-a.GF||b.P-a.P||TEAMS[b.t].rating-TEAMS[a.t].rating);
+  out[grp]=arr;});return out;}
+function computeThirds(st){const thirds=Object.keys(st).sort().map(g=>({...st[g][2],g}));
+ thirds.sort((a,b)=>b.Pts-a.Pts||b.GD-a.GD||b.GF-a.GF||TEAMS[b.t].rating-TEAMS[a.t].rating);
+ return{q3set:new Set(thirds.slice(0,8).map(o=>o.t)),ranked:thirds};}
+function grpTable(g,arr,opts){opts=opts||{};const q3=opts.q3set;let rows='';
+ arr.forEach((o,i)=>{let cls='',tag='';
+  if(opts.mode==='pred'){if(i===0)cls='q1';else if(i===1)cls='q2';else if(i===2){if(q3&&q3.has(o.t)){cls='q3in';tag=' <span class="tg-in">▲出线</span>';}else{cls='q3out';tag=' <span class="tg-out">▽淘汰</span>';}}}
+  else{if(i<2&&o.P>0)cls='q1';}
+  rows+=`<tr class="${cls}"><td class="pos">${i+1}</td><td class="tm"><span class="ff">${flagMini(TEAMS[o.t])}</span>${TEAMS[o.t].zh}${tag}</td><td>${o.P}</td><td>${o.W}</td><td>${o.D}</td><td>${o.L}</td><td>${o.GD>0?'+':''}${o.GD}</td><td class="pts">${o.Pts}</td></tr>`;});
+ return `<div class="grp"><h4>${g} 组</h4><table class="stbl"><colgroup><col style="width:22px"><col><col style="width:24px"><col style="width:24px"><col style="width:24px"><col style="width:24px"><col style="width:30px"><col style="width:26px"></colgroup><thead><tr><th>#</th><th class="tl">球队</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>净</th><th>分</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+function brow(team,score,win){return `<div class="brow ${win?'win':''}"><span class="bf">${flagMini(TEAMS[team.t])}</span><span class="bnm">${TEAMS[team.t].zh}</span><span class="bsc">${score}</span></div>`;}
+function bracketHtml(KO){const labels=['1/16决赛','1/8决赛','1/4决赛','半决赛','决赛'];let h='<div class="bracket">';
+ KO.rounds.forEach((ms,ri)=>{h+=`<div class="bround${ri===0?' firstr':''}"><div class="brlabel">${labels[ri]||''}</div><div class="bcol">`;
+  ms.forEach((m,mi)=>{const v=(ms.length>1&&mi%2===0)?'<i class="vline"></i>':'';h+=`<div class="slot"><div class="bmatch">${brow(m.A,m.sa,m.win===0)}${brow(m.B,m.sb,m.win===1)}</div>${v}</div>`;});
+  h+='</div></div>';});
+ const c=KO.champion;h+=`<div class="champ"><div class="cup">🏆</div><div class="cf">${flagMini(TEAMS[c.t])}</div><div class="cn">${TEAMS[c.t].zh}</div><div class="cl">模型推演冠军</div></div></div>`;return h;}
+function emptyBracketFrame(){const counts=[16,8,4,2,1],labels=['1/16决赛','1/8决赛','1/4决赛','半决赛','决赛'];let h='<div class="bracket">';
+ counts.forEach((c,ri)=>{h+=`<div class="bround${ri===0?' firstr':''}"><div class="brlabel">${labels[ri]}</div><div class="bcol">`;
+  for(let i=0;i<c;i++){const v=(c>1&&i%2===0)?'<i class="vline"></i>':'';h+=`<div class="slot"><div class="bmatch"><div class="brow tbd"><span class="bnm">待定</span></div><div class="brow tbd"><span class="bnm">待定</span></div></div>${v}</div>`;}
+  h+='</div></div>';});
+ h+=`<div class="champ"><div class="cup">🏆</div><div class="cf" style="font-size:30px">❔</div><div class="cn" style="color:var(--faint)">待定</div><div class="cl">小组赛后揭晓</div></div></div>`;return h;}
+function renderRealTab(){const st=computeRealStandings();let h='';
+ h+='<div class="desc">仅统计已踢的 <b>12 / 72</b> 场(6月11–14日,含今日4场)。A–F 组多数球队已赛 1 场,G 组以后尚未开赛(0 场)。</div>';
+ h+='<div class="grpgrid">';Object.keys(st).sort().forEach(g=>{h+=grpTable(g,st[g],{mode:'real'});});h+='</div>';
+ h+='<div class="qlegend"><span><b class="d1">■</b> 暂列小组前二</span><span>· 净=净胜球 · 分=积分</span></div>';
+ h+='<h3 class="kohd">🏆 真实淘汰赛(官方赛制)</h3>';
+ h+='<div class="desc">每组前2名 + 8个最佳第三名,共 <b>32队</b> 晋级。Round of 32 于 <b>6月28日</b> 在洛杉矶 SoFi 开打,决赛 <b>7月19日</b> 在纽约/新泽西 MetLife。规则:小组头名对最佳第三、两个小组第二相碰。<b style="color:var(--gold)">具体对阵须待全部72场小组赛结束(7月初)后按官方规则确定,故下方对阵框暂为待定。</b></div>';
+ h+=emptyBracketFrame();
+ const el=document.getElementById('panel-real');if(el)el.innerHTML=h;}
+function renderPredTab(){const st=computeStandings();const T3=computeThirds(st);
+ let h='<div class="desc">已赛用真实比分、未赛用"我的研判/模型"补成每队踢满3场的完整循环。前2名出线(<b style="color:var(--green)">绿</b>/<b style="color:var(--sky)">蓝</b>);12个小组第3名按积分排序,<b style="color:var(--gold)">取前8晋级</b>、后4淘汰。</div>';
+ h+='<div class="grpgrid">';Object.keys(st).sort().forEach(g=>{h+=grpTable(g,st[g],{mode:'pred',q3set:T3.q3set});});h+='</div>';
+ h+='<div class="qlegend"><span><b class="d1">■</b> 第1·出线</span><span><b class="d2">■</b> 第2·出线</span><span><b class="d3">▲</b> 最佳第三·出线</span><span><b style="color:var(--faint)">▽</b> 第三·淘汰</span></div>';
+ h+='<h3 class="kohd">🥉 最佳第三名排名(取前8晋级)</h3><div class="thirds">';
+ T3.ranked.forEach((o,i)=>{h+=`<span class="thd ${i<8?'in':'out'}">${i+1}. ${flagMini(TEAMS[o.t])} ${TEAMS[o.t].zh} <b>${o.Pts}分</b></span>`;});
+ h+='</div>';
+ const KO=computeKnockout(st);
+ h+='<h3 class="kohd">🏆 淘汰赛推演</h3><div class="desc">由推演出线的32队按实力种子排布(非官方对阵图),用同一泊松模型逐轮模拟到冠军(淘汰赛不计平局)。横向可滑动。</div>';
+ h+=bracketHtml(KO);
+ const el=document.getElementById('panel-pred');if(el)el.innerHTML=h;}
+function renderKO(){renderRealTab();renderPredTab();
+ document.querySelectorAll('.kotab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.kotab').forEach(x=>x.classList.toggle('on',x===t));document.querySelectorAll('.kopanel').forEach(p=>p.classList.toggle('on',p.id==='panel-'+t.dataset.tab));});}
 function bindCards(){document.querySelectorAll('.match').forEach(m=>{
  m.querySelector('.mhead').onclick=()=>m.classList.toggle('open');
- m.querySelector('.exp').onclick=e=>{e.stopPropagation();m.classList.toggle('open');e.target.textContent=m.classList.contains('open')?'收起 ▴':'展开深度分析 ▾';};});}
+ m.querySelector('.exp').onclick=e=>{e.stopPropagation();m.classList.toggle('open');e.target.textContent=m.classList.contains('open')?'收起 ▴':'展开 ▾';};});}
 function renderWeights(){$('wrows').innerHTML=FK.map(f=>`<div class="wrow"><span class="wn">${f[1]}<small>${f[2]}</small></span><input type="range" min="0" max="150" value="${Math.round(W[f[0]]*100)}" data-wk="${f[0]}"><span class="wv" data-wv="${f[0]}">${Math.round(W[f[0]]*100)}%</span></div>`).join('');
- document.querySelectorAll('[data-wk]').forEach(inp=>inp.oninput=e=>{const k=e.target.dataset.wk;W[k]=(+e.target.value)/100;document.querySelector(`[data-wv="${k}"]`).textContent=e.target.value+'%';renderDays();renderStats();});}
+ document.querySelectorAll('[data-wk]').forEach(inp=>inp.oninput=e=>{const k=e.target.dataset.wk;W[k]=(+e.target.value)/100;document.querySelector(`[data-wv="${k}"]`).textContent=e.target.value+'%';renderDays();renderStats();renderKO();});}
 function syncW(){document.querySelectorAll('[data-wk]').forEach(i=>{i.value=Math.round(W[i.dataset.wk]*100);document.querySelector(`[data-wv="${i.dataset.wk}"]`).textContent=i.value+'%';});}
 $('settingsHead').onclick=()=>$('settings').classList.toggle('open');
-$('reset').onclick=()=>{FK.forEach(f=>W[f[0]]=1);syncW();renderDays();renderStats();};
-$('onlystrength').onclick=()=>{FK.forEach(f=>W[f[0]]=0);syncW();renderDays();};
-$('maxchaos').onclick=()=>{W.chaos=1.5;syncW();renderDays();};
-renderStats();renderNav();renderDays();renderWeights();
+$('kosecHead').onclick=()=>$('kosec').classList.toggle('open');
+$('reset').onclick=()=>{FK.forEach(f=>W[f[0]]=1);syncW();renderDays();renderStats();renderKO();};
+$('onlystrength').onclick=()=>{FK.forEach(f=>W[f[0]]=0);syncW();renderDays();renderKO();};
+$('maxchaos').onclick=()=>{W.chaos=1.5;syncW();renderDays();renderKO();};
+renderStats();renderNav();renderDays();renderWeights();renderKO();
 setTimeout(()=>{const t=FIX.find(f=>f[0]===TODAY&&!f[5]);if(t){const el=document.querySelector(`.match[data-idx="${FIX.indexOf(t)}"]`);if(el){el.classList.add('open');el.querySelector('.exp').textContent='收起 ▴';}}},100);
 </script>
 </body>
