@@ -739,6 +739,13 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
   });
 }
 const norm = s => String(s ?? '').trim().replace(/\s+/g,'').toLowerCase();
+
+/** 本地时区的今天（不能用 toISOString，那是 UTC。
+ *  Davis 下午 4/5 点之后 UTC 已经是明天了） */
+function today(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -775,6 +782,9 @@ async function api(path, opts = {}){
 /* ===================== 接龙解析 ===================== */
 const GRADE_TOKEN  = /^(?:大|博|研|硕|本|预|新)\s*(?:[一二三四五六七八九十]|\d{1,2})$/;
 const GRADE_PREFIX = /^(?:大|博|研|硕|本|预)\s*(?:[一二三四五六七八九十]|\d{1,2})\s*/;
+// 职务 / 位置前缀：Manager-金圣博、教练 张三、GK 李四…
+const ROLE_TOKEN  = /^(?:manager|mgr|coach|captain|gk|cb|cm|st|lw|rw|领队|经理|主教练|教练|助教|队长|队医|门将|前锋|中场|后卫)$/i;
+const ROLE_PREFIX = /^(?:manager|mgr|coach|captain|领队|经理|主教练|教练|助教|队长|队医)\s*/i;
 const HEADER_KW = /(训练|时间|地点|集合|注意|事项|分队|费用|场地|人数|队长|说明|备注|接龙|报名|星期|周[一二三四五六日天]|开始|结束|球衣|门将|守门|穿|带|自备|群里|请|预备队|一队|二队)/;
 
 function cleanName(raw){
@@ -784,9 +794,11 @@ function cleanName(raw){
   s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{2BFF}\u{FE0F}\u{200D}\u{2700}-\u{27BF}]/gu,' ');
   s = s.replace(/[-－—~～·・、|/\\+＋_]+/g,' ');
   let parts = s.split(/\s+/).filter(Boolean);
-  parts = parts.filter(p=>!GRADE_TOKEN.test(p));
-  parts = parts.map(p=>p.replace(GRADE_PREFIX,''));
-  parts = parts.filter(p=>p && !/^\d+$/.test(p));
+  // 独立的年级 / 职务词直接丢掉
+  parts = parts.filter(p => !GRADE_TOKEN.test(p) && !ROLE_TOKEN.test(p));
+  // 粘在名字前面的：大二何嘉伦 → 何嘉伦，Manager金圣博 → 金圣博
+  parts = parts.map(p => p.replace(GRADE_PREFIX,'').replace(ROLE_PREFIX,''));
+  parts = parts.filter(p => p && !/^\d+$/.test(p));
   return parts.join(' ').replace(/\s+/g,' ').trim();
 }
 
@@ -823,8 +835,13 @@ function parseRelay(text){
   return { names, skipped };
 }
 
+/** 批量添加名册用：只按换行和标点分，不按空格分
+ *  （不然 "Frank Zhu" 会被拆成两个人） */
 function parseNames(text){
-  return String(text).split(/[\n\r,，、;；\t]+|\s{1,}/).map(s=>s.trim()).filter(Boolean);
+  return String(text)
+    .split(/[\n\r,，、;；\t]+/)
+    .map(s=>s.replace(/\s+/g,' ').trim())
+    .filter(Boolean);
 }
 
 function matchNames(list){
@@ -862,12 +879,15 @@ function render(){
   renderTermBar();
 
   const t = T();
-  const s = t ? t.summary : {unitPrice:0,totalCost:0,totalHeadcount:0,sessionCount:0,peopleCount:0,totalPaid:0,totalUnpaid:0};
+  const s = t ? t.summary : {unitPrice:0,totalCost:0,totalHeadcount:0,sessionCount:0,
+    trainCount:0,matchCount:0,trainCost:0,trainHead:0,matchCost:0,matchHead:0,
+    peopleCount:0,totalPaid:0,totalUnpaid:0};
 
   $('uUnit').textContent = money(s.unitPrice);
   $('uFormula').innerHTML = t
-    ? `${money(s.totalCost)} ÷ ${s.totalHeadcount} 人次<br>` +
-      `<span style="opacity:.75">${esc(t.name)} · ${s.sessionCount} 场 · ${s.peopleCount} 人</span>`
+    ? `训练 ${money(s.trainCost)} ÷ ${s.trainHead} 人次` +
+      (s.matchCount ? `<br>比赛 ${money(s.matchCost)}（${s.matchCount} 场单独分摊）` : '') +
+      `<br><span style="opacity:.75">${esc(t.name)} · ${s.peopleCount} 人</span>`
     : '还没有学期';
   $('sTrain').textContent  = s.sessionCount;
   $('sPeople').textContent = s.peopleCount;
@@ -896,15 +916,14 @@ function renderTerms(){
           ${esc(t.name)}${t.isActive?'<span class="pill ok" style="margin-left:8px">当前</span>':''}
         </div>
         <div class="sess-sub">
-          总费用 <b>${money(s.totalCost)}</b> · 单价 <b>${money(s.unitPrice)}</b>／次
-          <span style="color:var(--muted)">
-            （${s.totalHeadcount} 人次 · ${s.sessionCount} 场 · ${s.peopleCount} 人）
-          </span>
+          训练单价 <b>${money(s.unitPrice)}</b>／次
+          <span style="color:var(--muted)">（${money(s.trainCost)} ÷ ${s.trainHead} 人次 · ${s.trainCount} 场）</span>
+          ${s.matchCount ? `<br>比赛费用 <b>${money(s.matchCost)}</b>
+            <span style="color:var(--muted)">（${s.matchCount} 场，各自按参赛人数分摊）</span>` : ''}
         </div>
         <div class="sess-note" style="margin-top:6px">
-          ${s.costMode==='term'
-            ? '费用按学期总额算'
-            : `费用 = 各场次相加${s.sessionSum!==s.totalCost?'':''}`}
+          总费用 ${money(s.totalCost)}　·　${s.peopleCount} 人　·
+          ${s.costMode==='term' ? '训练费按学期总额算' : '训练费 = 各场次相加'}
           　·　已收 ${money(s.totalPaid)} · 待收 ${money(s.totalUnpaid)}
           ${t.startDate||t.endDate?`　·　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}
         </div>
@@ -930,13 +949,13 @@ function renderTerms(){
       const s = t.summary;
       openEdit({
         title: '修改学期',
-        sub: `${s.sessionCount} 场训练 · ${s.totalHeadcount} 人次 · 当前单价 ${money(s.unitPrice)}／次`,
+        sub: `${s.trainCount} 场训练 · ${s.trainHead} 人次 · 当前训练单价 ${money(s.unitPrice)}／次`,
         fields: [
           {key:'name', label:'学期名称', value:t.name, placeholder:'例：2026 秋季学期'},
-          {key:'totalCost', label:'本学期总费用（$）', type:'number',
+          {key:'totalCost', label:'本学期训练总费用（$）', type:'number',
            value: t.totalCostSet || '',
            placeholder: `留空则用各场次相加（现在 ${money(s.sessionSum)}）`,
-           hint: `填了就用这个数算单价：总费用 ÷ ${s.totalHeadcount || 'N'} 人次。留空则把每场的费用加起来。`},
+           hint: `只管训练：填了就用它 ÷ ${s.trainHead || 'N'} 训练人次算单价。比赛费用不受影响，永远按各场参赛人数分摊。`},
           {key:'startDate', label:'开始日期', type:'date', value:t.startDate||''},
           {key:'endDate', label:'结束日期', type:'date', value:t.endDate||''},
         ],
@@ -1539,7 +1558,7 @@ function resetForm(){
   $('editFlag').innerHTML='';
   $('btnCancelEdit').style.display='none';
   pendingMatch=null;
-  const d=$('fDate'); d.value=new Date().toISOString().slice(0,10); d.dataset.auto='1';
+  const d=$('fDate'); d.value=today(); d.dataset.auto='1';
   setKind('training');
 }
 $('btnCancelEdit').onclick = resetForm;
@@ -1554,20 +1573,23 @@ $('btnSaveSess').onclick = async ()=>{
 
   if(!curTermId) return toast('请先建一个学期', true);
 
+  const wasEditing = !!editingId;     // resetForm 会清掉 editingId，先记下来
+  const wasMatch   = curKind === 'match';
+
   const btn = $('btnSaveSess');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
   try{
     const payload = JSON.stringify({
       date, cost, note, attendees:pendingMatch.matched,
       termId:curTermId, kind:curKind });
-    if(editingId) await api('/sessions/'+editingId,{method:'PUT',body:payload});
-    else          await api('/sessions',{method:'POST',body:payload});
+    if(wasEditing) await api('/sessions/'+editingId,{method:'PUT',body:payload});
+    else           await api('/sessions',{method:'POST',body:payload});
     resetForm();
     await reload();
-    toast(editingId?'已更新':'已保存这次训练');
+    toast(wasEditing ? '已更新' : (wasMatch ? '已保存这场比赛' : '已保存这次训练'));
     switchTab('list');
   }catch(e){ toast(e.message,true); }
-  finally{ btn.disabled=false; btn.textContent = editingId?'保存修改':'保存这次训练'; }
+  finally{ btn.disabled=false; setKind(curKind); }
 };
 
 $('btnAddPlayers').onclick = async ()=>{
@@ -1593,7 +1615,7 @@ function openPay(name){
        应付 <b>${money(p.owed)}</b>　已付 ${money(p.paid)}　未付 <b style="color:var(--danger)">${money(p.balance)}</b>`
     : '';
   $('payAmt').value = p ? (p.balance>0?p.balance.toFixed(2):'') : '';
-  $('payDate').value = new Date().toISOString().slice(0,10);
+  $('payDate').value = today();
   $('payNote').value = '';
 
   // 标签选择
@@ -1615,7 +1637,7 @@ $('payCancel').onclick = ()=> $('payModal').classList.remove('on');
 $('payModal').onclick = e=>{ if(e.target===$('payModal')) $('payModal').classList.remove('on'); };
 $('payConfirm').onclick = async ()=>{
   const amount = parseFloat($('payAmt').value);
-  if(!Number.isFinite(amount) || amount===0) return toast('金额不对', true);
+  if(!Number.isFinite(amount) || amount <= 0) return toast('金额要大于 0', true);
   try{
     const tagOn = $('payTags').querySelector('.tag-opt.on');
     await api('/payments',{method:'POST',body:JSON.stringify({
@@ -1651,7 +1673,7 @@ $('btnBulkPay').onclick = ()=>{
     sub: `${esc(t.name)}　合计 <b>${money(sum)}</b><br>
           <span style="color:var(--muted)">${sel.map(p=>esc(p.name)).join('、')}</span>`,
     fields: [
-      {key:'paidAt', label:'收款日期', type:'date', value:new Date().toISOString().slice(0,10)},
+      {key:'paidAt', label:'收款日期', type:'date', value:today()},
       {key:'tag', label:'付款方式', type:'tags', value:'', options:payTags},
       {key:'note', label:'备注', value:'', placeholder:'可留空'},
     ],
@@ -1723,14 +1745,14 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
   </div>
   <div class="meta">
     导出日期 ${today}<br>
-    ${s.sessionCount} 场训练 · ${s.peopleCount} 人参与
+    ${s.trainCount} 场训练${s.matchCount?` · ${s.matchCount} 场比赛`:''} · ${s.peopleCount} 人参与
   </div>
 </div>
 
 <div class="box">
   <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
-  <div><span>总人次</span><b>${s.totalHeadcount}</b></div>
-  <div><span>单价／次</span><b>${money(s.unitPrice)}</b></div>
+  <div><span>训练单价／次</span><b>${money(s.unitPrice)}</b></div>
+  ${s.matchCount?`<div><span>比赛费用</span><b>${money(s.matchCost)}</b></div>`:''}
   <div><span>已收</span><b>${money(s.totalPaid)}</b></div>
   <div><span>待收</span><b style="color:#b04646">${money(s.totalUnpaid)}</b></div>
 </div>
@@ -1751,7 +1773,7 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
 </table>
 
 <div class="ft">
-  <span>单价 = 总费用 ${money(s.totalCost)} ÷ 总人次 ${s.totalHeadcount} = ${money(s.unitPrice)}</span>
+  <span>训练单价 = ${money(s.trainCost)} ÷ ${s.trainHead} 人次 = ${money(s.unitPrice)}${s.matchCount?`　｜　比赛费用各场按参赛人数分摊`:''}</span>
   <span>${unpaid.length ? `${unpaid.length} 人未结清` : '全部结清'}</span>
 </div>
 </body></html>`;
@@ -1780,7 +1802,7 @@ $('btnExport').onclick = ()=>{
   },null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`davisorigin-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.download=`davisorigin-backup-${today()}.json`;
   a.click(); URL.revokeObjectURL(a.href);
   toast('已下载备份');
 };
