@@ -177,11 +177,46 @@
 
   .modal-bg{position:fixed;inset:0;background:rgba(10,14,26,.5);backdrop-filter:blur(3px);
     display:none;place-items:center;z-index:150;padding:24px}
-  .modal-bg.on{display:grid}
-  .modal{background:var(--card);border-radius:18px;padding:30px 32px;width:100%;max-width:420px;
-    box-shadow:0 30px 70px rgba(0,0,0,.25)}
-  .modal h3{font-size:18px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em}
-  .modal .sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+  .modal-bg.on{display:grid;animation:mfade .2s ease}
+  @keyframes mfade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--card);border-radius:18px;padding:30px 32px;width:100%;max-width:440px;
+    box-shadow:0 30px 70px rgba(0,0,0,.25);max-height:86vh;overflow-y:auto;
+    animation:mup .25s cubic-bezier(.4,0,.2,1)}
+  @keyframes mup{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+  .modal h3{font-size:19px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em}
+  .modal .sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6}
+  .modal-actions{display:flex;gap:10px;margin-top:22px}
+  .modal-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
+
+  /* 标签选择 */
+  .tag-pick{display:flex;flex-wrap:wrap;gap:7px}
+  .tag-opt{padding:7px 14px;border:1px solid var(--line);border-radius:999px;
+    background:var(--bg-soft);font-size:13px;cursor:pointer;color:var(--ink-soft);
+    transition:all .2s;user-select:none}
+  .tag-opt:hover{border-color:var(--accent);color:var(--accent)}
+  .tag-opt.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .tag-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;
+    font-weight:700;letter-spacing:.03em;background:var(--accent-soft);color:var(--accent)}
+  .tag-badge.blue{background:#e8effc;color:#1e3a8a}
+  .tag-badge.green{background:#e6f4ef;color:#17795e}
+  .tag-badge.purple{background:#f0eafb;color:#6d3fa8}
+  .tag-badge.orange{background:#fbf2e3;color:#b0762a}
+  .tag-badge.red{background:#fbeded;color:#b04646}
+  .tag-badge.gray{background:#f0efe9;color:#6a6a72}
+  .tag-row{display:flex;align-items:center;gap:10px;padding:12px 16px;
+    border:1px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--card)}
+  .tag-row-name{flex:1;font-weight:600;font-size:14.5px}
+  .color-pick{display:flex;gap:6px;flex-wrap:wrap}
+  .color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;
+    border:2px solid transparent;transition:transform .2s,border-color .2s}
+  .color-dot:hover{transform:scale(1.12)}
+  .color-dot.on{border-color:var(--ink);transform:scale(1.1)}
+  .color-dot[data-c="blue"]{background:#1e3a8a}
+  .color-dot[data-c="green"]{background:#17795e}
+  .color-dot[data-c="purple"]{background:#6d3fa8}
+  .color-dot[data-c="orange"]{background:#b0762a}
+  .color-dot[data-c="red"]{background:#b04646}
+  .color-dot[data-c="gray"]{background:#8a8a92}
 
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
@@ -352,7 +387,7 @@
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>日期</th><th>球员</th><th class="num">金额</th><th>备注</th><th></th></tr></thead>
+            <thead><tr><th>日期</th><th>球员</th><th class="num">金额</th><th>标签</th><th>备注</th><th></th></tr></thead>
             <tbody id="payBody"></tbody>
           </table>
         </div>
@@ -407,8 +442,33 @@
         </div>
         <div id="termList"></div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">收款标签</div>
+            <div class="card-sub">记录收款时可以选，比如付款方式</div>
+          </div>
+          <button class="btn sm" id="btnNewTag">+ 新标签</button>
+        </div>
+        <div id="tagList"></div>
+      </div>
     </section>
   </main>
+</div>
+
+<!-- 通用编辑弹窗 -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3 id="emTitle">编辑</h3>
+    <div class="sub" id="emSub"></div>
+    <div id="emFields"></div>
+    <div class="modal-err" id="emErr"></div>
+    <div class="modal-actions">
+      <button class="btn" id="emOk" style="flex:1">保存</button>
+      <button class="btn ghost" id="emCancel">取消</button>
+    </div>
+  </div>
 </div>
 
 <!-- 收款弹窗 -->
@@ -418,7 +478,11 @@
     <div class="sub" id="paySubInfo"></div>
     <div class="field"><label>金额（$）</label><input type="number" id="payAmt" step="0.01" /></div>
     <div class="field"><label>收款日期</label><input type="date" id="payDate" /></div>
-    <div class="field"><label>备注（可选）</label><input type="text" id="payNote" placeholder="Venmo / 现金 / 微信" /></div>
+    <div class="field">
+      <label>标签</label>
+      <div class="tag-pick" id="payTags"></div>
+    </div>
+    <div class="field"><label>备注（可选）</label><input type="text" id="payNote" placeholder="比如转账后四位" /></div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button class="btn ok" id="payConfirm" style="flex:1">确认收款</button>
       <button class="btn ghost" id="payCancel">取消</button>
@@ -463,6 +527,96 @@ function T(){
 
 /* ===================== 工具 ===================== */
 const $ = id => document.getElementById(id);
+
+/**
+ * 通用编辑弹窗
+ * openEdit({ title, sub, fields:[{key,label,type,value,placeholder,options}], okText })
+ *   → Promise<values|null>   点取消返回 null
+ * onSubmit 里可以 throw 出错误信息，会显示在弹窗里而不关闭
+ */
+function openEdit({ title, sub = '', fields = [], okText = '保存', onSubmit }) {
+  const bg = $('editModal');
+  $('emTitle').textContent = title;
+  $('emSub').innerHTML = sub;
+  $('emErr').textContent = '';
+  $('emOk').textContent = okText;
+
+  $('emFields').innerHTML = fields.map(f => {
+    if (f.type === 'tags') {
+      return `<div class="field"><label>${esc(f.label)}</label>
+        <div class="tag-pick" data-tagpick="${esc(f.key)}">
+          <span class="tag-opt${!f.value?' on':''}" data-v="">无</span>
+          ${(f.options||[]).map(o=>
+            `<span class="tag-opt${f.value===o?' on':''}" data-v="${esc(o)}">${esc(o)}</span>`).join('')}
+        </div></div>`;
+    }
+    if (f.type === 'colors') {
+      return `<div class="field"><label>${esc(f.label)}</label>
+        <div class="color-pick" data-colorpick="${esc(f.key)}">
+          ${['blue','green','purple','orange','red','gray'].map(c=>
+            `<span class="color-dot${f.value===c?' on':''}" data-c="${c}"></span>`).join('')}
+        </div></div>`;
+    }
+    return `<div class="field">
+      <label>${esc(f.label)}</label>
+      <input type="${f.type||'text'}" data-k="${esc(f.key)}"
+             value="${esc(f.value ?? '')}" placeholder="${esc(f.placeholder||'')}" />
+      ${f.hint?`<div class="hint" style="margin-top:6px">${f.hint}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // 标签 / 颜色点击
+  $('emFields').querySelectorAll('[data-tagpick], [data-colorpick]').forEach(box=>{
+    box.querySelectorAll('.tag-opt, .color-dot').forEach(el=>{
+      el.onclick = ()=>{
+        box.querySelectorAll('.tag-opt, .color-dot').forEach(x=>x.classList.remove('on'));
+        el.classList.add('on');
+      };
+    });
+  });
+
+  bg.classList.add('on');
+  setTimeout(()=>{ const i = $('emFields').querySelector('input'); if(i){ i.focus(); i.select(); } }, 60);
+
+  return new Promise(resolve => {
+    const close = (val) => {
+      bg.classList.remove('on');
+      $('emOk').onclick = null; $('emCancel').onclick = null;
+      bg.onclick = null; document.removeEventListener('keydown', onKey);
+      resolve(val);
+    };
+    const collect = () => {
+      const v = {};
+      $('emFields').querySelectorAll('[data-k]').forEach(i => v[i.dataset.k] = i.value.trim());
+      $('emFields').querySelectorAll('[data-tagpick]').forEach(b => {
+        const on = b.querySelector('.tag-opt.on');
+        v[b.dataset.tagpick] = on ? on.dataset.v : '';
+      });
+      $('emFields').querySelectorAll('[data-colorpick]').forEach(b => {
+        const on = b.querySelector('.color-dot.on');
+        v[b.dataset.colorpick] = on ? on.dataset.c : '';
+      });
+      return v;
+    };
+    const submit = async () => {
+      const v = collect();
+      if (!onSubmit) return close(v);
+      const btn = $('emOk');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
+      try { await onSubmit(v); close(v); }
+      catch (e) { $('emErr').textContent = e.message || String(e); }
+      finally { btn.disabled = false; btn.textContent = okText; }
+    };
+    const onKey = e => {
+      if (e.key === 'Escape') close(null);
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); submit(); }
+    };
+    $('emOk').onclick = submit;
+    $('emCancel').onclick = () => close(null);
+    bg.onclick = e => { if (e.target === bg) close(null); };
+    document.addEventListener('keydown', onKey);
+  });
+}
 const norm = s => String(s ?? '').trim().replace(/\s+/g,'').toLowerCase();
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -600,7 +754,8 @@ function render(){
   $('sPaid').textContent   = '$' + Math.round(s.totalPaid);
   $('sUnpaid').textContent = '$' + Math.round(s.totalUnpaid);
 
-  renderSessions(); renderFees(); renderPayments(); renderPlayers(); renderCodes(); renderTerms();
+  renderSessions(); renderFees(); renderPayments(); renderPlayers();
+  renderCodes(); renderTerms(); renderTags();
 }
 
 function renderTerms(){
@@ -638,19 +793,23 @@ function renderTerms(){
     };
   });
   box.querySelectorAll('[data-rename]').forEach(b=>{
-    b.onclick = async ()=>{
+    b.onclick = ()=>{
       const t = D.terms.find(x=>String(x.id)===b.dataset.rename);
-      const name = prompt('学期名称', t.name);
-      if(name===null || !name.trim()) return;
-      const sd = prompt('开始日期（可留空，格式 2026-09-01）', t.startDate||'');
-      if(sd===null) return;
-      const ed = prompt('结束日期（可留空）', t.endDate||'');
-      if(ed===null) return;
-      try{
-        await api('/terms/'+t.id,{method:'PUT',
-          body:JSON.stringify({name:name.trim(),startDate:sd.trim(),endDate:ed.trim()})});
-        await reload(); toast('已更新');
-      }catch(e){ toast(e.message,true); }
+      openEdit({
+        title: '编辑学期',
+        sub: `${t.summary.sessionCount} 场训练 · 总费用 ${money(t.summary.totalCost)}`,
+        fields: [
+          {key:'name', label:'学期名称', value:t.name, placeholder:'例：2026 秋季学期'},
+          {key:'startDate', label:'开始日期', type:'date', value:t.startDate||''},
+          {key:'endDate', label:'结束日期', type:'date', value:t.endDate||''},
+        ],
+        onSubmit: async v=>{
+          if(!v.name) throw new Error('学期名称不能为空');
+          await api('/terms/'+t.id,{method:'PUT',body:JSON.stringify({
+            name:v.name, startDate:v.startDate, endDate:v.endDate })});
+          await reload(); toast('已更新');
+        }
+      });
     };
   });
   box.querySelectorAll('[data-delterm]').forEach(b=>{
@@ -677,20 +836,100 @@ function renderCodes(){
       <td>${c.code
         ? `<code style="font-size:13.5px">${esc(c.code)}</code>`
         : `<span class="pill owe">未设置</span>`}</td>
-      <td class="num"><button class="btn ghost sm" data-code="${esc(c.name)}">修改</button></td>
+      <td class="num"><button class="btn ghost sm" data-code="${esc(c.name)}">编辑</button></td>
     </tr>`).join('');
   body.querySelectorAll('[data-code]').forEach(b=>{
-    b.onclick = async ()=>{
+    b.onclick = ()=>{
       const name = b.dataset.code;
       const cur = (D.codes.find(c=>c.name===name)||{}).code || '';
-      const v = prompt(`「${name}」的查询码\n\n规则：姓+名全拼小写，至少 4 位\n留空则取消该人的查询权限`, cur);
-      if(v === null) return;
-      try{
-        await api('/codes',{method:'POST',body:JSON.stringify({name, code:v.trim()})});
-        await reload();
-        toast(v.trim() ? `已更新 ${name} 的查询码` : `已清空 ${name} 的查询码`);
-      }catch(e){ toast(e.message, true); }
+      // 这人有多少出勤记录，改名会一起改掉
+      let n = 0;
+      D.terms.forEach(t=>{ const p = t.people.find(x=>x.name===name); if(p) n += p.count; });
+      openEdit({
+        title: '编辑球员',
+        sub: n ? `已有 <b>${n}</b> 次出勤记录，改名字会一起改掉，不会丢数据`
+               : '还没有出勤记录',
+        fields: [
+          {key:'name', label:'球员姓名', value:name},
+          {key:'code', label:'查询码', value:cur,
+           placeholder:'姓+名全拼，例 liuxiaoer',
+           hint:'至少 4 位。留空 = 这个人查不了自己的记录'},
+        ],
+        onSubmit: async v=>{
+          if(!v.name) throw new Error('名字不能为空');
+          await api('/players/'+encodeURIComponent(name),{method:'PUT',
+            body:JSON.stringify({name:v.name, code:v.code})});
+          await reload();
+          toast(v.name !== name ? `已改名为「${v.name}」` : '已更新');
+        }
+      });
     };
+  });
+}
+
+/* ---- 收款标签管理 ---- */
+function renderTags(){
+  const box = $('tagList');
+  if(!box) return;
+  const tags = D.tags || [];
+  if(!tags.length){
+    box.innerHTML = '<div class="empty">还没有标签，点上面的「+ 新标签」加一个</div>';
+    return;
+  }
+  box.innerHTML = tags.map(t=>{
+    // 这个标签用了几次
+    const used = (D.payments||[]).filter(p=>p.tag===t.name).length;
+    return `<div class="tag-row">
+      <span class="tag-badge ${esc(t.color||'')}">${esc(t.name)}</span>
+      <span class="tag-row-name" style="color:var(--muted);font-weight:400;font-size:12.5px">
+        用了 ${used} 次</span>
+      <button class="btn ghost sm" data-edittag="${t.id}">编辑</button>
+      <button class="btn danger sm" data-deltag="${t.id}">删除</button>
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('[data-edittag]').forEach(b=>{
+    b.onclick = ()=>{
+      const t = D.tags.find(x=>String(x.id)===b.dataset.edittag);
+      openEdit({
+        title:'编辑标签',
+        sub:'改名字会把已有收款记录上的标签一起改掉',
+        fields:[
+          {key:'name', label:'标签名', value:t.name},
+          {key:'color', label:'颜色', type:'colors', value:t.color||'blue'},
+        ],
+        onSubmit: async v=>{
+          if(!v.name) throw new Error('标签名不能为空');
+          await api('/tags/'+t.id,{method:'PUT',body:JSON.stringify(v)});
+          await reload(); toast('已更新');
+        }
+      });
+    };
+  });
+  box.querySelectorAll('[data-deltag]').forEach(b=>{
+    b.onclick = async ()=>{
+      const t = D.tags.find(x=>String(x.id)===b.dataset.deltag);
+      if(!confirm(`删除标签「${t.name}」？\n已有收款记录上的这个标签会被清空，金额不受影响。`)) return;
+      try{ await api('/tags/'+t.id,{method:'DELETE'}); await reload(); toast('已删除'); }
+      catch(e){ toast(e.message,true); }
+    };
+  });
+}
+
+function newTag(){
+  openEdit({
+    title:'新建标签',
+    sub:'记录收款时可以选，比如付款方式',
+    fields:[
+      {key:'name', label:'标签名', value:'', placeholder:'例：Venmo / 现金'},
+      {key:'color', label:'颜色', type:'colors', value:'blue'},
+    ],
+    okText:'创建',
+    onSubmit: async v=>{
+      if(!v.name) throw new Error('标签名不能为空');
+      await api('/tags',{method:'POST',body:JSON.stringify(v)});
+      await reload(); toast(`已创建「${v.name}」`);
+    }
   });
 }
 
@@ -776,11 +1015,13 @@ function renderPayments(){
   $('paySub').textContent = t ? `${t.name} · 共 ${list.length} 笔` : '';
   if(!list.length){ body.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
+  const tagColor = n => ((D.tags||[]).find(t=>t.name===n)||{}).color || '';
   body.innerHTML = list.map(p=>`
     <tr>
       <td style="font-variant-numeric:tabular-nums">${esc(p.paid_at)}</td>
       <td><b>${esc(p.player_name)}</b></td>
       <td class="num money clear">${money(p.amount)}</td>
+      <td>${p.tag?`<span class="tag-badge ${esc(tagColor(p.tag))}">${esc(p.tag)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
       <td style="color:var(--muted);font-size:13px">${esc(p.note||'—')}</td>
       <td class="num"><button class="btn danger sm" data-delpay="${p.id}">删</button></td>
     </tr>`).join('');
@@ -862,25 +1103,32 @@ $('termSelect').onchange = e=>{
   curTermId = Number(e.target.value) || null;
   render();
 };
-async function newTerm(){
+function newTerm(){
   const now = new Date();
-  const guess = `${now.getFullYear()} ${now.getMonth() < 5 ? '春季' : now.getMonth() < 7 ? '夏季' : '秋季'}学期`;
-  const name = prompt('新学期名称', guess);
-  if(name === null || !name.trim()) return;
-  const sd = prompt('开始日期（可留空，格式 2026-09-01）', '');
-  if(sd === null) return;
-  const ed = prompt('结束日期（可留空）', '');
-  if(ed === null) return;
-  try{
-    const r = await api('/terms',{method:'POST',
-      body:JSON.stringify({name:name.trim(),startDate:(sd||'').trim(),endDate:(ed||'').trim(),setActive:true})});
-    curTermId = r.id;
-    await reload();
-    toast(`已创建「${name.trim()}」并设为当前学期`);
-  }catch(e){ toast(e.message,true); }
+  const m = now.getMonth();
+  const season = m < 5 ? '春季' : m < 7 ? '夏季' : '秋季';
+  openEdit({
+    title: '新建学期',
+    sub: '这个学期的费用会单独结算，跟别的学期不混在一起',
+    fields: [
+      {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`, placeholder:'例：2026 秋季学期'},
+      {key:'startDate', label:'开始日期（可留空）', type:'date', value:''},
+      {key:'endDate', label:'结束日期（可留空）', type:'date', value:''},
+    ],
+    okText: '创建',
+    onSubmit: async v=>{
+      if(!v.name) throw new Error('学期名称不能为空');
+      const r = await api('/terms',{method:'POST',body:JSON.stringify({
+        name:v.name, startDate:v.startDate, endDate:v.endDate, setActive:true })});
+      curTermId = r.id;
+      await reload();
+      toast(`已创建「${v.name}」并设为当前学期`);
+    }
+  });
 }
 $('btnNewTerm').onclick = newTerm;
 $('btnNewTerm2').onclick = newTerm;
+$('btnNewTag').onclick = newTag;
 
 $('btnMatch').onclick = ()=>doMatch();
 $('fNames').addEventListener('blur', ()=>doMatch());
@@ -947,6 +1195,18 @@ function openPay(name){
   $('payAmt').value = p ? (p.balance>0?p.balance.toFixed(2):'') : '';
   $('payDate').value = new Date().toISOString().slice(0,10);
   $('payNote').value = '';
+
+  // 标签选择
+  const tp = $('payTags');
+  tp.innerHTML = `<span class="tag-opt on" data-v="">无</span>` +
+    (D.tags||[]).map(t=>`<span class="tag-opt" data-v="${esc(t.name)}">${esc(t.name)}</span>`).join('');
+  tp.querySelectorAll('.tag-opt').forEach(el=>{
+    el.onclick = ()=>{
+      tp.querySelectorAll('.tag-opt').forEach(x=>x.classList.remove('on'));
+      el.classList.add('on');
+    };
+  });
+
   $('payModal').classList.add('on');
   setTimeout(()=>$('payAmt').focus(),50);
 }
@@ -956,9 +1216,11 @@ $('payConfirm').onclick = async ()=>{
   const amount = parseFloat($('payAmt').value);
   if(!Number.isFinite(amount) || amount===0) return toast('金额不对', true);
   try{
+    const tagOn = $('payTags').querySelector('.tag-opt.on');
     await api('/payments',{method:'POST',body:JSON.stringify({
       name: payTarget, amount, paidAt: $('payDate').value,
-      note: $('payNote').value.trim(), termId: curTermId
+      note: $('payNote').value.trim(), termId: curTermId,
+      tag: tagOn ? tagOn.dataset.v : ''
     })});
     $('payModal').classList.remove('on');
     await reload();
