@@ -75,31 +75,70 @@
   .topbar-actions{display:flex;gap:8px;align-items:center}
   main.wrap{max-width:1280px;margin:0 auto;padding:28px 32px 64px}
 
-  .tabs{display:flex;gap:4px;margin-bottom:26px;border-bottom:1px solid var(--line);overflow-x:auto}
-  .tab{padding:11px 18px;border:none;background:none;color:var(--muted);font-weight:600;
-    cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s}
+  .tabs{display:flex;gap:6px;margin-bottom:22px;overflow-x:auto;
+    background:rgba(13,18,36,.035);padding:5px;border-radius:12px}
+  .tab{padding:9px 18px;border:none;background:none;color:var(--muted);font-weight:600;
+    cursor:pointer;white-space:nowrap;border-radius:8px;font-size:14px;
+    transition:color .2s,background .2s,box-shadow .2s}
   .tab:hover{color:var(--ink)}
-  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab.on{color:var(--accent);background:#fff;
+    box-shadow:0 2px 6px rgba(13,18,36,.08)}
   .panel{display:none}.panel.on{display:block;animation:fade .35s ease}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
-    padding:26px 28px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:28px 30px;margin-bottom:18px;
+    box-shadow:0 1px 2px rgba(13,18,36,.03)}
   .card-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
-    margin-bottom:20px;flex-wrap:wrap}
-  .card-title{font-size:17px;font-weight:700;letter-spacing:-.01em}
+    margin-bottom:22px;flex-wrap:wrap;
+    padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .card-title{font-size:16px;font-weight:700;letter-spacing:.01em}
   .card-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+  /* 批量操作条 */
+  .bulk-bar{display:none;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--accent);color:#fff;border-radius:12px;
+    padding:12px 18px;margin-bottom:16px;
+    animation:bulkIn .25s cubic-bezier(.4,0,.2,1)}
+  .bulk-bar.on{display:flex}
+  @keyframes bulkIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .bulk-count{font-weight:700;font-size:14px}
+  .bulk-sum{font-size:13px;opacity:.85;font-variant-numeric:tabular-nums}
+  .bulk-bar .btn.ghost{border-color:rgba(255,255,255,.35);color:#fff;background:transparent}
+  .bulk-bar .btn.ghost:hover{background:rgba(255,255,255,.14);border-color:#fff;color:#fff}
+
+  th.chk,td.chk{width:38px;padding-left:4px;padding-right:4px}
+  input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);
+    vertical-align:middle}
+  tbody tr.picked{background:var(--accent-soft)}
+
+  /* 球员标签小徽章 */
+  .ptag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;
+    font-weight:600;letter-spacing:.02em;border:1px solid}
+
+  /* 名册的添加行 */
+  .add-row{display:flex;gap:10px;margin-bottom:22px;align-items:stretch}
+  .add-row textarea{flex:1;padding:11px 14px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-soft);color:var(--ink);resize:vertical;
+    min-height:44px;font-family:inherit;
+    transition:border-color .2s,box-shadow .2s,background .2s}
+  .add-row textarea:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+  .add-row .btn{flex-shrink:0}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 
-  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
-  .stat-num{font-size:26px;font-weight:800;letter-spacing:-.025em;color:var(--accent);
-    font-variant-numeric:tabular-nums;line-height:1.1}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:26px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;transition:transform .25s,border-color .25s,box-shadow .25s}
+  .stat:hover{transform:translateY(-2px);border-color:var(--accent);
+    box-shadow:0 8px 20px rgba(13,18,36,.06)}
+  .stat-num{font-size:27px;font-weight:800;letter-spacing:-.03em;color:var(--accent);
+    font-variant-numeric:tabular-nums;line-height:1.05}
   .stat-num.warn{color:var(--warn)}
   .stat-num.ok{color:var(--ok)}
-  .stat-lbl{font-size:10.5px;color:var(--muted);margin-top:5px;letter-spacing:.13em;
-    text-transform:uppercase;font-weight:600}
+  .stat-lbl{font-size:10px;color:var(--muted);margin-top:7px;letter-spacing:.16em;
+    text-transform:uppercase;font-weight:700}
 
   /* 学期切换条 */
   .term-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
@@ -118,18 +157,25 @@
   .term-actions{display:flex;gap:6px}
 
   .unit-banner{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-deep) 100%);
-    color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:20px;
-    display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-  .unit-main{font-size:13px;opacity:.8;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
-  .unit-val{font-size:38px;font-weight:900;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
-  .unit-formula{font-size:13px;opacity:.75;text-align:right;line-height:1.7}
+    color:#fff;border-radius:18px;padding:28px 32px;margin-bottom:14px;
+    display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+    position:relative;overflow:hidden;
+    box-shadow:0 10px 30px rgba(30,58,138,.2)}
+  .unit-banner::after{content:'';position:absolute;right:-60px;top:-60px;
+    width:220px;height:220px;border-radius:50%;
+    background:rgba(255,255,255,.05);pointer-events:none}
+  .unit-main{font-size:11px;opacity:.75;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+  .unit-val{font-size:44px;font-weight:900;letter-spacing:-.035em;
+    font-variant-numeric:tabular-nums;line-height:1.05;margin-top:6px}
+  .unit-formula{font-size:13px;opacity:.78;text-align:right;line-height:1.8;
+    position:relative;z-index:1}
 
   .tbl-wrap{overflow-x:auto}
   table{width:100%;border-collapse:collapse}
-  th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--muted);padding:10px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+  th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);padding:0 12px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap}
   th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
-  td{padding:12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  td{padding:13px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
   tbody tr{transition:background .18s}
   tbody tr:hover{background:var(--accent-soft)}
   tbody tr:last-child td{border-bottom:none}
@@ -227,12 +273,13 @@
     border:2px solid transparent;transition:transform .2s,border-color .2s}
   .color-dot:hover{transform:scale(1.12)}
   .color-dot.on{border-color:var(--ink);transform:scale(1.1)}
-  .color-dot[data-c="blue"]{background:#1e3a8a}
-  .color-dot[data-c="green"]{background:#17795e}
-  .color-dot[data-c="purple"]{background:#6d3fa8}
-  .color-dot[data-c="orange"]{background:#b0762a}
-  .color-dot[data-c="red"]{background:#b04646}
-  .color-dot[data-c="gray"]{background:#8a8a92}
+  /* 弹窗头部：名字左上，类型右上 */
+  .modal-hd{display:flex;justify-content:space-between;align-items:flex-start;
+    gap:14px;margin-bottom:6px}
+  .modal-hd h3{margin:0}
+  .modal-hd-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    font-weight:700;color:var(--accent);background:var(--accent-soft);
+    padding:4px 10px;border-radius:999px;flex-shrink:0;margin-top:3px}
 
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
@@ -267,10 +314,6 @@
       <button class="btn full" type="submit" id="loginBtn">登录</button>
       <div class="login-err" id="loginErr"></div>
     </form>
-    <div class="login-note">
-      密码存在 Cloudflare 服务器端，前端看不到。<br />
-      登录状态保持 12 小时。
-    </div>
   </div>
 </div>
 
@@ -329,25 +372,21 @@
     <section class="panel on" id="tab-add">
       <div class="card">
         <div class="card-head">
-          <div>
-            <div class="card-title">录入一次训练</div>
-            <div class="card-sub">微信接龙整段粘进来就行</div>
-          </div>
+          <div class="card-title">录入训练</div>
           <div id="editFlag"></div>
         </div>
         <div class="row3">
-          <div class="field"><label>训练日期</label><input type="date" id="fDate" /></div>
+          <div class="field"><label>日期</label><input type="date" id="fDate" /></div>
           <div class="field">
-            <label id="fCostLabel">本次总费用（$）</label>
+            <label id="fCostLabel">本次费用</label>
             <input type="number" id="fCost" step="0.01" min="0" placeholder="0" />
             <div class="hint" id="fCostHint" style="display:none"></div>
           </div>
-          <div class="field"><label>备注（可选）</label><input type="text" id="fNote" placeholder="例：周三训练 / 场地费" /></div>
+          <div class="field"><label>备注</label><input type="text" id="fNote" placeholder="可留空" /></div>
         </div>
         <div class="field">
-          <label>到场名单 · 直接粘贴接龙</label>
-          <textarea id="fNames" rows="10" placeholder="把微信接龙整段粘进来，例如：&#10;&#10;5月10日训练&#10;时间：19:00-21:00&#10;分两队&#10;注意事项：自备水&#10;1. 大二-何嘉伦&#10;2. 大二 刘彦君&#10;3. 朱超凡&#10;4. 大一 李明达&#10;5. 博五 刘明硕（提前离开）"></textarea>
-          <div class="hint">日期 / 时间 / 分队 / 注意事项自动跳过；年级、球衣号、括号备注自动去掉；日期自动填。</div>
+          <label>到场名单</label>
+          <textarea id="fNames" rows="9" placeholder="微信接龙整段粘进来&#10;&#10;5月10日训练&#10;时间：19:00-21:00&#10;1. 大二-何嘉伦&#10;2. 大二 刘彦君&#10;3. 朱超凡"></textarea>
         </div>
         <div id="matchBox" style="display:none">
           <div class="field">
@@ -379,18 +418,24 @@
     <section class="panel" id="tab-fees">
       <div class="card">
         <div class="card-head">
-          <div>
-            <div class="card-title">费用 / 收款</div>
-            <div class="card-sub">应付 = 统一单价 × 出勤次数</div>
-          </div>
+          <div class="card-title">费用 / 收款</div>
           <div style="display:flex;gap:8px">
-            <button class="btn ghost sm" id="btnCopyFees">复制汇总</button>
-            <button class="btn ghost sm" id="btnCopyUnpaid">复制未付</button>
+            <button class="btn ghost sm" id="btnExportPdf">导出 PDF</button>
           </div>
         </div>
+
+        <div class="bulk-bar" id="bulkBar">
+          <span class="bulk-count" id="bulkCount">已选 0 人</span>
+          <span class="bulk-sum" id="bulkSum"></span>
+          <div style="flex:1"></div>
+          <button class="btn ok sm" id="btnBulkPay">批量收款</button>
+          <button class="btn ghost sm" id="btnBulkClear">取消选择</button>
+        </div>
+
         <div class="tbl-wrap">
           <table>
             <thead><tr>
+              <th class="chk"><input type="checkbox" id="chkAll" /></th>
               <th>球员</th><th class="num">出勤</th><th class="num">应付</th>
               <th class="num">已付</th><th class="num">未付</th><th>状态</th><th></th>
             </tr></thead>
@@ -425,24 +470,19 @@
           <button class="btn ghost sm" id="btnCopyCodes">复制查询码</button>
         </div>
 
-        <div class="field">
-          <label>添加球员（每行一个，可批量粘贴）</label>
-          <textarea id="fNewPlayers" rows="2" placeholder="新球员姓名"></textarea>
+        <div class="add-row">
+          <textarea id="fNewPlayers" rows="1" placeholder="添加球员，每行一个"></textarea>
+          <button class="btn ghost" id="btnAddPlayers">添加</button>
         </div>
-        <button class="btn ghost sm" id="btnAddPlayers" style="margin-bottom:22px">添加到名册</button>
 
         <div id="codeWarn"></div>
         <div class="tbl-wrap">
           <table>
             <thead><tr>
-              <th>球员</th><th>查询码</th><th class="num">出勤</th><th></th>
+              <th>球员</th><th>分组</th><th>查询码</th><th class="num">出勤</th><th></th>
             </tr></thead>
             <tbody id="codeBody"></tbody>
           </table>
-        </div>
-        <div class="hint" style="margin-top:14px">
-          查询码规则：姓 + 名 全拼，例 刘效尔 → <code>liuxiaoer</code>。
-          队员在查询页要用「自己的名字 + 自己的码」才查得到。
         </div>
       </div>
     </section>
@@ -451,10 +491,7 @@
     <section class="panel" id="tab-terms">
       <div class="card">
         <div class="card-head">
-          <div>
-            <div class="card-title">学期管理</div>
-            <div class="card-sub">每个学期单独结算：本学期总费用 ÷ 本学期总人次 = 本学期单价</div>
-          </div>
+          <div class="card-title">学期</div>
           <button class="btn sm" id="btnNewTerm2">+ 新学期</button>
         </div>
         <div id="termList"></div>
@@ -462,13 +499,18 @@
 
       <div class="card">
         <div class="card-head">
-          <div>
-            <div class="card-title">收款标签</div>
-            <div class="card-sub">记录收款时可以选，比如付款方式</div>
-          </div>
-          <button class="btn sm" id="btnNewTag">+ 新标签</button>
+          <div class="card-title">付款方式</div>
+          <button class="btn sm" id="btnNewTag">+ 新增</button>
         </div>
         <div id="tagList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">球员分组</div>
+          <button class="btn sm" id="btnNewPTag">+ 新增</button>
+        </div>
+        <div id="ptagList"></div>
       </div>
     </section>
   </main>
@@ -491,12 +533,15 @@
 <!-- 收款弹窗 -->
 <div class="modal-bg" id="payModal">
   <div class="modal">
-    <h3 id="payWho">记录收款</h3>
+    <div class="modal-hd">
+      <h3 id="payWho">—</h3>
+      <span class="modal-hd-tag">收款</span>
+    </div>
     <div class="sub" id="paySubInfo"></div>
-    <div class="field"><label>金额（$）</label><input type="number" id="payAmt" step="0.01" /></div>
+    <div class="field"><label>金额</label><input type="number" id="payAmt" step="0.01" /></div>
     <div class="field"><label>收款日期</label><input type="date" id="payDate" /></div>
     <div class="field">
-      <label>标签</label>
+      <label>付款方式</label>
       <div class="tag-pick" id="payTags"></div>
     </div>
     <div class="field"><label>备注（可选）</label><input type="text" id="payNote" placeholder="比如转账后四位" /></div>
@@ -571,8 +616,9 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
     if (f.type === 'colors') {
       return `<div class="field"><label>${esc(f.label)}</label>
         <div class="color-pick" data-colorpick="${esc(f.key)}">
-          ${['blue','green','purple','orange','red','gray'].map(c=>
-            `<span class="color-dot${f.value===c?' on':''}" data-c="${c}"></span>`).join('')}
+          ${['#1e3a8a','#17795e','#6d3fa8','#b0762a','#b04646','#8a8a92'].map(c=>
+            `<span class="color-dot${f.value===c?' on':''}" data-c="${c}"
+                   style="background:${c}"></span>`).join('')}
         </div></div>`;
     }
     return `<div class="field">
@@ -889,6 +935,9 @@ function renderCodes(){
     return `
     <tr>
       <td><b>${esc(c.name)}</b></td>
+      <td>${c.tag
+        ? `<span class="ptag" style="${tagStyle(c.tag,'player')}">${esc(c.tag)}</span>`
+        : '<span style="color:var(--muted)">—</span>'}</td>
       <td>${c.code
         ? `<code style="font-size:13.5px">${esc(c.code)}</code>`
         : `<span class="pill owe">未设置</span>`}</td>
@@ -939,14 +988,17 @@ function renderCodes(){
                : '还没有出勤记录',
         fields: [
           {key:'name', label:'球员姓名', value:name},
+          {key:'tag', label:'分组', type:'tags',
+           value:(D.codes.find(c=>c.name===name)||{}).tag||'',
+           options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
           {key:'code', label:'查询码', value:cur,
            placeholder:'姓+名全拼，例 liuxiaoer',
-           hint:'至少 4 位。留空 = 这个人查不了自己的记录'},
+           hint:'至少 4 位，留空则这人查不了自己的记录'},
         ],
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
           await api('/players/'+encodeURIComponent(name),{method:'PUT',
-            body:JSON.stringify({name:v.name, code:v.code})});
+            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag})});
           await reload();
           toast(v.name !== name ? `已改名为「${v.name}」` : '已更新');
         }
@@ -956,21 +1008,25 @@ function renderCodes(){
 }
 
 /* ---- 收款标签管理 ---- */
-function renderTags(){
-  const box = $('tagList');
+function renderTags(){ renderTagKind('payment', 'tagList'); renderTagKind('player', 'ptagList'); }
+
+function renderTagKind(kind, boxId){
+  const box = $(boxId);
   if(!box) return;
-  const tags = D.tags || [];
+  const tags = (D.tags || []).filter(t => (t.kind || 'payment') === kind);
   if(!tags.length){
-    box.innerHTML = '<div class="empty">还没有标签，点上面的「+ 新标签」加一个</div>';
+    box.innerHTML = '<div class="empty">还没有，点右上角新增</div>';
     return;
   }
   box.innerHTML = tags.map(t=>{
-    // 这个标签用了几次
-    const used = (D.payments||[]).filter(p=>p.tag===t.name).length;
+    const used = kind === 'player'
+      ? (D.codes||[]).filter(c=>c.tag===t.name).length
+      : (D.payments||[]).filter(p=>p.tag===t.name).length;
     return `<div class="tag-row">
-      <span class="tag-badge ${esc(t.color||'')}">${esc(t.name)}</span>
-      <span class="tag-row-name" style="color:var(--muted);font-weight:400;font-size:12.5px">
-        用了 ${used} 次</span>
+      <span class="ptag" style="${tagStyle(t.name, kind)}">${esc(t.name)}</span>
+      <span style="color:var(--muted);font-size:12.5px">
+        ${kind==='player' ? `${used} 人` : `用了 ${used} 次`}</span>
+      <div style="flex:1"></div>
       <button class="btn ghost sm" data-edittag="${t.id}">编辑</button>
       <button class="btn danger sm" data-deltag="${t.id}">删除</button>
     </div>`;
@@ -980,14 +1036,14 @@ function renderTags(){
     b.onclick = ()=>{
       const t = D.tags.find(x=>String(x.id)===b.dataset.edittag);
       openEdit({
-        title:'编辑标签',
-        sub:'改名字会把已有收款记录上的标签一起改掉',
+        title:'编辑',
+        sub: kind==='player' ? '改名字会把球员身上的分组一起改掉' : '改名字会把已有收款记录一起改掉',
         fields:[
-          {key:'name', label:'标签名', value:t.name},
-          {key:'color', label:'颜色', type:'colors', value:t.color||'blue'},
+          {key:'name', label:'名称', value:t.name},
+          {key:'color', label:'颜色', type:'colors', value:t.color||''},
         ],
         onSubmit: async v=>{
-          if(!v.name) throw new Error('标签名不能为空');
+          if(!v.name) throw new Error('名称不能为空');
           await api('/tags/'+t.id,{method:'PUT',body:JSON.stringify(v)});
           await reload(); toast('已更新');
         }
@@ -995,31 +1051,40 @@ function renderTags(){
     };
   });
   box.querySelectorAll('[data-deltag]').forEach(b=>{
-    b.onclick = async ()=>{
+    b.onclick = ()=>{
       const t = D.tags.find(x=>String(x.id)===b.dataset.deltag);
-      if(!confirm(`删除标签「${t.name}」？\n已有收款记录上的这个标签会被清空，金额不受影响。`)) return;
-      try{ await api('/tags/'+t.id,{method:'DELETE'}); await reload(); toast('已删除'); }
-      catch(e){ toast(e.message,true); }
+      openEdit({
+        title:`删除「${t.name}」？`,
+        sub: kind==='player'
+          ? '球员身上的这个分组会被清空，别的数据不受影响'
+          : '已有收款记录上的这个标签会被清空，金额不受影响',
+        fields:[], okText:'确认删除', danger:true,
+        onSubmit: async ()=>{
+          await api('/tags/'+t.id,{method:'DELETE'});
+          await reload(); toast('已删除');
+        }
+      });
     };
   });
 }
 
-function newTag(){
+function newTagOf(kind){
   openEdit({
-    title:'新建标签',
-    sub:'记录收款时可以选，比如付款方式',
+    title: kind==='player' ? '新建球员分组' : '新建付款方式',
     fields:[
-      {key:'name', label:'标签名', value:'', placeholder:'例：Venmo / 现金'},
-      {key:'color', label:'颜色', type:'colors', value:'blue'},
+      {key:'name', label:'名称', value:'',
+       placeholder: kind==='player' ? '例：一队 / 预备队' : '例：Venmo'},
+      {key:'color', label:'颜色', type:'colors', value:''},
     ],
     okText:'创建',
     onSubmit: async v=>{
-      if(!v.name) throw new Error('标签名不能为空');
-      await api('/tags',{method:'POST',body:JSON.stringify(v)});
-      await reload(); toast(`已创建「${v.name}」`);
+      if(!v.name) throw new Error('名称不能为空');
+      await api('/tags',{method:'POST',body:JSON.stringify({...v, kind})});
+      await reload(); toast('已创建');
     }
   });
 }
+
 
 function renderSessions(){
   const box = $('sessList');
@@ -1076,18 +1141,42 @@ function renderSessions(){
   });
 }
 
+let picked = new Set();
+
+function playerTag(name){
+  const c = (D.codes||[]).find(x=>x.name===name);
+  return c ? (c.tag||'') : '';
+}
+function tagStyle(tagName, kind){
+  const t = (D.tags||[]).find(x=>x.name===tagName && (!kind || x.kind===kind));
+  const c = (t && t.color) || '#8a8a92';
+  return `color:${c};border-color:${c}44;background:${c}14`;
+}
+
 function renderFees(){
   const body = $('feeBody'), empty = $('feeEmpty');
   const t = T();
   const people = t ? t.people : [];
-  if(!people.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  // 清掉已经不在列表里的选中项
+  picked = new Set([...picked].filter(n => people.some(p=>p.name===n)));
+
+  if(!people.length){
+    body.innerHTML=''; empty.style.display='block';
+    updateBulk(); return;
+  }
   empty.style.display = 'none';
   body.innerHTML = people.map(f=>{
     let pill = '<span class="pill owe">未付</span>';
     if(f.balance <= 0.005) pill = '<span class="pill ok">已结清</span>';
     else if(f.paid > 0) pill = '<span class="pill part">部分</span>';
-    return `<tr>
-      <td><b>${esc(f.name)}</b></td>
+    const tg = playerTag(f.name);
+    return `<tr class="${picked.has(f.name)?'picked':''}" data-row="${esc(f.name)}">
+      <td class="chk"><input type="checkbox" data-pick="${esc(f.name)}"
+        ${picked.has(f.name)?'checked':''} ${f.balance<=0.005?'disabled':''} /></td>
+      <td>
+        <b>${esc(f.name)}</b>
+        ${tg?`<span class="ptag" style="${tagStyle(tg,'player')};margin-left:7px">${esc(tg)}</span>`:''}
+      </td>
       <td class="num"><span class="cnt-badge">${f.count}</span></td>
       <td class="num money">${money(f.owed)}</td>
       <td class="num money clear">${f.paid?money(f.paid):'—'}</td>
@@ -1096,9 +1185,37 @@ function renderFees(){
       <td class="num"><button class="btn ghost sm" data-pay="${esc(f.name)}">收款</button></td>
     </tr>`;
   }).join('');
+
   body.querySelectorAll('[data-pay]').forEach(b=>{
     b.onclick = ()=> openPay(b.dataset.pay);
   });
+  body.querySelectorAll('[data-pick]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const n = cb.dataset.pick;
+      cb.checked ? picked.add(n) : picked.delete(n);
+      const tr = body.querySelector(`[data-row="${CSS.escape(n)}"]`);
+      if(tr) tr.classList.toggle('picked', cb.checked);
+      updateBulk();
+    };
+  });
+  updateBulk();
+}
+
+function updateBulk(){
+  const t = T();
+  const people = t ? t.people : [];
+  const unpaid = people.filter(p=>p.balance>0.005);
+  const sel = people.filter(p=>picked.has(p.name));
+  const sum = sel.reduce((n,p)=>n+p.balance,0);
+
+  $('bulkBar').classList.toggle('on', sel.length>0);
+  $('bulkCount').textContent = `已选 ${sel.length} 人`;
+  $('bulkSum').textContent = sel.length ? `合计 ${money(sum)}` : '';
+
+  const all = $('chkAll');
+  all.checked       = unpaid.length>0 && sel.length===unpaid.length;
+  all.indeterminate = sel.length>0 && sel.length<unpaid.length;
+  all.disabled      = unpaid.length===0;
 }
 
 function renderPayments(){
@@ -1114,7 +1231,7 @@ function renderPayments(){
       <td style="font-variant-numeric:tabular-nums">${esc(p.paid_at)}</td>
       <td><b>${esc(p.player_name)}</b></td>
       <td class="num money clear">${money(p.amount)}</td>
-      <td>${p.tag?`<span class="tag-badge ${esc(tagColor(p.tag))}">${esc(p.tag)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td>${p.tag?`<span class="ptag" style="${tagStyle(p.tag,'payment')}">${esc(p.tag)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
       <td style="color:var(--muted);font-size:13px">${esc(p.note||'—')}</td>
       <td class="num"><button class="btn danger sm" data-delpay="${p.id}">删</button></td>
     </tr>`).join('');
@@ -1211,7 +1328,8 @@ function newTerm(){
 }
 $('btnNewTerm').onclick = newTerm;
 $('btnNewTerm2').onclick = newTerm;
-$('btnNewTag').onclick = newTag;
+$('btnNewTag').onclick  = ()=> newTagOf('payment');
+$('btnNewPTag').onclick = ()=> newTagOf('player');
 
 $('btnMatch').onclick = ()=>doMatch();
 $('fNames').addEventListener('blur', ()=>doMatch());
@@ -1271,9 +1389,10 @@ function openPay(name){
   const t = T();
   const p = t ? t.people.find(x=>x.name===name) : null;
   payTarget = name;
-  $('payWho').textContent = '收款 · ' + name;
+  $('payWho').textContent = name;
   $('paySubInfo').innerHTML = p
-    ? `<b>${esc(t.name)}</b><br>出勤 <b>${p.count}</b> 次 · 应付 <b>${money(p.owed)}</b> · 已付 ${money(p.paid)} · 未付 <b style="color:var(--danger)">${money(p.balance)}</b>`
+    ? `${esc(t.name)}　·　出勤 ${p.count} 次<br>
+       应付 <b>${money(p.owed)}</b>　已付 ${money(p.paid)}　未付 <b style="color:var(--danger)">${money(p.balance)}</b>`
     : '';
   $('payAmt').value = p ? (p.balance>0?p.balance.toFixed(2):'') : '';
   $('payDate').value = new Date().toISOString().slice(0,10);
@@ -1282,7 +1401,8 @@ function openPay(name){
   // 标签选择
   const tp = $('payTags');
   tp.innerHTML = `<span class="tag-opt on" data-v="">无</span>` +
-    (D.tags||[]).map(t=>`<span class="tag-opt" data-v="${esc(t.name)}">${esc(t.name)}</span>`).join('');
+    (D.tags||[]).filter(t=>(t.kind||'payment')==='payment')
+      .map(t=>`<span class="tag-opt" data-v="${esc(t.name)}">${esc(t.name)}</span>`).join('');
   tp.querySelectorAll('.tag-opt').forEach(el=>{
     el.onclick = ()=>{
       tp.querySelectorAll('.tag-opt').forEach(x=>x.classList.remove('on'));
@@ -1311,23 +1431,139 @@ $('payConfirm').onclick = async ()=>{
   }catch(e){ toast(e.message,true); }
 };
 
-$('btnCopyFees').onclick = ()=>{
+/* ---------- 全选 / 批量收款 ---------- */
+$('chkAll').onchange = e=>{
+  const t = T();
+  const unpaid = (t ? t.people : []).filter(p=>p.balance>0.005);
+  picked = e.target.checked ? new Set(unpaid.map(p=>p.name)) : new Set();
+  renderFees();
+};
+$('btnBulkClear').onclick = ()=>{ picked = new Set(); renderFees(); };
+
+$('btnBulkPay').onclick = ()=>{
+  const t = T();
+  if(!t) return;
+  const sel = t.people.filter(p=>picked.has(p.name) && p.balance>0.005);
+  if(!sel.length) return toast('没有需要收的钱', true);
+  const sum = sel.reduce((n,p)=>n+p.balance,0);
+  const payTags = (D.tags||[]).filter(x=>x.kind!=='player').map(x=>x.name);
+
+  openEdit({
+    title: `批量收款 · ${sel.length} 人`,
+    sub: `${esc(t.name)}　合计 <b>${money(sum)}</b><br>
+          <span style="color:var(--muted)">${sel.map(p=>esc(p.name)).join('、')}</span>`,
+    fields: [
+      {key:'paidAt', label:'收款日期', type:'date', value:new Date().toISOString().slice(0,10)},
+      {key:'tag', label:'付款方式', type:'tags', value:'', options:payTags},
+      {key:'note', label:'备注', value:'', placeholder:'可留空'},
+    ],
+    okText: `确认收 ${money(sum)}`,
+    onSubmit: async v=>{
+      const amounts = {};
+      sel.forEach(p=>{ amounts[p.name] = p.balance; });
+      const r = await api('/payments/batch',{method:'POST',body:JSON.stringify({
+        names: sel.map(p=>p.name), termId: curTermId,
+        paidAt: v.paidAt, tag: v.tag, note: v.note, amounts
+      })});
+      picked = new Set();
+      await reload();
+      toast(`已记录 ${r.count} 笔，共 ${money(r.total)}`);
+    }
+  });
+};
+
+/* ---------- 导出 PDF（走浏览器打印） ---------- */
+$('btnExportPdf').onclick = ()=>{
   const t = T();
   if(!t || !t.people.length) return toast('没有数据', true);
   const s = t.summary;
-  const head = `${t.name}\n单价 ${money(s.unitPrice)}／次（${money(s.totalCost)} ÷ ${s.totalHeadcount} 人次，共 ${s.sessionCount} 场）\n\n`;
-  const txt = head + t.people.map(f=>`${f.name}  ${f.count}次  应付${money(f.owed)}  未付${money(f.balance)}`).join('\n');
-  navigator.clipboard.writeText(txt).then(()=>toast('已复制')).catch(()=>toast('复制失败',true));
-};
-$('btnCopyUnpaid').onclick = ()=>{
-  const t = T();
-  if(!t) return toast('没有数据', true);
-  const list = t.people.filter(f=>f.balance>0.005);
-  if(!list.length) return toast('这个学期全部结清了 🎉');
-  const s = t.summary;
-  const txt = `${t.name} 未付名单\n单价 ${money(s.unitPrice)}／次\n\n` +
-    list.map(f=>`${f.name}  ${f.count}次  ${money(f.balance)}`).join('\n');
-  navigator.clipboard.writeText(txt).then(()=>toast('已复制未付名单')).catch(()=>toast('复制失败',true));
+  const today = new Date().toLocaleDateString('zh-CN');
+  const unpaid = t.people.filter(p=>p.balance>0.005);
+
+  const rows = t.people.map((f,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${esc(f.name)}</b>${playerTag(f.name)?` <span class="pt">${esc(playerTag(f.name))}</span>`:''}</td>
+      <td class="n">${f.count}</td>
+      <td class="n">${money(f.owed)}</td>
+      <td class="n">${f.paid?money(f.paid):'—'}</td>
+      <td class="n ${f.balance>0.005?'owe':'ok'}">${f.balance>0.005?money(f.balance):'已结清'}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>${esc(t.name)} 费用结算</title>
+<style>
+@page{size:A4;margin:16mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:#0a0e1a;font-size:12px;line-height:1.6;padding:4px}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid #0a0e1a;padding-bottom:12px;margin-bottom:18px}
+h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.sub{font-size:11px;color:#666;margin-top:4px}
+.meta{text-align:right;font-size:11px;color:#666;line-height:1.8}
+.box{background:#f2f5fb;border-radius:8px;padding:12px 16px;margin-bottom:18px;
+  display:flex;gap:28px;flex-wrap:wrap}
+.box div span{display:block;font-size:9.5px;color:#666;letter-spacing:.1em;text-transform:uppercase}
+.box div b{font-size:16px;font-weight:800;color:#1e3a8a}
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#666;
+  text-align:left;padding:0 8px 8px;border-bottom:1.5px solid #0a0e1a}
+td{padding:8px;border-bottom:1px solid #e6e2d8;font-size:12px}
+.n{text-align:right;font-variant-numeric:tabular-nums}
+.owe{color:#b04646;font-weight:700}
+.ok{color:#17795e}
+.pt{font-size:9.5px;color:#666;border:1px solid #ccc;padding:1px 5px;border-radius:8px}
+tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;padding-top:10px}
+.ft{margin-top:24px;padding-top:12px;border-top:1px solid #e6e2d8;
+  font-size:10px;color:#999;display:flex;justify-content:space-between}
+</style></head><body>
+<div class="hd">
+  <div>
+    <h1>${esc(t.name)}　费用结算</h1>
+    <div class="sub">Davis Origin · 戴维斯原点足球俱乐部</div>
+  </div>
+  <div class="meta">
+    导出日期 ${today}<br>
+    ${s.sessionCount} 场训练 · ${s.peopleCount} 人参与
+  </div>
+</div>
+
+<div class="box">
+  <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
+  <div><span>总人次</span><b>${s.totalHeadcount}</b></div>
+  <div><span>单价／次</span><b>${money(s.unitPrice)}</b></div>
+  <div><span>已收</span><b>${money(s.totalPaid)}</b></div>
+  <div><span>待收</span><b style="color:#b04646">${money(s.totalUnpaid)}</b></div>
+</div>
+
+<table>
+  <thead><tr>
+    <th style="width:28px">#</th><th>球员</th>
+    <th class="n">出勤</th><th class="n">应付</th><th class="n">已付</th><th class="n">未付</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+  <tfoot><tr>
+    <td colspan="2">合计 ${t.people.length} 人</td>
+    <td class="n">${s.totalHeadcount}</td>
+    <td class="n">${money(s.totalOwed)}</td>
+    <td class="n">${money(s.totalPaid)}</td>
+    <td class="n owe">${money(s.totalUnpaid)}</td>
+  </tr></tfoot>
+</table>
+
+<div class="ft">
+  <span>单价 = 总费用 ${money(s.totalCost)} ÷ 总人次 ${s.totalHeadcount} = ${money(s.unitPrice)}</span>
+  <span>${unpaid.length ? `${unpaid.length} 人未结清` : '全部结清'}</span>
+</div>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if(!w) return toast('浏览器拦了弹窗，允许一下再试', true);
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); }, 400);
+  toast('在打印窗口选「存储为 PDF」');
 };
 
 $('btnCopyCodes').onclick = ()=>{
@@ -1386,9 +1622,7 @@ async function boot(){
   $('apiWarn').innerHTML = '<div class="loading">加载中…</div>';
   try{
     await reload();
-    $('apiWarn').innerHTML =
-      `<div class="callout">数据实时保存在 Cloudflare 数据库，队员在
-       <a href="fees.html" style="color:inherit;text-decoration:underline">查询页</a> 立刻能看到最新结果。</div>`;
+    $('apiWarn').innerHTML = '';
     resetForm();
   }catch(e){
     $('apiWarn').innerHTML = `<div class="callout err"><b>连不上 API：</b>${esc(e.message)}<br>
