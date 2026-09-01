@@ -198,6 +198,18 @@
   table{width:100%;border-collapse:collapse}
   th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
     color:var(--muted);padding:0 12px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+
+  /* 可排序表头 */
+  th.sortable{cursor:pointer;user-select:none;transition:color .18s}
+  th.sortable:hover{color:var(--accent)}
+  th.sortable::after{content:'';display:inline-block;width:0;height:0;margin-left:6px;
+    vertical-align:middle;opacity:.25;
+    border-left:3.5px solid transparent;border-right:3.5px solid transparent;
+    border-bottom:5px solid currentColor}
+  th.sortable.asc::after{opacity:1;color:var(--accent)}
+  th.sortable.desc::after{opacity:1;color:var(--accent);
+    border-bottom:none;border-top:5px solid currentColor}
+  th.sortable.asc,th.sortable.desc{color:var(--accent)}
   th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
   td{padding:13px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
   tbody tr{transition:background .18s}
@@ -467,10 +479,15 @@
 
         <div class="tbl-wrap">
           <table>
-            <thead><tr>
+            <thead><tr id="feeHead">
               <th class="chk"><input type="checkbox" id="chkAll" /></th>
-              <th>球员</th><th class="num">出勤</th><th class="num">应付</th>
-              <th class="num">已付</th><th class="num">未付</th><th>状态</th><th></th>
+              <th class="sortable" data-k="name">球员</th>
+              <th class="sortable num" data-k="count">出勤</th>
+              <th class="sortable num" data-k="owed">应付</th>
+              <th class="sortable num" data-k="paid">已付</th>
+              <th class="sortable num" data-k="balance">未付</th>
+              <th class="sortable" data-k="status">状态</th>
+              <th></th>
             </tr></thead>
             <tbody id="feeBody"></tbody>
           </table>
@@ -511,9 +528,13 @@
         <div id="codeWarn"></div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr>
-              <th class="num" style="width:56px">号码</th>
-              <th>球员</th><th>分组</th><th>查询码</th><th class="num">出勤</th><th></th>
+            <thead><tr id="codeHead">
+              <th class="sortable num" data-k="number" style="width:56px">号码</th>
+              <th class="sortable" data-k="name">球员</th>
+              <th class="sortable" data-k="tag">分组</th>
+              <th class="sortable" data-k="code">查询码</th>
+              <th class="sortable num" data-k="att">出勤</th>
+              <th></th>
             </tr></thead>
             <tbody id="codeBody"></tbody>
           </table>
@@ -969,7 +990,20 @@ function renderCodes(){
     ? `<div class="callout warn" style="margin-bottom:16px"><b>${missing.length} 人还没有查询码</b>，他们查不了自己的记录：
        ${missing.map(m=>esc(m.name)).join('、')}</div>`
     : '';
-  body.innerHTML = list.map(c=>{
+  // 排序
+  const sorted = [...list].sort((a,b)=>{
+    const k = sortCode.k;
+    let va, vb;
+    if(k==='number'){ va = a.number===''?null:Number(a.number); vb = b.number===''?null:Number(b.number); }
+    else if(k==='att'){ va = attCount(a.name)||null; vb = attCount(b.name)||null; }
+    else if(k==='tag'){ va = a.tag||null; vb = b.tag||null; }
+    else if(k==='code'){ va = a.code||null; vb = b.code||null; }
+    else { va = a.name; vb = b.name; }
+    return cmp(va, vb, sortCode.dir) || a.name.localeCompare(b.name,'zh');
+  });
+  paintSort('codeHead', sortCode);
+
+  body.innerHTML = sorted.map(c=>{
     const n = attCount(c.name);
     return `
     <tr>
@@ -1205,6 +1239,45 @@ function renderSessions(){
 
 let picked = new Set();
 
+/* ===================== 表格排序 ===================== */
+// 默认：名册按号码升序（没号的排后面）；费用按未付降序
+let sortCode = { k:'number', dir:1 };
+let sortFee  = { k:'balance', dir:-1 };
+
+/** 通用比较：数字比大小，文字按中文拼音，空值永远排最后 */
+function cmp(a, b, dir){
+  const ea = a === '' || a == null, eb = b === '' || b == null;
+  if(ea && eb) return 0;
+  if(ea) return 1;          // 空值不跟随升降序，始终垫底
+  if(eb) return -1;
+  if(typeof a === 'number' && typeof b === 'number') return (a-b) * dir;
+  return String(a).localeCompare(String(b), 'zh') * dir;
+}
+
+/** 点表头切换排序 */
+function bindSort(headId, state, rerender){
+  const head = $(headId);
+  if(!head) return;
+  head.querySelectorAll('th.sortable').forEach(th=>{
+    th.onclick = ()=>{
+      const k = th.dataset.k;
+      if(state.k === k) state.dir = -state.dir;
+      else { state.k = k; state.dir = (k==='name'||k==='tag'||k==='code'||k==='status') ? 1 : -1; }
+      rerender();
+    };
+  });
+}
+
+/** 把当前排序状态画到表头上 */
+function paintSort(headId, state){
+  const head = $(headId);
+  if(!head) return;
+  head.querySelectorAll('th.sortable').forEach(th=>{
+    th.classList.remove('asc','desc');
+    if(th.dataset.k === state.k) th.classList.add(state.dir === 1 ? 'asc' : 'desc');
+  });
+}
+
 function playerTag(name){
   const c = (D.codes||[]).find(x=>x.name===name);
   return c ? (c.tag||'') : '';
@@ -1222,15 +1295,24 @@ function tagStyle(tagName, kind){
 function renderFees(){
   const body = $('feeBody'), empty = $('feeEmpty');
   const t = T();
-  const people = t ? t.people : [];
+  const raw = t ? t.people : [];
   // 清掉已经不在列表里的选中项
-  picked = new Set([...picked].filter(n => people.some(p=>p.name===n)));
+  picked = new Set([...picked].filter(n => raw.some(p=>p.name===n)));
 
-  if(!people.length){
+  if(!raw.length){
     body.innerHTML=''; empty.style.display='block';
     updateBulk(); return;
   }
   empty.style.display = 'none';
+
+  // 排序（状态按 已结清 < 部分 < 未付 排）
+  const statusRank = f => f.balance<=0.005 ? 0 : (f.paid>0 ? 1 : 2);
+  const val = (f,k)=> k==='status' ? statusRank(f) : f[k];
+  const people = [...raw].sort((a,b)=>
+    cmp(val(a,sortFee.k), val(b,sortFee.k), sortFee.dir)
+    || a.name.localeCompare(b.name,'zh'));
+  paintSort('feeHead', sortFee);
+
   body.innerHTML = people.map(f=>{
     let pill = '<span class="pill owe">未付</span>';
     if(f.balance <= 0.005) pill = '<span class="pill ok">已结清</span>';
@@ -1406,6 +1488,10 @@ $('btnNewTerm').onclick = newTerm;
 $('btnNewTerm2').onclick = newTerm;
 $('btnNewTag').onclick  = ()=> newTagOf('payment');
 $('btnNewPTag').onclick = ()=> newTagOf('player');
+
+/* 表头排序 */
+bindSort('codeHead', sortCode, renderCodes);
+bindSort('feeHead',  sortFee,  renderFees);
 
 /* 训练 / 比赛 切换 */
 function setKind(k){
