@@ -116,6 +116,13 @@
   .ptag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;
     font-weight:600;letter-spacing:.02em;border:1px solid}
 
+  /* 球衣号 */
+  .jersey{display:inline-grid;place-items:center;min-width:28px;height:24px;
+    padding:0 6px;background:var(--ink);color:#fff;border-radius:6px;
+    font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em}
+  .jersey.sm{min-width:24px;height:20px;font-size:11px;border-radius:5px}
+
   /* 名册的添加行 */
   .add-row{display:flex;gap:10px;margin-bottom:22px;align-items:stretch}
   .add-row textarea{flex:1;padding:11px 14px;border:1px solid var(--line);
@@ -479,6 +486,7 @@
         <div class="tbl-wrap">
           <table>
             <thead><tr>
+              <th class="num" style="width:56px">号码</th>
               <th>球员</th><th>分组</th><th>查询码</th><th class="num">出勤</th><th></th>
             </tr></thead>
             <tbody id="codeBody"></tbody>
@@ -902,11 +910,21 @@ function renderTerms(){
     };
   });
   box.querySelectorAll('[data-delterm]').forEach(b=>{
-    b.onclick = async ()=>{
+    b.onclick = ()=>{
       const t = D.terms.find(x=>String(x.id)===b.dataset.delterm);
-      if(!confirm(`删除学期「${t.name}」？\n（有训练记录的学期删不掉）`)) return;
-      try{ await api('/terms/'+t.id,{method:'DELETE'}); await reload(); toast('已删除'); }
-      catch(e){ toast(e.message,true); }
+      const n = t.summary.sessionCount;
+      openEdit({
+        title: `删除「${t.name}」？`,
+        sub: n
+          ? `这个学期下面有 <b style="color:var(--danger)">${n}</b> 场训练，删不掉。<br>
+             要删的话先把这些训练删了，或者改到别的学期。`
+          : '还没有训练记录，可以放心删。',
+        fields: [], okText: '确认删除', danger: true,
+        onSubmit: async ()=>{
+          await api('/terms/'+t.id,{method:'DELETE'});
+          await reload(); toast('已删除');
+        }
+      });
     };
   });
 }
@@ -934,6 +952,9 @@ function renderCodes(){
     const n = attCount(c.name);
     return `
     <tr>
+      <td class="num">${c.number
+        ? `<span class="jersey">${esc(c.number)}</span>`
+        : '<span style="color:var(--muted)">—</span>'}</td>
       <td><b>${esc(c.name)}</b></td>
       <td>${c.tag
         ? `<span class="ptag" style="${tagStyle(c.tag,'player')}">${esc(c.tag)}</span>`
@@ -988,6 +1009,9 @@ function renderCodes(){
                : '还没有出勤记录',
         fields: [
           {key:'name', label:'球员姓名', value:name},
+          {key:'number', label:'球衣号', type:'number',
+           value:(D.codes.find(c=>c.name===name)||{}).number||'',
+           placeholder:'留空 = 没有号'},
           {key:'tag', label:'分组', type:'tags',
            value:(D.codes.find(c=>c.name===name)||{}).tag||'',
            options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
@@ -998,7 +1022,7 @@ function renderCodes(){
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
           await api('/players/'+encodeURIComponent(name),{method:'PUT',
-            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag})});
+            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number})});
           await reload();
           toast(v.name !== name ? `已改名为「${v.name}」` : '已更新');
         }
@@ -1117,10 +1141,19 @@ function renderSessions(){
     </div>`).join('');
 
   box.querySelectorAll('[data-del]').forEach(b=>{
-    b.onclick = async ()=>{
-      if(!confirm('确定删除这次训练记录？')) return;
-      try{ await api('/sessions/'+b.dataset.del,{method:'DELETE'}); await reload(); toast('已删除'); }
-      catch(e){ toast(e.message, true); }
+    b.onclick = ()=>{
+      const s = (T()?.sessions||[]).find(x=>String(x.id)===b.dataset.del);
+      if(!s) return;
+      openEdit({
+        title: '删除这次训练？',
+        sub: `<b>${esc(s.date)}</b>${s.note?`　${esc(s.note)}`:''}<br>
+              到场 <b>${s.attendees.length}</b> 人。删掉后这些人的出勤次数会减少，费用重新分摊。`,
+        fields: [], okText: '确认删除', danger: true,
+        onSubmit: async ()=>{
+          await api('/sessions/'+s.id,{method:'DELETE'});
+          await reload(); toast('已删除');
+        }
+      });
     };
   });
   box.querySelectorAll('[data-edit]').forEach(b=>{
@@ -1146,6 +1179,10 @@ let picked = new Set();
 function playerTag(name){
   const c = (D.codes||[]).find(x=>x.name===name);
   return c ? (c.tag||'') : '';
+}
+function playerNum(name){
+  const c = (D.codes||[]).find(x=>x.name===name);
+  return c ? (c.number||'') : '';
 }
 function tagStyle(tagName, kind){
   const t = (D.tags||[]).find(x=>x.name===tagName && (!kind || x.kind===kind));
@@ -1174,6 +1211,7 @@ function renderFees(){
       <td class="chk"><input type="checkbox" data-pick="${esc(f.name)}"
         ${picked.has(f.name)?'checked':''} ${f.balance<=0.005?'disabled':''} /></td>
       <td>
+        ${playerNum(f.name)?`<span class="jersey sm" style="margin-right:8px">${esc(playerNum(f.name))}</span>`:''}
         <b>${esc(f.name)}</b>
         ${tg?`<span class="ptag" style="${tagStyle(tg,'player')};margin-left:7px">${esc(tg)}</span>`:''}
       </td>
@@ -1236,10 +1274,19 @@ function renderPayments(){
       <td class="num"><button class="btn danger sm" data-delpay="${p.id}">删</button></td>
     </tr>`).join('');
   body.querySelectorAll('[data-delpay]').forEach(b=>{
-    b.onclick = async ()=>{
-      if(!confirm('删除这笔收款记录？')) return;
-      try{ await api('/payments/'+b.dataset.delpay,{method:'DELETE'}); await reload(); toast('已删除'); }
-      catch(e){ toast(e.message,true); }
+    b.onclick = ()=>{
+      const p = list.find(x=>String(x.id)===b.dataset.delpay);
+      if(!p) return;
+      openEdit({
+        title: '删除这笔收款？',
+        sub: `<b>${esc(p.player_name)}</b>　${money(p.amount)}　${esc(p.paid_at)}<br>
+              删掉后这个人的未付金额会加回去。`,
+        fields: [], okText: '确认删除', danger: true,
+        onSubmit: async ()=>{
+          await api('/payments/'+p.id,{method:'DELETE'});
+          await reload(); toast('已删除');
+        }
+      });
     };
   });
 }
@@ -1482,7 +1529,7 @@ $('btnExportPdf').onclick = ()=>{
 
   const rows = t.people.map((f,i)=>`
     <tr>
-      <td>${i+1}</td>
+      <td class="n">${playerNum(f.name)||''}</td>
       <td><b>${esc(f.name)}</b>${playerTag(f.name)?` <span class="pt">${esc(playerTag(f.name))}</span>`:''}</td>
       <td class="n">${f.count}</td>
       <td class="n">${money(f.owed)}</td>
@@ -1539,7 +1586,7 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
 
 <table>
   <thead><tr>
-    <th style="width:28px">#</th><th>球员</th>
+    <th class="n" style="width:34px">号</th><th>球员</th>
     <th class="n">出勤</th><th class="n">应付</th><th class="n">已付</th><th class="n">未付</th>
   </tr></thead>
   <tbody>${rows}</tbody>
