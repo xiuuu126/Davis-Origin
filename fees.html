@@ -112,6 +112,33 @@
     color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:12px}
   .r-sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
 
+  /* 学期分块 */
+  .term-block{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:26px 26px 22px;margin-bottom:16px}
+  .term-head{display:flex;justify-content:space-between;align-items:flex-start;
+    gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .term-name{font-size:20px;font-weight:800;letter-spacing:-.015em;
+    display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .term-now{font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    background:var(--accent-soft);color:var(--accent);padding:3px 9px;
+    border-radius:999px;font-weight:700}
+  .term-range{font-size:12.5px;color:var(--muted);margin-top:4px;
+    font-variant-numeric:tabular-nums}
+  .term-bal{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;
+    white-space:nowrap}
+  .term-bal.owe{color:var(--danger)}
+  .term-bal.clear{color:var(--ok);font-size:15px}
+  .term-formula{background:var(--accent-soft);border-radius:12px;padding:15px 18px;
+    font-size:14px;color:var(--accent-deep);line-height:1.85;text-align:center}
+  .term-formula b{font-weight:800}
+  .term-detail{margin-top:14px}
+  .term-detail summary{font-size:12.5px;color:var(--muted);cursor:pointer;
+    padding:6px 0;list-style:none;user-select:none;transition:color .2s}
+  .term-detail summary::-webkit-details-marker{display:none}
+  .term-detail summary::before{content:'▸ ';font-size:11px}
+  .term-detail[open] summary::before{content:'▾ '}
+  .term-detail summary:hover{color:var(--accent)}
+
   .r-list{display:flex;flex-direction:column;gap:8px}
   .r-row{display:flex;justify-content:space-between;align-items:center;gap:16px;
     padding:15px 20px;background:var(--card);border:1px solid var(--line);border-radius:12px;
@@ -300,57 +327,73 @@ function showState(icon, title, desc){
 }
 
 function showResult(d){
-  const p = d.person;
-  const cleared = p.balance <= 0.005;
-  const rows = p.dates || [];
+  const tot = d.total;
+  const cleared = tot.balance <= 0.005;
+  const multi = d.terms.length > 1;
 
   hideForm();
   $('result').classList.add('on');
   $('result').innerHTML = `
     <div class="r-head">
-      <div class="r-name">${esc(p.name)}</div>
+      <div class="r-name">${esc(d.name)}</div>
       <div class="r-tag">Davis Origin</div>
     </div>
 
     <div class="r-stats">
       <div class="r-stat">
-        <div class="r-stat-num">${p.count}</div>
-        <div class="r-stat-lbl">出勤次数</div>
+        <div class="r-stat-num">${tot.count}</div>
+        <div class="r-stat-lbl">${multi?'累计出勤':'出勤次数'}</div>
       </div>
       <div class="r-stat">
-        <div class="r-stat-num">${money(p.owed).replace('$','')}</div>
-        <div class="r-stat-lbl">应付 (USD)</div>
+        <div class="r-stat-num">${money(tot.owed).replace('$','')}</div>
+        <div class="r-stat-lbl">${multi?'累计应付':'应付'} (USD)</div>
       </div>
       <div class="r-stat">
-        <div class="r-stat-num ${cleared?'clear':'owe'}">${money(p.balance).replace('$','')}</div>
+        <div class="r-stat-num ${cleared?'clear':'owe'}">${money(tot.balance).replace('$','')}</div>
         <div class="r-stat-lbl">${cleared?'已结清':'待付 (USD)'}</div>
       </div>
     </div>
 
     <div class="paid-banner ${cleared?'ok':'owe'}">
       ${cleared
-        ? `✓ 已结清，谢谢！${p.paid>0?`（累计已付 ${money(p.paid)}）`:''}`
-        : `还需支付 <b>${money(p.balance)}</b>${p.paid>0?`（已付 ${money(p.paid)} / 共 ${money(p.owed)}）`:''}`}
+        ? `✓ 已结清，谢谢！${tot.paid>0?`（累计已付 ${money(tot.paid)}）`:''}`
+        : `还需支付 <b>${money(tot.balance)}</b>${tot.paid>0?`（已付 ${money(tot.paid)} / 共 ${money(tot.owed)}）`:''}`}
     </div>
 
-    <div class="r-formula">
-      统一单价 <b>${money(d.unitPrice)}</b> / 每次训练<br />
-      你来了 <b>${p.count}</b> 次 → 应付 <b>${money(p.owed)}</b>
-    </div>
-
-    <div class="r-sec-title">出勤明细 · ${rows.length} 次</div>
-    <div class="r-list">
-      ${rows.map(r=>`
-        <div class="r-row">
+    ${d.terms.map(t=>{
+      const tc = t.balance <= 0.005;
+      return `
+      <div class="term-block">
+        <div class="term-head">
           <div>
-            <div class="r-row-date">${esc(r.date||'—')}</div>
-            ${r.note?`<div class="r-row-note">${esc(r.note)}</div>`:''}
+            <div class="term-name">${esc(t.termName)}${t.isActive?'<span class="term-now">进行中</span>':''}</div>
+            ${t.startDate||t.endDate?`<div class="term-range">${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}</div>`:''}
           </div>
-          <div class="r-row-cost">${money(d.unitPrice)}</div>
-        </div>`).join('')}
-    </div>
+          <div class="term-bal ${tc?'clear':'owe'}">${tc?'已结清':money(t.balance)}</div>
+        </div>
 
-    <button class="again" id="againBtn">查别人 / 重新查询</button>
+        <div class="term-formula">
+          本学期单价 <b>${money(t.unitPrice)}</b>／次　·　你来了 <b>${t.count}</b> 次<br />
+          应付 <b>${money(t.owed)}</b>${t.paid>0?`　·　已付 ${money(t.paid)}`:''}
+        </div>
+
+        <details class="term-detail">
+          <summary>出勤明细（${t.dates.length} 次）</summary>
+          <div class="r-list" style="margin-top:12px">
+            ${t.dates.map(r=>`
+              <div class="r-row">
+                <div>
+                  <div class="r-row-date">${esc(r.date||'—')}</div>
+                  ${r.note?`<div class="r-row-note">${esc(r.note)}</div>`:''}
+                </div>
+                <div class="r-row-cost">${money(t.unitPrice)}</div>
+              </div>`).join('')}
+          </div>
+        </details>
+      </div>`;
+    }).join('')}
+
+    <button class="again" id="againBtn">重新查询</button>
     ${d.updatedAt?`<div class="updated">数据更新于 ${new Date(d.updatedAt).toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'})}</div>`:''}
   `;
   $('againBtn').onclick = showForm;

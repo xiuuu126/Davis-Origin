@@ -99,6 +99,22 @@
   .stat-lbl{font-size:10.5px;color:var(--muted);margin-top:5px;letter-spacing:.13em;
     text-transform:uppercase;font-weight:600}
 
+  /* 学期切换条 */
+  .term-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 20px;margin-bottom:16px}
+  .term-bar-label{font-size:11px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted)}
+  .term-bar select{padding:8px 14px;border:1px solid var(--line);border-radius:9px;
+    background:var(--bg-soft);color:var(--ink);font-weight:600;min-width:180px;
+    transition:border-color .2s,box-shadow .2s}
+  .term-bar select:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+  .term-bar-spacer{flex:1}
+  .term-bar-hint{font-size:12.5px;color:var(--muted)}
+  .term-bar-hint b{color:var(--accent)}
+  .term-actions{display:flex;gap:6px}
+
   .unit-banner{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-deep) 100%);
     color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:20px;
     display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
@@ -226,9 +242,17 @@
   <main class="wrap">
     <div id="apiWarn"></div>
 
+    <div class="term-bar">
+      <div class="term-bar-label">当前学期</div>
+      <select id="termSelect"></select>
+      <button class="btn ghost sm" id="btnNewTerm">+ 新学期</button>
+      <div class="term-bar-spacer"></div>
+      <div class="term-bar-hint" id="termHint"></div>
+    </div>
+
     <div class="unit-banner">
       <div>
-        <div class="unit-main">统一单价 / 每次训练</div>
+        <div class="unit-main">本学期单价 / 每次训练</div>
         <div class="unit-val" id="uUnit">$0.00</div>
       </div>
       <div class="unit-formula" id="uFormula">总费用 ÷ 总人次</div>
@@ -248,6 +272,7 @@
       <button class="tab" data-tab="fees">费用 / 收款</button>
       <button class="tab" data-tab="players">球员名册</button>
       <button class="tab" data-tab="codes">查询码</button>
+      <button class="tab" data-tab="terms">学期管理</button>
     </div>
 
     <!-- 录入 -->
@@ -369,6 +394,20 @@
         </div>
       </div>
     </section>
+
+    <!-- 学期管理 -->
+    <section class="panel" id="tab-terms">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">学期管理</div>
+            <div class="card-sub">每个学期单独结算：本学期总费用 ÷ 本学期总人次 = 本学期单价</div>
+          </div>
+          <button class="btn sm" id="btnNewTerm2">+ 新学期</button>
+        </div>
+        <div id="termList"></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -414,6 +453,13 @@ const TK = 'do_admin_token';
 let D = null;              // 服务器返回的全量数据
 let pendingMatch = null;
 let editingId = null;      // 正在编辑的 session id
+let curTermId = null;      // 当前查看/录入的学期
+
+/** 当前学期对象 */
+function T(){
+  if(!D || !D.terms.length) return null;
+  return D.terms.find(t => t.id === curTermId) || D.terms[0];
+}
 
 /* ===================== 工具 ===================== */
 const $ = id => document.getElementById(id);
@@ -520,19 +566,101 @@ function matchNames(list){
 }
 
 /* ===================== 渲染 ===================== */
+function renderTermBar(){
+  const sel = $('termSelect');
+  sel.innerHTML = D.terms.map(t =>
+    `<option value="${t.id}"${t.id===curTermId?' selected':''}>${esc(t.name)}${t.isActive?' ·当前':''}</option>`
+  ).join('') || '<option value="">还没有学期</option>';
+
+  const t = T();
+  $('termHint').innerHTML = t
+    ? `全部 ${D.overall.termCount} 个学期 · 累计待收 <b>${money(D.overall.totalUnpaid)}</b>`
+    : '先新建一个学期才能录训练';
+}
+
 function render(){
   if(!D) return;
-  const s = D.summary;
+  if(!D.terms.length){ curTermId = null; }
+  else if(!D.terms.some(t=>t.id===curTermId)){
+    curTermId = D.activeTermId || D.terms[0].id;
+  }
+  renderTermBar();
+
+  const t = T();
+  const s = t ? t.summary : {unitPrice:0,totalCost:0,totalHeadcount:0,sessionCount:0,peopleCount:0,totalPaid:0,totalUnpaid:0};
+
   $('uUnit').textContent = money(s.unitPrice);
-  $('uFormula').innerHTML =
-    `${money(s.totalCost)} ÷ ${s.totalHeadcount} 人次<br>` +
-    `<span style="opacity:.75">${s.sessionCount} 场训练 · ${s.peopleCount} 人参与</span>`;
+  $('uFormula').innerHTML = t
+    ? `${money(s.totalCost)} ÷ ${s.totalHeadcount} 人次<br>` +
+      `<span style="opacity:.75">${esc(t.name)} · ${s.sessionCount} 场 · ${s.peopleCount} 人</span>`
+    : '还没有学期';
   $('sTrain').textContent  = s.sessionCount;
   $('sPeople').textContent = s.peopleCount;
   $('sHead').textContent   = s.totalHeadcount;
   $('sPaid').textContent   = '$' + Math.round(s.totalPaid);
   $('sUnpaid').textContent = '$' + Math.round(s.totalUnpaid);
-  renderSessions(); renderFees(); renderPayments(); renderPlayers(); renderCodes();
+
+  renderSessions(); renderFees(); renderPayments(); renderPlayers(); renderCodes(); renderTerms();
+}
+
+function renderTerms(){
+  const box = $('termList');
+  if(!box) return;
+  if(!D.terms.length){
+    box.innerHTML = '<div class="empty">还没有学期，点上面的「+ 新学期」建一个</div>';
+    return;
+  }
+  box.innerHTML = D.terms.map(t=>`
+    <div class="sess">
+      <div>
+        <div class="sess-date">${esc(t.name)} ${t.isActive?'<span class="pill ok" style="margin-left:6px">当前</span>':''}</div>
+        <div class="sess-note">${t.startDate||t.endDate?`${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:'未设日期范围'}</div>
+      </div>
+      <div class="sess-meta">
+        ${t.summary.sessionCount} 场 · ${t.summary.peopleCount} 人 ·
+        总费用 <b>${money(t.summary.totalCost)}</b> · 单价 <b>${money(t.summary.unitPrice)}</b>
+        <div class="sess-note" style="margin-top:6px">
+          已收 ${money(t.summary.totalPaid)} · 待收 ${money(t.summary.totalUnpaid)}
+        </div>
+      </div>
+      <div class="sess-actions">
+        ${t.isActive?'':`<button class="btn ghost sm" data-activate="${t.id}">设为当前</button>`}
+        <button class="btn ghost sm" data-rename="${t.id}">改名</button>
+        <button class="btn danger sm" data-delterm="${t.id}">删除</button>
+      </div>
+    </div>`).join('');
+
+  box.querySelectorAll('[data-activate]').forEach(b=>{
+    b.onclick = async ()=>{
+      try{ await api('/terms/'+b.dataset.activate,{method:'PUT',body:JSON.stringify({isActive:true})});
+        await reload(); toast('已切换当前学期'); }
+      catch(e){ toast(e.message,true); }
+    };
+  });
+  box.querySelectorAll('[data-rename]').forEach(b=>{
+    b.onclick = async ()=>{
+      const t = D.terms.find(x=>String(x.id)===b.dataset.rename);
+      const name = prompt('学期名称', t.name);
+      if(name===null || !name.trim()) return;
+      const sd = prompt('开始日期（可留空，格式 2026-09-01）', t.startDate||'');
+      if(sd===null) return;
+      const ed = prompt('结束日期（可留空）', t.endDate||'');
+      if(ed===null) return;
+      try{
+        await api('/terms/'+t.id,{method:'PUT',
+          body:JSON.stringify({name:name.trim(),startDate:sd.trim(),endDate:ed.trim()})});
+        await reload(); toast('已更新');
+      }catch(e){ toast(e.message,true); }
+    };
+  });
+  box.querySelectorAll('[data-delterm]').forEach(b=>{
+    b.onclick = async ()=>{
+      const t = D.terms.find(x=>String(x.id)===b.dataset.delterm);
+      if(!confirm(`删除学期「${t.name}」？\n（有训练记录的学期删不掉）`)) return;
+      try{ await api('/terms/'+t.id,{method:'DELETE'}); await reload(); toast('已删除'); }
+      catch(e){ toast(e.message,true); }
+    };
+  });
 }
 
 function renderCodes(){
@@ -568,12 +696,14 @@ function renderCodes(){
 
 function renderSessions(){
   const box = $('sessList');
-  $('listSub').textContent = `共 ${D.sessions.length} 场`;
-  if(!D.sessions.length){
-    box.innerHTML = '<div class="empty">还没有训练记录，去「录入训练」添加</div>';
+  const t = T();
+  const list = t ? t.sessions : [];
+  $('listSub').textContent = t ? `${t.name} · 共 ${list.length} 场` : '还没有学期';
+  if(!list.length){
+    box.innerHTML = '<div class="empty">这个学期还没有训练记录</div>';
     return;
   }
-  box.innerHTML = D.sessions.map(s=>`
+  box.innerHTML = list.map(s=>`
     <div class="sess">
       <div>
         <div class="sess-date">${esc(s.date||'—')}</div>
@@ -598,7 +728,7 @@ function renderSessions(){
   });
   box.querySelectorAll('[data-edit]').forEach(b=>{
     b.onclick = ()=>{
-      const s = D.sessions.find(x=>String(x.id)===b.dataset.edit);
+      const s = (T()?.sessions || []).find(x=>String(x.id)===b.dataset.edit);
       if(!s) return;
       editingId = s.id;
       const dEl = $('fDate'); dEl.value = s.date||''; dEl.dataset.auto='0';
@@ -616,9 +746,11 @@ function renderSessions(){
 
 function renderFees(){
   const body = $('feeBody'), empty = $('feeEmpty');
-  if(!D.people.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  const t = T();
+  const people = t ? t.people : [];
+  if(!people.length){ body.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display = 'none';
-  body.innerHTML = D.people.map(f=>{
+  body.innerHTML = people.map(f=>{
     let pill = '<span class="pill owe">未付</span>';
     if(f.balance <= 0.005) pill = '<span class="pill ok">已结清</span>';
     else if(f.paid > 0) pill = '<span class="pill part">部分</span>';
@@ -639,10 +771,12 @@ function renderFees(){
 
 function renderPayments(){
   const body = $('payBody'), empty = $('payEmpty');
-  $('paySub').textContent = `共 ${D.payments.length} 笔`;
-  if(!D.payments.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  const t = T();
+  const list = t ? t.payments : [];
+  $('paySub').textContent = t ? `${t.name} · 共 ${list.length} 笔` : '';
+  if(!list.length){ body.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  body.innerHTML = D.payments.map(p=>`
+  body.innerHTML = list.map(p=>`
     <tr>
       <td style="font-variant-numeric:tabular-nums">${esc(p.paid_at)}</td>
       <td><b>${esc(p.player_name)}</b></td>
@@ -723,6 +857,31 @@ function switchTab(n){
 document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>switchTab(t.dataset.tab));
 
 /* ===================== 事件 ===================== */
+/* 学期切换 / 新建 */
+$('termSelect').onchange = e=>{
+  curTermId = Number(e.target.value) || null;
+  render();
+};
+async function newTerm(){
+  const now = new Date();
+  const guess = `${now.getFullYear()} ${now.getMonth() < 5 ? '春季' : now.getMonth() < 7 ? '夏季' : '秋季'}学期`;
+  const name = prompt('新学期名称', guess);
+  if(name === null || !name.trim()) return;
+  const sd = prompt('开始日期（可留空，格式 2026-09-01）', '');
+  if(sd === null) return;
+  const ed = prompt('结束日期（可留空）', '');
+  if(ed === null) return;
+  try{
+    const r = await api('/terms',{method:'POST',
+      body:JSON.stringify({name:name.trim(),startDate:(sd||'').trim(),endDate:(ed||'').trim(),setActive:true})});
+    curTermId = r.id;
+    await reload();
+    toast(`已创建「${name.trim()}」并设为当前学期`);
+  }catch(e){ toast(e.message,true); }
+}
+$('btnNewTerm').onclick = newTerm;
+$('btnNewTerm2').onclick = newTerm;
+
 $('btnMatch').onclick = ()=>doMatch();
 $('fNames').addEventListener('blur', ()=>doMatch());
 $('fNames').addEventListener('paste', ()=>setTimeout(()=>doMatch(),60));
@@ -748,10 +907,12 @@ $('btnSaveSess').onclick = async ()=>{
   if(!pendingMatch) doMatch(false);
   if(!pendingMatch || !pendingMatch.matched.length) return toast('没有识别到有效名字', true);
 
+  if(!curTermId) return toast('请先建一个学期', true);
+
   const btn = $('btnSaveSess');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
   try{
-    const payload = JSON.stringify({date,cost,note,attendees:pendingMatch.matched});
+    const payload = JSON.stringify({date,cost,note,attendees:pendingMatch.matched,termId:curTermId});
     if(editingId) await api('/sessions/'+editingId,{method:'PUT',body:payload});
     else          await api('/sessions',{method:'POST',body:payload});
     resetForm();
@@ -776,11 +937,12 @@ $('btnAddPlayers').onclick = async ()=>{
 /* 收款弹窗 */
 let payTarget = null;
 function openPay(name){
-  const p = D.people.find(x=>x.name===name);
+  const t = T();
+  const p = t ? t.people.find(x=>x.name===name) : null;
   payTarget = name;
   $('payWho').textContent = '收款 · ' + name;
   $('paySubInfo').innerHTML = p
-    ? `出勤 <b>${p.count}</b> 次 · 应付 <b>${money(p.owed)}</b> · 已付 ${money(p.paid)} · 未付 <b style="color:var(--danger)">${money(p.balance)}</b>`
+    ? `<b>${esc(t.name)}</b><br>出勤 <b>${p.count}</b> 次 · 应付 <b>${money(p.owed)}</b> · 已付 ${money(p.paid)} · 未付 <b style="color:var(--danger)">${money(p.balance)}</b>`
     : '';
   $('payAmt').value = p ? (p.balance>0?p.balance.toFixed(2):'') : '';
   $('payDate').value = new Date().toISOString().slice(0,10);
@@ -795,7 +957,8 @@ $('payConfirm').onclick = async ()=>{
   if(!Number.isFinite(amount) || amount===0) return toast('金额不对', true);
   try{
     await api('/payments',{method:'POST',body:JSON.stringify({
-      name: payTarget, amount, paidAt: $('payDate').value, note: $('payNote').value.trim()
+      name: payTarget, amount, paidAt: $('payDate').value,
+      note: $('payNote').value.trim(), termId: curTermId
     })});
     $('payModal').classList.remove('on');
     await reload();
@@ -804,15 +967,20 @@ $('payConfirm').onclick = async ()=>{
 };
 
 $('btnCopyFees').onclick = ()=>{
-  if(!D.people.length) return toast('没有数据', true);
-  const head = `统一单价 ${money(D.summary.unitPrice)}（${money(D.summary.totalCost)} ÷ ${D.summary.totalHeadcount} 人次）\n`;
-  const txt = head + D.people.map(f=>`${f.name}  ${f.count}次  应付${money(f.owed)}  未付${money(f.balance)}`).join('\n');
+  const t = T();
+  if(!t || !t.people.length) return toast('没有数据', true);
+  const s = t.summary;
+  const head = `${t.name}\n单价 ${money(s.unitPrice)}／次（${money(s.totalCost)} ÷ ${s.totalHeadcount} 人次，共 ${s.sessionCount} 场）\n\n`;
+  const txt = head + t.people.map(f=>`${f.name}  ${f.count}次  应付${money(f.owed)}  未付${money(f.balance)}`).join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('已复制')).catch(()=>toast('复制失败',true));
 };
 $('btnCopyUnpaid').onclick = ()=>{
-  const list = D.people.filter(f=>f.balance>0.005);
-  if(!list.length) return toast('全部结清了 🎉');
-  const txt = `未付名单（单价 ${money(D.summary.unitPrice)}/次）\n` +
+  const t = T();
+  if(!t) return toast('没有数据', true);
+  const list = t.people.filter(f=>f.balance>0.005);
+  if(!list.length) return toast('这个学期全部结清了 🎉');
+  const s = t.summary;
+  const txt = `${t.name} 未付名单\n单价 ${money(s.unitPrice)}／次\n\n` +
     list.map(f=>`${f.name}  ${f.count}次  ${money(f.balance)}`).join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('已复制未付名单')).catch(()=>toast('复制失败',true));
 };
