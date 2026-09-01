@@ -147,6 +147,9 @@
   .r-row-date{font-weight:700;font-variant-numeric:tabular-nums;font-size:14.5px}
   .r-row-note{font-size:12.5px;color:var(--muted);margin-top:2px}
   .r-row-cost{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;font-size:15px}
+  .kind-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;
+    font-weight:700;letter-spacing:.06em;margin-left:8px;vertical-align:middle;
+    background:#fbf2e3;color:#b0762a;border:1px solid #e0c99a}
 
   .state{text-align:center;padding:56px 24px;color:var(--muted)}
   .state-icon{font-size:42px;margin-bottom:14px;opacity:.35}
@@ -373,8 +376,9 @@ function showResult(d){
         </div>
 
         <div class="term-formula">
-          本学期单价 <b>${money(t.unitPrice)}</b>／次　·　你来了 <b>${t.count}</b> 次<br />
-          应付 <b>${money(t.owed)}</b>${t.paid>0?`　·　已付 ${money(t.paid)}`:''}
+          ${t.trainCount ? `训练 <b>${t.trainCount}</b> 次 × ${money(t.unitPrice)} = <b>${money(t.trainOwed)}</b><br />` : ''}
+          ${t.matchCount ? `比赛 <b>${t.matchCount}</b> 场 = <b>${money(t.matchOwed)}</b><br />` : ''}
+          合计应付 <b>${money(t.owed)}</b>${t.paid>0?`　·　已付 ${money(t.paid)}`:''}
         </div>
 
         <details class="term-detail">
@@ -383,10 +387,13 @@ function showResult(d){
             ${t.dates.map(r=>`
               <div class="r-row">
                 <div>
-                  <div class="r-row-date">${esc(r.date||'—')}</div>
+                  <div class="r-row-date">
+                    ${esc(r.date||'—')}
+                    ${r.kind==='match'?'<span class="kind-badge">比赛</span>':''}
+                  </div>
                   ${r.note?`<div class="r-row-note">${esc(r.note)}</div>`:''}
                 </div>
-                <div class="r-row-cost">${money(t.unitPrice)}</div>
+                <div class="r-row-cost">${money(r.cost)}</div>
               </div>`).join('')}
           </div>
         </details>

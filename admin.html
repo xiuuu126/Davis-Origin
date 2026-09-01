@@ -116,6 +116,23 @@
   .ptag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;
     font-weight:600;letter-spacing:.02em;border:1px solid}
 
+  /* 训练 / 比赛 切换 */
+  .kind-pick{display:inline-flex;gap:4px;background:rgba(13,18,36,.05);
+    padding:4px;border-radius:10px}
+  .kind-opt{border:none;background:none;padding:8px 22px;border-radius:7px;
+    font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;
+    transition:all .2s}
+  .kind-opt:hover{color:var(--ink)}
+  .kind-opt.on{background:#fff;color:var(--accent);
+    box-shadow:0 2px 6px rgba(13,18,36,.1)}
+  .kind-opt[data-kind="match"].on{color:#b0762a}
+
+  /* 场次类型徽章 */
+  .kind-badge{display:inline-block;padding:2px 9px;border-radius:6px;
+    font-size:11px;font-weight:700;letter-spacing:.06em;margin-left:9px;
+    vertical-align:middle}
+  .kind-badge.match{background:#fbf2e3;color:#b0762a;border:1px solid #e0c99a}
+
   /* 球衣号 */
   .jersey{display:inline-grid;place-items:center;min-width:28px;height:24px;
     padding:0 6px;background:var(--ink);color:#fff;border-radius:6px;
@@ -379,9 +396,18 @@
     <section class="panel on" id="tab-add">
       <div class="card">
         <div class="card-head">
-          <div class="card-title">录入训练</div>
+          <div class="card-title" id="addTitle">录入训练</div>
           <div id="editFlag"></div>
         </div>
+
+        <div class="field">
+          <label>类型</label>
+          <div class="kind-pick">
+            <button type="button" class="kind-opt on" data-kind="training">训练</button>
+            <button type="button" class="kind-opt" data-kind="match">比赛</button>
+          </div>
+        </div>
+
         <div class="row3">
           <div class="field"><label>日期</label><input type="date" id="fDate" /></div>
           <div class="field">
@@ -493,6 +519,14 @@
           </table>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">分组</div>
+          <button class="btn sm" id="btnNewPTag">+ 新增</button>
+        </div>
+        <div id="ptagList"></div>
+      </div>
     </section>
 
     <!-- 学期管理 -->
@@ -513,13 +547,6 @@
         <div id="tagList"></div>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title">球员分组</div>
-          <button class="btn sm" id="btnNewPTag">+ 新增</button>
-        </div>
-        <div id="ptagList"></div>
-      </div>
     </section>
   </main>
 </div>
@@ -588,6 +615,7 @@ let D = null;              // 服务器返回的全量数据
 let pendingMatch = null;
 let editingId = null;      // 正在编辑的 session id
 let curTermId = null;      // 当前查看/录入的学期
+let curKind = 'training';  // 录入的是训练还是比赛
 
 /** 当前学期对象 */
 function T(){
@@ -826,14 +854,7 @@ function render(){
   $('sPaid').textContent   = '$' + Math.round(s.totalPaid);
   $('sUnpaid').textContent = '$' + Math.round(s.totalUnpaid);
 
-  // 学期用总额模式时，单场费用就不重要了
-  const byTerm = t && t.summary.costMode === 'term';
-  $('fCostHint').style.display = byTerm ? '' : 'none';
-  if(byTerm){
-    $('fCostHint').innerHTML =
-      `「${esc(t.name)}」已设总费用 <b>${money(t.summary.totalCost)}</b>，单场费用不参与计算，可以不填。`;
-  }
-
+  updateCostHint();
   renderSessions(); renderFees(); renderPayments();
   renderCodes(); renderTerms(); renderTags();
 }
@@ -1120,14 +1141,21 @@ function renderSessions(){
     return;
   }
   const byTerm = t && t.summary.costMode === 'term';
-  box.innerHTML = list.map(s=>`
+  box.innerHTML = list.map(s=>{
+    const isMatch = s.kind === 'match';
+    // 训练在学期总额模式下不显示单场费用；比赛永远显示
+    const showCost = isMatch || !byTerm;
+    const per = isMatch && s.attendees.length ? s.cost/s.attendees.length : 0;
+    return `
     <div class="sess">
       <div>
         <div class="sess-title">
-          ${esc(s.date||'—')}${s.note?`<span class="tag">${esc(s.note)}</span>`:''}
+          ${esc(s.date||'—')}
+          ${isMatch?'<span class="kind-badge match">比赛</span>':''}
+          ${s.note?`<span class="tag">${esc(s.note)}</span>`:''}
         </div>
         <div class="sess-sub">
-          到场 <b>${s.attendees.length}</b> 人${byTerm?'' : ` · 费用 <b>${money(s.cost)}</b>`}
+          ${isMatch?'参赛':'到场'} <b>${s.attendees.length}</b> 人${showCost ? ` · 费用 <b>${money(s.cost)}</b>` : ''}${isMatch && s.attendees.length ? ` · 人均 <b>${money(per)}</b>` : ''}
         </div>
         <details class="sess-names">
           <summary>查看名单</summary>
@@ -1138,7 +1166,8 @@ function renderSessions(){
         <button class="btn ghost sm" data-edit="${s.id}">编辑</button>
         <button class="btn danger sm" data-del="${s.id}">删除</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   box.querySelectorAll('[data-del]').forEach(b=>{
     b.onclick = ()=>{
@@ -1167,7 +1196,7 @@ function renderSessions(){
       $('fNames').value = s.attendees.map((n,i)=>`${i+1}. ${n}`).join('\n');
       $('editFlag').innerHTML = `<span class="pill part">编辑中 · ${esc(s.date)}</span>`;
       $('btnCancelEdit').style.display = '';
-      $('btnSaveSess').textContent = '保存修改';
+      setKind(s.kind || 'training');
       switchTab('add'); doMatch(false);
       window.scrollTo({top:0,behavior:'smooth'});
     };
@@ -1378,6 +1407,40 @@ $('btnNewTerm2').onclick = newTerm;
 $('btnNewTag').onclick  = ()=> newTagOf('payment');
 $('btnNewPTag').onclick = ()=> newTagOf('player');
 
+/* 训练 / 比赛 切换 */
+function setKind(k){
+  curKind = (k==='match') ? 'match' : 'training';
+  document.querySelectorAll('.kind-opt').forEach(b=>
+    b.classList.toggle('on', b.dataset.kind===curKind));
+  const isMatch = curKind==='match';
+  $('addTitle').textContent = isMatch ? '录入比赛' : '录入训练';
+  $('fCostLabel').textContent = isMatch ? '这场比赛的费用' : '本次费用';
+  $('fNote').placeholder = isMatch ? '例：vs UCSD / 报名费' : '可留空';
+  $('btnSaveSess').textContent = editingId
+    ? '保存修改'
+    : (isMatch ? '保存这场比赛' : '保存这次训练');
+  updateCostHint();
+}
+document.querySelectorAll('.kind-opt').forEach(b=>{
+  b.onclick = ()=> setKind(b.dataset.kind);
+});
+
+function updateCostHint(){
+  const t = T();
+  const box = $('fCostHint');
+  if(curKind === 'match'){
+    box.style.display = '';
+    box.innerHTML = '比赛费用按<b>这场参赛人数</b>单独分摊，不进学期单价。';
+    return;
+  }
+  const byTerm = t && t.summary.costMode === 'term';
+  box.style.display = byTerm ? '' : 'none';
+  if(byTerm){
+    box.innerHTML =
+      `「${esc(t.name)}」已设训练总费用 <b>${money(t.summary.trainCost)}</b>，单场费用不参与计算，可以不填。`;
+  }
+}
+
 $('btnMatch').onclick = ()=>doMatch();
 $('fNames').addEventListener('blur', ()=>doMatch());
 $('fNames').addEventListener('paste', ()=>setTimeout(()=>doMatch(),60));
@@ -1389,9 +1452,9 @@ function resetForm(){
   $('matchBox').style.display='none';
   $('editFlag').innerHTML='';
   $('btnCancelEdit').style.display='none';
-  $('btnSaveSess').textContent='保存这次训练';
   pendingMatch=null;
   const d=$('fDate'); d.value=new Date().toISOString().slice(0,10); d.dataset.auto='1';
+  setKind('training');
 }
 $('btnCancelEdit').onclick = resetForm;
 
@@ -1408,7 +1471,9 @@ $('btnSaveSess').onclick = async ()=>{
   const btn = $('btnSaveSess');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
   try{
-    const payload = JSON.stringify({date,cost,note,attendees:pendingMatch.matched,termId:curTermId});
+    const payload = JSON.stringify({
+      date, cost, note, attendees:pendingMatch.matched,
+      termId:curTermId, kind:curKind });
     if(editingId) await api('/sessions/'+editingId,{method:'PUT',body:payload});
     else          await api('/sessions',{method:'POST',body:payload});
     resetForm();
