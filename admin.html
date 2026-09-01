@@ -140,6 +140,31 @@
     letter-spacing:-.02em}
   .jersey.sm{min-width:24px;height:20px;font-size:11px;border-radius:5px}
 
+  /* PDF 预览弹窗 */
+  .pdf-modal{background:var(--card);border-radius:18px;width:100%;max-width:900px;
+    max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 30px 70px rgba(0,0,0,.3)}
+  .pdf-hd{display:flex;justify-content:space-between;align-items:center;gap:16px;
+    padding:20px 26px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .pdf-hd h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .pdf-sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .pdf-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .pdf-body{flex:1;overflow:auto;background:#e8e6e0;padding:20px;min-height:340px}
+  .pdf-body iframe{width:100%;height:1000px;border:none;background:#fff;
+    border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.12);display:block}
+
+  /* 小搜索框 */
+  .mini-search{position:relative}
+  .mini-search::before{content:'';position:absolute;left:12px;top:50%;
+    transform:translateY(-50%);width:14px;height:14px;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8a92' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") center/contain no-repeat}
+  .mini-search input{width:210px;padding:8px 12px 8px 34px;border:1px solid var(--line);
+    border-radius:9px;background:var(--bg-soft);color:var(--ink);font-size:13.5px;
+    transition:border-color .2s,box-shadow .2s,background .2s,width .25s}
+  .mini-search input:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);background:#fff;width:250px}
+  .mini-search input::placeholder{color:var(--muted)}
+
   /* 名册的添加行 */
   .add-row{display:flex;gap:10px;margin-bottom:22px;align-items:stretch}
   .add-row textarea{flex:1;padding:11px 14px;border:1px solid var(--line);
@@ -517,7 +542,9 @@
             <div class="card-title">球员名册</div>
             <div class="card-sub" id="playerSub">共 0 人</div>
           </div>
-          <button class="btn ghost sm" id="btnCopyCodes">复制查询码</button>
+          <div class="mini-search">
+            <input type="search" id="qPlayer" placeholder="搜名字 / 号码 / 分组" autocomplete="off" />
+          </div>
         </div>
 
         <div class="add-row">
@@ -570,6 +597,26 @@
 
     </section>
   </main>
+</div>
+
+<!-- PDF 预览 -->
+<div class="modal-bg" id="pdfModal">
+  <div class="pdf-modal">
+    <div class="pdf-hd">
+      <div>
+        <h3 id="pdfTitle">费用结算</h3>
+        <div class="pdf-sub">A4 · 预览效果就是下载出来的样子</div>
+      </div>
+      <div class="pdf-actions">
+        <button class="btn" id="pdfDownload">下载 PDF</button>
+        <button class="btn ghost" id="pdfPrint">打印</button>
+        <button class="btn ghost" id="pdfClose">关闭</button>
+      </div>
+    </div>
+    <div class="pdf-body">
+      <iframe id="pdfFrame" title="预览"></iframe>
+    </div>
+  </div>
 </div>
 
 <!-- 通用编辑弹窗 -->
@@ -1002,11 +1049,25 @@ function attCount(name){
 
 function renderCodes(){
   const body = $('codeBody');
-  const list = D.codes || [];
-  $('playerSub').textContent = `共 ${list.length} 人`;
-  const missing = list.filter(c => !c.code);
+  const all = D.codes || [];
+
+  // 搜索：名字 / 号码 / 分组 / 查询码
+  const q = norm($('qPlayer')?.value || '');
+  const list = q
+    ? all.filter(c =>
+        norm(c.name).includes(q) ||
+        String(c.number||'').includes(q) ||
+        norm(c.tag||'').includes(q) ||
+        norm(c.code||'').includes(q))
+    : all;
+
+  $('playerSub').textContent = q
+    ? `找到 ${list.length} 人 / 共 ${all.length} 人`
+    : `共 ${all.length} 人`;
+
+  const missing = all.filter(c => !c.code);
   $('codeWarn').innerHTML = missing.length
-    ? `<div class="callout warn" style="margin-bottom:16px"><b>${missing.length} 人还没有查询码</b>，他们查不了自己的记录：
+    ? `<div class="callout warn" style="margin-bottom:16px"><b>${missing.length} 人还没有查询码：</b>
        ${missing.map(m=>esc(m.name)).join('、')}</div>`
     : '';
   // 排序
@@ -1021,6 +1082,12 @@ function renderCodes(){
     return cmp(va, vb, sortCode.dir) || a.name.localeCompare(b.name,'zh');
   });
   paintSort('codeHead', sortCode);
+
+  if(!sorted.length){
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--muted)">
+      没找到「${esc($('qPlayer').value)}」</td></tr>`;
+    return;
+  }
 
   body.innerHTML = sorted.map(c=>{
     const n = attCount(c.name);
@@ -1693,9 +1760,8 @@ $('btnBulkPay').onclick = ()=>{
 };
 
 /* ---------- 导出 PDF（走浏览器打印） ---------- */
-$('btnExportPdf').onclick = ()=>{
-  const t = T();
-  if(!t || !t.people.length) return toast('没有数据', true);
+/* 生成结算单 HTML */
+function buildReport(t){
   const s = t.summary;
   const today = new Date().toLocaleDateString('zh-CN');
   const unpaid = t.people.filter(p=>p.balance>0.005);
@@ -1778,21 +1844,82 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
 </div>
 </body></html>`;
 
-  const w = window.open('', '_blank');
-  if(!w) return toast('浏览器拦了弹窗，允许一下再试', true);
-  w.document.write(html);
-  w.document.close();
-  setTimeout(()=>{ w.focus(); w.print(); }, 400);
-  toast('在打印窗口选「存储为 PDF」');
+  return html;
+}
+
+/* ---------- PDF 预览 / 下载 ---------- */
+$('btnExportPdf').onclick = ()=>{
+  const t = T();
+  if(!t || !t.people.length) return toast('没有数据', true);
+  $('pdfTitle').textContent = `${t.name}　费用结算`;
+  const f = $('pdfFrame');
+  f.srcdoc = buildReport(t);
+  $('pdfModal').classList.add('on');
+  // 让 iframe 高度贴合内容
+  f.onload = ()=>{
+    try{
+      const h = f.contentDocument.body.scrollHeight;
+      f.style.height = Math.max(600, h + 60) + 'px';
+    }catch(e){}
+  };
 };
 
-$('btnCopyCodes').onclick = ()=>{
-  const list = (D.codes||[]).filter(c=>c.code);
-  if(!list.length) return toast('还没有查询码', true);
-  const txt = `Davis Origin 训练查询\ndavisorigin.com/fees.html\n\n输入你的名字 + 下面对应的查询码：\n\n`
-    + list.map(c=>`${c.name}  ${c.code}`).join('\n');
-  navigator.clipboard.writeText(txt).then(()=>toast('已复制，可发群里')).catch(()=>toast('复制失败',true));
+function closePdf(){ $('pdfModal').classList.remove('on'); }
+$('pdfClose').onclick = closePdf;
+$('pdfModal').onclick = e=>{ if(e.target === $('pdfModal')) closePdf(); };
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && $('pdfModal').classList.contains('on')) closePdf();
+});
+
+$('pdfPrint').onclick = ()=>{
+  const w = $('pdfFrame').contentWindow;
+  w.focus(); w.print();
 };
+
+/* 直接下载：用 html2pdf（按需从 CDN 加载） */
+function loadScript(src){
+  return new Promise((ok, fail)=>{
+    if(document.querySelector(`script[src="${src}"]`)) return ok();
+    const s = document.createElement('script');
+    s.src = src; s.onload = ok; s.onerror = ()=>fail(new Error('加载失败'));
+    document.head.appendChild(s);
+  });
+}
+
+$('pdfDownload').onclick = async ()=>{
+  const t = T();
+  if(!t) return;
+  const btn = $('pdfDownload');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 生成中';
+  try{
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js');
+    const doc = $('pdfFrame').contentDocument;
+    const name = `${t.name}-费用结算-${today()}.pdf`;
+    await html2pdf().set({
+      margin: 0,
+      filename: name,
+      image: { type:'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+      pagebreak: { mode:['css','legacy'] }
+    }).from(doc.body).save();
+    toast('已下载');
+  }catch(e){
+    toast('下载失败，用「打印」→ 存储为 PDF', true);
+  }finally{
+    btn.disabled = false; btn.textContent = '下载 PDF';
+  }
+};
+
+/* 名册搜索 */
+let qPlayerTm = null;
+$('qPlayer').addEventListener('input', ()=>{
+  clearTimeout(qPlayerTm);
+  qPlayerTm = setTimeout(renderCodes, 120);
+});
+$('qPlayer').addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){ e.target.value=''; renderCodes(); }
+});
 
 $('btnExport').onclick = ()=>{
   if(!D) return;
