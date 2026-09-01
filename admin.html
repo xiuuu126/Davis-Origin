@@ -55,6 +55,8 @@
   .btn.ok{background:var(--ok);border-color:var(--ok)}
   .btn.ok:hover{background:#12604a;box-shadow:0 8px 18px rgba(23,121,94,.25)}
   .btn.sm{padding:7px 13px;font-size:12.5px;border-radius:8px}
+  .btn.btn-danger-solid{background:var(--danger);border-color:var(--danger);color:#fff}
+  .btn.btn-danger-solid:hover{background:#933a3a;box-shadow:0 8px 18px rgba(176,70,70,.28)}
   .login-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:19px}
   .login-note{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
     font-size:11.5px;color:var(--muted);line-height:1.7}
@@ -320,7 +322,6 @@
       <button class="tab" data-tab="list">训练记录</button>
       <button class="tab" data-tab="fees">费用 / 收款</button>
       <button class="tab" data-tab="players">球员名册</button>
-      <button class="tab" data-tab="codes">查询码</button>
       <button class="tab" data-tab="terms">学期管理</button>
     </div>
 
@@ -413,37 +414,35 @@
       </div>
     </section>
 
-    <!-- 名册 -->
+    <!-- 球员名册（含查询码） -->
     <section class="panel" id="tab-players">
       <div class="card">
         <div class="card-head">
-          <div><div class="card-title">球员名册</div><div class="card-sub" id="playerSub">共 0 人 · 用于名字自动匹配</div></div>
+          <div>
+            <div class="card-title">球员名册</div>
+            <div class="card-sub" id="playerSub">共 0 人</div>
+          </div>
+          <button class="btn ghost sm" id="btnCopyCodes">复制查询码</button>
         </div>
+
         <div class="field">
           <label>添加球员（每行一个，可批量粘贴）</label>
-          <textarea id="fNewPlayers" rows="3" placeholder="新球员姓名"></textarea>
+          <textarea id="fNewPlayers" rows="2" placeholder="新球员姓名"></textarea>
         </div>
-        <button class="btn ghost sm" id="btnAddPlayers" style="margin-bottom:20px">添加到名册</button>
-        <div class="chips" id="playerChips"></div>
-      </div>
-    </section>
+        <button class="btn ghost sm" id="btnAddPlayers" style="margin-bottom:22px">添加到名册</button>
 
-    <!-- 查询码 -->
-    <section class="panel" id="tab-codes">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <div class="card-title">个人查询码</div>
-            <div class="card-sub">规则：姓 + 名 全拼，例 刘效尔 → liuxiaoer。队员用「名字 + 自己的码」才能查</div>
-          </div>
-          <button class="btn ghost sm" id="btnCopyCodes">复制全部</button>
-        </div>
         <div id="codeWarn"></div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>球员</th><th>查询码</th><th></th></tr></thead>
+            <thead><tr>
+              <th>球员</th><th>查询码</th><th class="num">出勤</th><th></th>
+            </tr></thead>
             <tbody id="codeBody"></tbody>
           </table>
+        </div>
+        <div class="hint" style="margin-top:14px">
+          查询码规则：姓 + 名 全拼，例 刘效尔 → <code>liuxiaoer</code>。
+          队员在查询页要用「自己的名字 + 自己的码」才查得到。
         </div>
       </div>
     </section>
@@ -552,12 +551,13 @@ const $ = id => document.getElementById(id);
  *   → Promise<values|null>   点取消返回 null
  * onSubmit 里可以 throw 出错误信息，会显示在弹窗里而不关闭
  */
-function openEdit({ title, sub = '', fields = [], okText = '保存', onSubmit }) {
+function openEdit({ title, sub = '', fields = [], okText = '保存', danger = false, onSubmit }) {
   const bg = $('editModal');
   $('emTitle').textContent = title;
   $('emSub').innerHTML = sub;
   $('emErr').textContent = '';
   $('emOk').textContent = okText;
+  $('emOk').classList.toggle('btn-danger-solid', !!danger);
 
   $('emFields').innerHTML = fields.map(f => {
     if (f.type === 'tags') {
@@ -780,7 +780,7 @@ function render(){
       `「${esc(t.name)}」已设总费用 <b>${money(t.summary.totalCost)}</b>，单场费用不参与计算，可以不填。`;
   }
 
-  renderSessions(); renderFees(); renderPayments(); renderPlayers();
+  renderSessions(); renderFees(); renderPayments();
   renderCodes(); renderTerms(); renderTags();
 }
 
@@ -865,29 +865,74 @@ function renderTerms(){
   });
 }
 
+/** 某人累计出勤次数（跨所有学期） */
+function attCount(name){
+  let n = 0;
+  (D.terms||[]).forEach(t=>{
+    const p = t.people.find(x=>x.name===name);
+    if(p) n += p.count;
+  });
+  return n;
+}
+
 function renderCodes(){
   const body = $('codeBody');
   const list = D.codes || [];
+  $('playerSub').textContent = `共 ${list.length} 人`;
   const missing = list.filter(c => !c.code);
   $('codeWarn').innerHTML = missing.length
     ? `<div class="callout warn" style="margin-bottom:16px"><b>${missing.length} 人还没有查询码</b>，他们查不了自己的记录：
        ${missing.map(m=>esc(m.name)).join('、')}</div>`
     : '';
-  body.innerHTML = list.map(c=>`
+  body.innerHTML = list.map(c=>{
+    const n = attCount(c.name);
+    return `
     <tr>
       <td><b>${esc(c.name)}</b></td>
       <td>${c.code
         ? `<code style="font-size:13.5px">${esc(c.code)}</code>`
         : `<span class="pill owe">未设置</span>`}</td>
-      <td class="num"><button class="btn ghost sm" data-code="${esc(c.name)}">编辑</button></td>
-    </tr>`).join('');
+      <td class="num">${n ? `<span class="cnt-badge">${n}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td class="num" style="white-space:nowrap">
+        <button class="btn ghost sm" data-code="${esc(c.name)}">编辑</button>
+        <button class="btn danger sm" data-delplayer="${esc(c.name)}" style="margin-left:4px">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  /* 删除球员 */
+  body.querySelectorAll('[data-delplayer]').forEach(b=>{
+    b.onclick = ()=>{
+      const name = b.dataset.delplayer;
+      const n = attCount(name);
+      openEdit({
+        title: `删除「${name}」？`,
+        sub: n
+          ? `这个人有 <b style="color:var(--danger)">${n}</b> 次出勤记录。<br>
+             删掉之后他从名册消失、查不了自己的账，<b>但已有的出勤和收款记录会保留</b>（费用还是照算）。<br>
+             如果只是想让他查不了，把查询码清空就行，不用删。`
+          : '还没有出勤记录，可以放心删。',
+        fields: [
+          {key:'confirm', label:`确认请输入球员姓名`, value:'', placeholder:name,
+           hint:'防手滑，必须打对才能删'}
+        ],
+        okText: '确认删除',
+        danger: true,
+        onSubmit: async v=>{
+          if(String(v.confirm).trim() !== name) throw new Error('名字不对，没有删除');
+          await api('/players/'+encodeURIComponent(name),{method:'DELETE'});
+          await reload();
+          toast(`已从名册移除「${name}」`);
+        }
+      });
+    };
+  });
+
   body.querySelectorAll('[data-code]').forEach(b=>{
     b.onclick = ()=>{
       const name = b.dataset.code;
       const cur = (D.codes.find(c=>c.name===name)||{}).code || '';
-      // 这人有多少出勤记录，改名会一起改掉
-      let n = 0;
-      D.terms.forEach(t=>{ const p = t.people.find(x=>x.name===name); if(p) n += p.count; });
+      const n = attCount(name);
       openEdit({
         title: '编辑球员',
         sub: n ? `已有 <b>${n}</b> 次出勤记录，改名字会一起改掉，不会丢数据`
@@ -1077,20 +1122,6 @@ function renderPayments(){
     b.onclick = async ()=>{
       if(!confirm('删除这笔收款记录？')) return;
       try{ await api('/payments/'+b.dataset.delpay,{method:'DELETE'}); await reload(); toast('已删除'); }
-      catch(e){ toast(e.message,true); }
-    };
-  });
-}
-
-function renderPlayers(){
-  const box = $('playerChips');
-  $('playerSub').textContent = `共 ${D.players.length} 人 · 用于名字自动匹配`;
-  box.innerHTML = D.players.map(p=>
-    `<span class="chip">${esc(p)}<button data-rm="${esc(p)}" title="移除">×</button></span>`).join('');
-  box.querySelectorAll('[data-rm]').forEach(b=>{
-    b.onclick = async ()=>{
-      if(!confirm(`把「${b.dataset.rm}」移出名册？（已有的出勤记录不受影响）`)) return;
-      try{ await api('/players/'+encodeURIComponent(b.dataset.rm),{method:'DELETE'}); await reload(); toast('已移除'); }
       catch(e){ toast(e.message,true); }
     };
   });
