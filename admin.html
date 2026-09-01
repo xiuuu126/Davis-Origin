@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>训练管理后台 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<meta name="robots" content="noindex, nofollow" />
+<style>
+  :root {
+    --bg:#f7f5f0; --bg-soft:#fafaf7; --ink:#0a0e1a; --ink-soft:#3d4151;
+    --muted:#8a8a92; --line:#e6e2d8; --accent:#1e3a8a; --accent-deep:#0f1d4d;
+    --accent-soft:#eaf0fb; --card:#fff;
+    --ok:#17795e; --ok-soft:#e6f4ef;
+    --warn:#b0762a; --warn-soft:#fbf2e3;
+    --danger:#b04646; --danger-soft:#fbeded;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  button,input,textarea,select{font-family:inherit;font-size:inherit}
+  ::selection{background:var(--accent);color:#fff}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;
+    background:rgba(0,0,0,.05);padding:1px 5px;border-radius:4px}
+
+  /* login */
+  .login-screen{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);
+    border-radius:20px;padding:40px 36px;text-align:center;box-shadow:0 24px 60px rgba(13,18,36,.07)}
+  .login-logo{width:56px;height:56px;object-fit:contain;margin-bottom:20px}
+  .login-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+  .login-sub{font-size:13px;color:var(--muted);margin-bottom:28px;letter-spacing:.04em}
+  .field{text-align:left;margin-bottom:14px}
+  .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .field input,.field textarea,.field select{width:100%;padding:11px 14px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-soft);color:var(--ink);
+    transition:border-color .2s,box-shadow .2s,background .2s}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;
+    font-weight:600;cursor:pointer;font-size:14px;
+    transition:background .2s,transform .2s,box-shadow .2s}
+  .btn:hover{background:var(--accent-deep);transform:translateY(-1px);box-shadow:0 8px 18px rgba(30,58,138,.22)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.full{width:100%}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);box-shadow:none}
+  .btn.danger{background:transparent;color:var(--danger);border-color:rgba(176,70,70,.35)}
+  .btn.danger:hover{background:var(--danger-soft);border-color:var(--danger);box-shadow:none}
+  .btn.ok{background:var(--ok);border-color:var(--ok)}
+  .btn.ok:hover{background:#12604a;box-shadow:0 8px 18px rgba(23,121,94,.25)}
+  .btn.sm{padding:7px 13px;font-size:12.5px;border-radius:8px}
+  .login-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:19px}
+  .login-note{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
+    font-size:11.5px;color:var(--muted);line-height:1.7}
+
+  /* shell */
+  .app{display:none}.app.on{display:block}
+  .topbar{position:sticky;top:0;z-index:40;background:rgba(247,245,240,.9);
+    backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line)}
+  .topbar-inner{max-width:1280px;margin:0 auto;padding:14px 32px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand img{width:34px;height:34px;object-fit:contain}
+  .brand-name{font-size:15px;font-weight:700}
+  .brand-tag{font-size:10px;color:var(--accent);background:var(--accent-soft);padding:3px 8px;
+    border-radius:5px;letter-spacing:.14em;font-weight:700;margin-left:8px}
+  .topbar-actions{display:flex;gap:8px;align-items:center}
+  main.wrap{max-width:1280px;margin:0 auto;padding:28px 32px 64px}
+
+  .tabs{display:flex;gap:4px;margin-bottom:26px;border-bottom:1px solid var(--line);overflow-x:auto}
+  .tab{padding:11px 18px;border:none;background:none;color:var(--muted);font-weight:600;
+    cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .panel{display:none}.panel.on{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:26px 28px;margin-bottom:20px}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
+    margin-bottom:20px;flex-wrap:wrap}
+  .card-title{font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .card-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .stat-num{font-size:26px;font-weight:800;letter-spacing:-.025em;color:var(--accent);
+    font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat-num.warn{color:var(--warn)}
+  .stat-num.ok{color:var(--ok)}
+  .stat-lbl{font-size:10.5px;color:var(--muted);margin-top:5px;letter-spacing:.13em;
+    text-transform:uppercase;font-weight:600}
+
+  .unit-banner{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-deep) 100%);
+    color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .unit-main{font-size:13px;opacity:.8;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+  .unit-val{font-size:38px;font-weight:900;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+  .unit-formula{font-size:13px;opacity:.75;text-align:right;line-height:1.7}
+
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);padding:10px 12px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+  th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td{padding:12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  tbody tr{transition:background .18s}
+  tbody tr:hover{background:var(--accent-soft)}
+  tbody tr:last-child td{border-bottom:none}
+  .money{font-weight:700;font-variant-numeric:tabular-nums}
+  .money.owe{color:var(--danger)}
+  .money.clear{color:var(--ok)}
+  .cnt-badge{display:inline-block;min-width:26px;text-align:center;padding:3px 8px;
+    background:var(--accent-soft);color:var(--accent);border-radius:6px;font-weight:700;
+    font-size:13px;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.04em}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.owe{background:var(--danger-soft);color:var(--danger)}
+  .pill.part{background:var(--warn-soft);color:var(--warn)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+    font-size:12.5px;border:1px solid var(--line);background:var(--bg-soft)}
+  .chip.ok{background:var(--ok-soft);border-color:rgba(23,121,94,.28);color:var(--ok)}
+  .chip.warn{background:var(--warn-soft);border-color:rgba(176,118,42,.3);color:var(--warn)}
+  .chip button{border:none;background:none;cursor:pointer;color:inherit;opacity:.55;
+    font-size:14px;line-height:1;padding:0}
+  .chip button:hover{opacity:1}
+
+  .hint{font-size:12.5px;color:var(--muted);line-height:1.7;margin-top:8px}
+  .callout{background:var(--ok-soft);border:1px solid rgba(23,121,94,.25);border-radius:12px;
+    padding:13px 18px;font-size:13px;color:#0f5a45;line-height:1.7;margin-bottom:20px}
+  .callout.warn{background:var(--warn-soft);border-color:rgba(176,118,42,.28);color:#7a5518}
+  .callout.err{background:var(--danger-soft);border-color:rgba(176,70,70,.28);color:#8a3535}
+  .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
+
+  .sess{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
+    padding:16px 18px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;
+    background:var(--card);transition:border-color .2s,box-shadow .2s}
+  .sess:hover{border-color:var(--accent);box-shadow:0 8px 20px rgba(13,18,36,.05)}
+  .sess-date{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px;white-space:nowrap}
+  .sess-note{font-size:12px;color:var(--muted);margin-top:2px}
+  .sess-meta{font-size:13px;color:var(--ink-soft)}
+  .sess-meta b{color:var(--accent)}
+  .sess-actions{display:flex;gap:6px}
+
+  .toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);background:var(--ink);
+    color:#fff;padding:12px 22px;border-radius:10px;font-size:13.5px;font-weight:500;opacity:0;
+    pointer-events:none;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:200;
+    box-shadow:0 12px 30px rgba(0,0,0,.2)}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .toast.bad{background:var(--danger)}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(10,14,26,.5);backdrop-filter:blur(3px);
+    display:none;place-items:center;z-index:150;padding:24px}
+  .modal-bg.on{display:grid}
+  .modal{background:var(--card);border-radius:18px;padding:30px 32px;width:100%;max-width:420px;
+    box-shadow:0 30px 70px rgba(0,0,0,.25)}
+  .modal h3{font-size:18px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em}
+  .modal .sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
+    border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading{text-align:center;padding:80px 20px;color:var(--muted)}
+
+  @media(max-width:900px){
+    .topbar-inner,main.wrap{padding-left:18px;padding-right:18px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .row2,.row3{grid-template-columns:1fr}
+    .card{padding:20px 18px}
+    .sess{grid-template-columns:1fr;gap:10px}
+    .sess-actions{justify-content:flex-start}
+    .unit-banner{flex-direction:column;align-items:flex-start}
+    .unit-formula{text-align:left}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <img class="login-logo" src="assets/logo.png" alt="" />
+    <div class="login-title">训练管理后台</div>
+    <div class="login-sub">Davis Origin · Admin</div>
+    <form id="loginForm">
+      <div class="field">
+        <label>管理密码</label>
+        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <button class="btn full" type="submit" id="loginBtn">登录</button>
+      <div class="login-err" id="loginErr"></div>
+    </form>
+    <div class="login-note">
+      密码存在 Cloudflare 服务器端，前端看不到。<br />
+      登录状态保持 12 小时。
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="assets/logo.png" alt="" />
+        <div><span class="brand-name">Davis Origin</span><span class="brand-tag">ADMIN</span></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn ghost sm" id="btnRefresh">刷新</button>
+        <button class="btn ghost sm" id="btnExport">备份</button>
+        <button class="btn ghost sm" id="btnLogout">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="apiWarn"></div>
+
+    <div class="unit-banner">
+      <div>
+        <div class="unit-main">统一单价 / 每次训练</div>
+        <div class="unit-val" id="uUnit">$0.00</div>
+      </div>
+      <div class="unit-formula" id="uFormula">总费用 ÷ 总人次</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="sTrain">0</div><div class="stat-lbl">训练场次</div></div>
+      <div class="stat"><div class="stat-num" id="sPeople">0</div><div class="stat-lbl">参与人数</div></div>
+      <div class="stat"><div class="stat-num" id="sHead">0</div><div class="stat-lbl">总人次</div></div>
+      <div class="stat"><div class="stat-num ok" id="sPaid">$0</div><div class="stat-lbl">已收</div></div>
+      <div class="stat"><div class="stat-num warn" id="sUnpaid">$0</div><div class="stat-lbl">待收</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="add">录入训练</button>
+      <button class="tab" data-tab="list">训练记录</button>
+      <button class="tab" data-tab="fees">费用 / 收款</button>
+      <button class="tab" data-tab="players">球员名册</button>
+      <button class="tab" data-tab="codes">查询码</button>
+    </div>
+
+    <!-- 录入 -->
+    <section class="panel on" id="tab-add">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">录入一次训练</div>
+            <div class="card-sub">微信接龙整段粘进来就行</div>
+          </div>
+          <div id="editFlag"></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>训练日期</label><input type="date" id="fDate" /></div>
+          <div class="field"><label>本次总费用（$）</label><input type="number" id="fCost" step="0.01" min="0" placeholder="0" /></div>
+          <div class="field"><label>备注（可选）</label><input type="text" id="fNote" placeholder="例：周三训练 / 场地费" /></div>
+        </div>
+        <div class="field">
+          <label>到场名单 · 直接粘贴接龙</label>
+          <textarea id="fNames" rows="10" placeholder="把微信接龙整段粘进来，例如：&#10;&#10;5月10日训练&#10;时间：19:00-21:00&#10;分两队&#10;注意事项：自备水&#10;1. 大二-何嘉伦&#10;2. 大二 刘彦君&#10;3. 朱超凡&#10;4. 大一 李明达&#10;5. 博五 刘明硕（提前离开）"></textarea>
+          <div class="hint">日期 / 时间 / 分队 / 注意事项自动跳过；年级、球衣号、括号备注自动去掉；日期自动填。</div>
+        </div>
+        <div id="matchBox" style="display:none">
+          <div class="field">
+            <label>识别结果</label>
+            <div class="hint" id="matchCount" style="margin:0 0 10px"></div>
+            <div class="chips" id="matchChips"></div>
+            <div id="skipBox" style="display:none"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+          <button class="btn ghost" id="btnMatch">重新解析</button>
+          <button class="btn" id="btnSaveSess">保存这次训练</button>
+          <button class="btn ghost" id="btnCancelEdit" style="display:none">取消编辑</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 记录 -->
+    <section class="panel" id="tab-list">
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">训练记录</div><div class="card-sub" id="listSub">共 0 场</div></div>
+        </div>
+        <div id="sessList"></div>
+      </div>
+    </section>
+
+    <!-- 费用 -->
+    <section class="panel" id="tab-fees">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">费用 / 收款</div>
+            <div class="card-sub">应付 = 统一单价 × 出勤次数</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn ghost sm" id="btnCopyFees">复制汇总</button>
+            <button class="btn ghost sm" id="btnCopyUnpaid">复制未付</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>球员</th><th class="num">出勤</th><th class="num">应付</th>
+              <th class="num">已付</th><th class="num">未付</th><th>状态</th><th></th>
+            </tr></thead>
+            <tbody id="feeBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="feeEmpty">还没有训练记录</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">收款流水</div><div class="card-sub" id="paySub">共 0 笔</div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>日期</th><th>球员</th><th class="num">金额</th><th>备注</th><th></th></tr></thead>
+            <tbody id="payBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="payEmpty">还没有收款记录</div>
+      </div>
+    </section>
+
+    <!-- 名册 -->
+    <section class="panel" id="tab-players">
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">球员名册</div><div class="card-sub" id="playerSub">共 0 人 · 用于名字自动匹配</div></div>
+        </div>
+        <div class="field">
+          <label>添加球员（每行一个，可批量粘贴）</label>
+          <textarea id="fNewPlayers" rows="3" placeholder="新球员姓名"></textarea>
+        </div>
+        <button class="btn ghost sm" id="btnAddPlayers" style="margin-bottom:20px">添加到名册</button>
+        <div class="chips" id="playerChips"></div>
+      </div>
+    </section>
+
+    <!-- 查询码 -->
+    <section class="panel" id="tab-codes">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">个人查询码</div>
+            <div class="card-sub">规则：姓 + 名 全拼，例 刘效尔 → liuxiaoer。队员用「名字 + 自己的码」才能查</div>
+          </div>
+          <button class="btn ghost sm" id="btnCopyCodes">复制全部</button>
+        </div>
+        <div id="codeWarn"></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>球员</th><th>查询码</th><th></th></tr></thead>
+            <tbody id="codeBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 收款弹窗 -->
+<div class="modal-bg" id="payModal">
+  <div class="modal">
+    <h3 id="payWho">记录收款</h3>
+    <div class="sub" id="paySubInfo"></div>
+    <div class="field"><label>金额（$）</label><input type="number" id="payAmt" step="0.01" /></div>
+    <div class="field"><label>收款日期</label><input type="date" id="payDate" /></div>
+    <div class="field"><label>备注（可选）</label><input type="text" id="payNote" placeholder="Venmo / 现金 / 微信" /></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn ok" id="payConfirm" style="flex:1">确认收款</button>
+      <button class="btn ghost" id="payCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== 配置 ===================== */
+// Worker 的直连地址（路由没配好时用这个兜底）
+const API_DIRECT = 'https://davisorigin-api.xiaoerliu93.workers.dev';
+let API = API_DIRECT;
+
+/** 启动时探一次：能走同域 /api 就走，不行就用 workers.dev */
+async function resolveApi(){
+  if(location.protocol === 'file:' || location.hostname === 'localhost'){
+    API = API_DIRECT; return;
+  }
+  try{
+    const r = await fetch('/api/health', { cache:'no-store' });
+    if(r.ok){
+      const d = await r.json();
+      if(d && d.ok){ API = '/api'; return; }
+    }
+  }catch(e){}
+  API = API_DIRECT;
+}
+
+const TK = 'do_admin_token';
+let D = null;              // 服务器返回的全量数据
+let pendingMatch = null;
+let editingId = null;      // 正在编辑的 session id
+
+/* ===================== 工具 ===================== */
+const $ = id => document.getElementById(id);
+const norm = s => String(s ?? '').trim().replace(/\s+/g,'').toLowerCase();
+const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg, bad){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('bad', !!bad);
+  t.classList.add('on');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.classList.remove('on'), 2400);
+}
+
+async function api(path, opts = {}){
+  const token = sessionStorage.getItem(TK);
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: {
+      'content-type':'application/json',
+      ...(token ? {authorization:'Bearer ' + token} : {}),
+      ...(opts.headers||{})
+    }
+  });
+  let data = null;
+  try { data = await res.json(); } catch(e){}
+  if(res.status === 401){
+    sessionStorage.removeItem(TK);
+    location.reload();
+    throw new Error('登录已过期');
+  }
+  if(!res.ok) throw new Error(data?.error || ('HTTP ' + res.status));
+  return data;
+}
+
+/* ===================== 接龙解析 ===================== */
+const GRADE_TOKEN  = /^(?:大|博|研|硕|本|预|新)\s*(?:[一二三四五六七八九十]|\d{1,2})$/;
+const GRADE_PREFIX = /^(?:大|博|研|硕|本|预)\s*(?:[一二三四五六七八九十]|\d{1,2})\s*/;
+const HEADER_KW = /(训练|时间|地点|集合|注意|事项|分队|费用|场地|人数|队长|说明|备注|接龙|报名|星期|周[一二三四五六日天]|开始|结束|球衣|门将|守门|穿|带|自备|群里|请|预备队|一队|二队)/;
+
+function cleanName(raw){
+  let s = String(raw).trim();
+  if(!s) return '';
+  s = s.replace(/[（(【\[][^）)】\]]*[）)】\]]?/g,' ');
+  s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{2BFF}\u{FE0F}\u{200D}\u{2700}-\u{27BF}]/gu,' ');
+  s = s.replace(/[-－—~～·・、|/\\+＋_]+/g,' ');
+  let parts = s.split(/\s+/).filter(Boolean);
+  parts = parts.filter(p=>!GRADE_TOKEN.test(p));
+  parts = parts.map(p=>p.replace(GRADE_PREFIX,''));
+  parts = parts.filter(p=>p && !/^\d+$/.test(p));
+  return parts.join(' ').replace(/\s+/g,' ').trim();
+}
+
+function detectDate(text){
+  let m = text.match(/(20\d{2})\s*[-/年.]\s*(\d{1,2})\s*[-/月.]\s*(\d{1,2})/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  m = text.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]/);
+  if(m){
+    const y = new Date().getFullYear();
+    return `${y}-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
+  }
+  return null;
+}
+
+function parseRelay(text){
+  const lines = String(text).split(/\r?\n/);
+  const RE = /^\s*[(（\[]?\s*(\d{1,3})(?!\d)\s*[).．、,，\]:：\-－—\s]\s*(.+)$/;
+  const names = [], skipped = [];
+  let any = false;
+  lines.forEach(line=>{
+    const t = line.trim();
+    if(!t) return;
+    const m = t.match(RE);
+    if(!m){ skipped.push(t); return; }
+    const rest = m[2].trim();
+    const nm = cleanName(rest);
+    if(HEADER_KW.test(rest) && !(nm && nm.length <= 5)){ skipped.push(t); return; }
+    if(!nm){ skipped.push(t); return; }
+    any = true; names.push(nm);
+  });
+  if(!any){
+    return { names: String(text).split(/[\n\r,，、;；\t]+|\s{2,}/).map(cleanName).filter(Boolean), skipped: [] };
+  }
+  return { names, skipped };
+}
+
+function parseNames(text){
+  return String(text).split(/[\n\r,，、;；\t]+|\s{1,}/).map(s=>s.trim()).filter(Boolean);
+}
+
+function matchNames(list){
+  const map = new Map();
+  (D?.players || []).forEach(p => map.set(norm(p), p));
+  const matched = [], unmatched = [], seen = new Set();
+  list.forEach(raw=>{
+    const k = norm(raw);
+    if(!k || seen.has(k)) return;
+    seen.add(k);
+    if(map.has(k)) matched.push(map.get(k)); else unmatched.push(raw);
+  });
+  return { matched, unmatched };
+}
+
+/* ===================== 渲染 ===================== */
+function render(){
+  if(!D) return;
+  const s = D.summary;
+  $('uUnit').textContent = money(s.unitPrice);
+  $('uFormula').innerHTML =
+    `${money(s.totalCost)} ÷ ${s.totalHeadcount} 人次<br>` +
+    `<span style="opacity:.75">${s.sessionCount} 场训练 · ${s.peopleCount} 人参与</span>`;
+  $('sTrain').textContent  = s.sessionCount;
+  $('sPeople').textContent = s.peopleCount;
+  $('sHead').textContent   = s.totalHeadcount;
+  $('sPaid').textContent   = '$' + Math.round(s.totalPaid);
+  $('sUnpaid').textContent = '$' + Math.round(s.totalUnpaid);
+  renderSessions(); renderFees(); renderPayments(); renderPlayers(); renderCodes();
+}
+
+function renderCodes(){
+  const body = $('codeBody');
+  const list = D.codes || [];
+  const missing = list.filter(c => !c.code);
+  $('codeWarn').innerHTML = missing.length
+    ? `<div class="callout warn" style="margin-bottom:16px"><b>${missing.length} 人还没有查询码</b>，他们查不了自己的记录：
+       ${missing.map(m=>esc(m.name)).join('、')}</div>`
+    : '';
+  body.innerHTML = list.map(c=>`
+    <tr>
+      <td><b>${esc(c.name)}</b></td>
+      <td>${c.code
+        ? `<code style="font-size:13.5px">${esc(c.code)}</code>`
+        : `<span class="pill owe">未设置</span>`}</td>
+      <td class="num"><button class="btn ghost sm" data-code="${esc(c.name)}">修改</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('[data-code]').forEach(b=>{
+    b.onclick = async ()=>{
+      const name = b.dataset.code;
+      const cur = (D.codes.find(c=>c.name===name)||{}).code || '';
+      const v = prompt(`「${name}」的查询码\n\n规则：姓+名全拼小写，至少 4 位\n留空则取消该人的查询权限`, cur);
+      if(v === null) return;
+      try{
+        await api('/codes',{method:'POST',body:JSON.stringify({name, code:v.trim()})});
+        await reload();
+        toast(v.trim() ? `已更新 ${name} 的查询码` : `已清空 ${name} 的查询码`);
+      }catch(e){ toast(e.message, true); }
+    };
+  });
+}
+
+function renderSessions(){
+  const box = $('sessList');
+  $('listSub').textContent = `共 ${D.sessions.length} 场`;
+  if(!D.sessions.length){
+    box.innerHTML = '<div class="empty">还没有训练记录，去「录入训练」添加</div>';
+    return;
+  }
+  box.innerHTML = D.sessions.map(s=>`
+    <div class="sess">
+      <div>
+        <div class="sess-date">${esc(s.date||'—')}</div>
+        ${s.note?`<div class="sess-note">${esc(s.note)}</div>`:''}
+      </div>
+      <div class="sess-meta">
+        到场 <b>${s.attendees.length}</b> 人 · 费用 <b>${money(s.cost)}</b>
+        <div class="sess-note" style="margin-top:6px">${esc(s.attendees.join('、'))||'—'}</div>
+      </div>
+      <div class="sess-actions">
+        <button class="btn ghost sm" data-edit="${s.id}">编辑</button>
+        <button class="btn danger sm" data-del="${s.id}">删除</button>
+      </div>
+    </div>`).join('');
+
+  box.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick = async ()=>{
+      if(!confirm('确定删除这次训练记录？')) return;
+      try{ await api('/sessions/'+b.dataset.del,{method:'DELETE'}); await reload(); toast('已删除'); }
+      catch(e){ toast(e.message, true); }
+    };
+  });
+  box.querySelectorAll('[data-edit]').forEach(b=>{
+    b.onclick = ()=>{
+      const s = D.sessions.find(x=>String(x.id)===b.dataset.edit);
+      if(!s) return;
+      editingId = s.id;
+      const dEl = $('fDate'); dEl.value = s.date||''; dEl.dataset.auto='0';
+      $('fCost').value = s.cost||'';
+      $('fNote').value = s.note||'';
+      $('fNames').value = s.attendees.map((n,i)=>`${i+1}. ${n}`).join('\n');
+      $('editFlag').innerHTML = `<span class="pill part">编辑中 · ${esc(s.date)}</span>`;
+      $('btnCancelEdit').style.display = '';
+      $('btnSaveSess').textContent = '保存修改';
+      switchTab('add'); doMatch(false);
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+  });
+}
+
+function renderFees(){
+  const body = $('feeBody'), empty = $('feeEmpty');
+  if(!D.people.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  body.innerHTML = D.people.map(f=>{
+    let pill = '<span class="pill owe">未付</span>';
+    if(f.balance <= 0.005) pill = '<span class="pill ok">已结清</span>';
+    else if(f.paid > 0) pill = '<span class="pill part">部分</span>';
+    return `<tr>
+      <td><b>${esc(f.name)}</b></td>
+      <td class="num"><span class="cnt-badge">${f.count}</span></td>
+      <td class="num money">${money(f.owed)}</td>
+      <td class="num money clear">${f.paid?money(f.paid):'—'}</td>
+      <td class="num money ${f.balance>0.005?'owe':'clear'}">${money(f.balance)}</td>
+      <td>${pill}</td>
+      <td class="num"><button class="btn ghost sm" data-pay="${esc(f.name)}">收款</button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('[data-pay]').forEach(b=>{
+    b.onclick = ()=> openPay(b.dataset.pay);
+  });
+}
+
+function renderPayments(){
+  const body = $('payBody'), empty = $('payEmpty');
+  $('paySub').textContent = `共 ${D.payments.length} 笔`;
+  if(!D.payments.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  body.innerHTML = D.payments.map(p=>`
+    <tr>
+      <td style="font-variant-numeric:tabular-nums">${esc(p.paid_at)}</td>
+      <td><b>${esc(p.player_name)}</b></td>
+      <td class="num money clear">${money(p.amount)}</td>
+      <td style="color:var(--muted);font-size:13px">${esc(p.note||'—')}</td>
+      <td class="num"><button class="btn danger sm" data-delpay="${p.id}">删</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('[data-delpay]').forEach(b=>{
+    b.onclick = async ()=>{
+      if(!confirm('删除这笔收款记录？')) return;
+      try{ await api('/payments/'+b.dataset.delpay,{method:'DELETE'}); await reload(); toast('已删除'); }
+      catch(e){ toast(e.message,true); }
+    };
+  });
+}
+
+function renderPlayers(){
+  const box = $('playerChips');
+  $('playerSub').textContent = `共 ${D.players.length} 人 · 用于名字自动匹配`;
+  box.innerHTML = D.players.map(p=>
+    `<span class="chip">${esc(p)}<button data-rm="${esc(p)}" title="移除">×</button></span>`).join('');
+  box.querySelectorAll('[data-rm]').forEach(b=>{
+    b.onclick = async ()=>{
+      if(!confirm(`把「${b.dataset.rm}」移出名册？（已有的出勤记录不受影响）`)) return;
+      try{ await api('/players/'+encodeURIComponent(b.dataset.rm),{method:'DELETE'}); await reload(); toast('已移除'); }
+      catch(e){ toast(e.message,true); }
+    };
+  });
+}
+
+/* ===================== 匹配 UI ===================== */
+function doMatch(autoDate){
+  const raw = $('fNames').value;
+  const box = $('matchBox'), chips = $('matchChips'), skipBox = $('skipBox');
+  const parsed = parseRelay(raw);
+  if(!parsed.names.length){ box.style.display='none'; pendingMatch=null; return; }
+
+  if(autoDate !== false){
+    const d = detectDate(raw), dEl = $('fDate');
+    if(d && (!dEl.value || dEl.dataset.auto === '1')){ dEl.value = d; dEl.dataset.auto = '1'; }
+  }
+
+  pendingMatch = matchNames(parsed.names);
+  box.style.display = 'block';
+  const m = pendingMatch.matched.length, u = pendingMatch.unmatched.length;
+  $('matchCount').innerHTML =
+    `识别到 <b>${m+u}</b> 人 · 匹配 <b style="color:var(--ok)">${m}</b>` +
+    (u?` · 待确认 <b style="color:var(--warn)">${u}</b>`:'');
+  chips.innerHTML =
+    pendingMatch.matched.map(n=>`<span class="chip ok">✓ ${esc(n)}</span>`).join('') +
+    pendingMatch.unmatched.map(n=>`<span class="chip warn">? ${esc(n)}<button data-add="${esc(n)}" title="加入名册">+</button></span>`).join('');
+
+  chips.querySelectorAll('[data-add]').forEach(b=>{
+    b.onclick = async ()=>{
+      try{
+        await api('/players',{method:'POST',body:JSON.stringify({names:[b.dataset.add]})});
+        await reload(false);
+        doMatch(false);
+        toast(`已把「${b.dataset.add}」加入名册`);
+      }catch(e){ toast(e.message,true); }
+    };
+  });
+
+  if(parsed.skipped.length){
+    skipBox.style.display='block';
+    skipBox.innerHTML = `<div class="hint" style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">`+
+      `已跳过 ${parsed.skipped.length} 行（当成日期 / 时间 / 注意事项）：<br>`+
+      parsed.skipped.slice(0,8).map(s=>`<code>${esc(s)}</code>`).join('　')+
+      (parsed.skipped.length>8?' …':'')+`</div>`;
+  } else skipBox.style.display='none';
+}
+
+/* ===================== Tabs ===================== */
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===n));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='tab-'+n));
+}
+document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>switchTab(t.dataset.tab));
+
+/* ===================== 事件 ===================== */
+$('btnMatch').onclick = ()=>doMatch();
+$('fNames').addEventListener('blur', ()=>doMatch());
+$('fNames').addEventListener('paste', ()=>setTimeout(()=>doMatch(),60));
+$('fDate').addEventListener('input', e=>{ e.target.dataset.auto='0'; });
+
+function resetForm(){
+  editingId = null;
+  $('fNames').value=''; $('fCost').value=''; $('fNote').value='';
+  $('matchBox').style.display='none';
+  $('editFlag').innerHTML='';
+  $('btnCancelEdit').style.display='none';
+  $('btnSaveSess').textContent='保存这次训练';
+  pendingMatch=null;
+  const d=$('fDate'); d.value=new Date().toISOString().slice(0,10); d.dataset.auto='1';
+}
+$('btnCancelEdit').onclick = resetForm;
+
+$('btnSaveSess').onclick = async ()=>{
+  const date = $('fDate').value;
+  const cost = parseFloat($('fCost').value) || 0;
+  const note = $('fNote').value.trim();
+  if(!date) return toast('请填训练日期', true);
+  if(!pendingMatch) doMatch(false);
+  if(!pendingMatch || !pendingMatch.matched.length) return toast('没有识别到有效名字', true);
+
+  const btn = $('btnSaveSess');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
+  try{
+    const payload = JSON.stringify({date,cost,note,attendees:pendingMatch.matched});
+    if(editingId) await api('/sessions/'+editingId,{method:'PUT',body:payload});
+    else          await api('/sessions',{method:'POST',body:payload});
+    resetForm();
+    await reload();
+    toast(editingId?'已更新':'已保存这次训练');
+    switchTab('list');
+  }catch(e){ toast(e.message,true); }
+  finally{ btn.disabled=false; btn.textContent = editingId?'保存修改':'保存这次训练'; }
+};
+
+$('btnAddPlayers').onclick = async ()=>{
+  const names = parseNames($('fNewPlayers').value);
+  if(!names.length) return toast('没有名字', true);
+  try{
+    await api('/players',{method:'POST',body:JSON.stringify({names})});
+    $('fNewPlayers').value='';
+    await reload();
+    toast(`已添加 ${names.length} 人`);
+  }catch(e){ toast(e.message,true); }
+};
+
+/* 收款弹窗 */
+let payTarget = null;
+function openPay(name){
+  const p = D.people.find(x=>x.name===name);
+  payTarget = name;
+  $('payWho').textContent = '收款 · ' + name;
+  $('paySubInfo').innerHTML = p
+    ? `出勤 <b>${p.count}</b> 次 · 应付 <b>${money(p.owed)}</b> · 已付 ${money(p.paid)} · 未付 <b style="color:var(--danger)">${money(p.balance)}</b>`
+    : '';
+  $('payAmt').value = p ? (p.balance>0?p.balance.toFixed(2):'') : '';
+  $('payDate').value = new Date().toISOString().slice(0,10);
+  $('payNote').value = '';
+  $('payModal').classList.add('on');
+  setTimeout(()=>$('payAmt').focus(),50);
+}
+$('payCancel').onclick = ()=> $('payModal').classList.remove('on');
+$('payModal').onclick = e=>{ if(e.target===$('payModal')) $('payModal').classList.remove('on'); };
+$('payConfirm').onclick = async ()=>{
+  const amount = parseFloat($('payAmt').value);
+  if(!Number.isFinite(amount) || amount===0) return toast('金额不对', true);
+  try{
+    await api('/payments',{method:'POST',body:JSON.stringify({
+      name: payTarget, amount, paidAt: $('payDate').value, note: $('payNote').value.trim()
+    })});
+    $('payModal').classList.remove('on');
+    await reload();
+    toast(`已记录 ${payTarget} ${money(amount)}`);
+  }catch(e){ toast(e.message,true); }
+};
+
+$('btnCopyFees').onclick = ()=>{
+  if(!D.people.length) return toast('没有数据', true);
+  const head = `统一单价 ${money(D.summary.unitPrice)}（${money(D.summary.totalCost)} ÷ ${D.summary.totalHeadcount} 人次）\n`;
+  const txt = head + D.people.map(f=>`${f.name}  ${f.count}次  应付${money(f.owed)}  未付${money(f.balance)}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>toast('已复制')).catch(()=>toast('复制失败',true));
+};
+$('btnCopyUnpaid').onclick = ()=>{
+  const list = D.people.filter(f=>f.balance>0.005);
+  if(!list.length) return toast('全部结清了 🎉');
+  const txt = `未付名单（单价 ${money(D.summary.unitPrice)}/次）\n` +
+    list.map(f=>`${f.name}  ${f.count}次  ${money(f.balance)}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>toast('已复制未付名单')).catch(()=>toast('复制失败',true));
+};
+
+$('btnCopyCodes').onclick = ()=>{
+  const list = (D.codes||[]).filter(c=>c.code);
+  if(!list.length) return toast('还没有查询码', true);
+  const txt = `Davis Origin 训练查询\ndavisorigin.com/fees.html\n\n输入你的名字 + 下面对应的查询码：\n\n`
+    + list.map(c=>`${c.name}  ${c.code}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>toast('已复制，可发群里')).catch(()=>toast('复制失败',true));
+};
+
+$('btnExport').onclick = ()=>{
+  if(!D) return;
+  const blob = new Blob([JSON.stringify({
+    updatedAt:new Date().toISOString(),
+    players:D.players, sessions:D.sessions, payments:D.payments
+  },null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`davisorigin-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('已下载备份');
+};
+
+$('btnRefresh').onclick = async ()=>{ await reload(); toast('已刷新'); };
+$('btnLogout').onclick = ()=>{ sessionStorage.removeItem(TK); location.reload(); };
+
+/* ===================== 登录 / 启动 ===================== */
+$('loginForm').onsubmit = async e=>{
+  e.preventDefault();
+  const btn=$('loginBtn'), errEl=$('loginErr');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 登录中';
+  errEl.textContent='';
+  try{
+    const r = await fetch(API+'/login',{
+      method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({password:$('loginPass').value})
+    });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || '登录失败');
+    sessionStorage.setItem(TK, d.token);
+    await boot();
+  }catch(err){
+    errEl.textContent = err.message.includes('fetch') ? 'API 连不上，检查 Worker 是否已部署' : err.message;
+    $('loginPass').value='';
+  }finally{ btn.disabled=false; btn.textContent='登录'; }
+};
+
+async function reload(showToast){
+  D = await api('/data');
+  render();
+}
+
+async function boot(){
+  $('loginScreen').style.display='none';
+  $('app').classList.add('on');
+  $('apiWarn').innerHTML = '<div class="loading">加载中…</div>';
+  try{
+    await reload();
+    $('apiWarn').innerHTML =
+      `<div class="callout">数据实时保存在 Cloudflare 数据库，队员在
+       <a href="fees.html" style="color:inherit;text-decoration:underline">查询页</a> 立刻能看到最新结果。</div>`;
+    resetForm();
+  }catch(e){
+    $('apiWarn').innerHTML = `<div class="callout err"><b>连不上 API：</b>${esc(e.message)}<br>
+      检查 Worker 是否部署、路由是否配好。</div>`;
+  }
+}
+
+/* 启动：先确定 API 地址，再决定是否自动登录 */
+(async ()=>{
+  await resolveApi();
+  if(sessionStorage.getItem(TK)) boot();
+})();
+</script>
+
+</body>
+</html>
