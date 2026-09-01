@@ -158,15 +158,29 @@
   .callout.err{background:var(--danger-soft);border-color:rgba(176,70,70,.28);color:#8a3535}
   .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
 
-  .sess{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
-    padding:16px 18px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;
+  .sess{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:flex-start;
+    padding:18px 20px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;
     background:var(--card);transition:border-color .2s,box-shadow .2s}
   .sess:hover{border-color:var(--accent);box-shadow:0 8px 20px rgba(13,18,36,.05)}
+  .sess-title{font-size:17px;font-weight:700;letter-spacing:-.01em;
+    font-variant-numeric:tabular-nums;line-height:1.3}
+  .sess-title .tag{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px}
+  .sess-sub{font-size:13.5px;color:var(--ink-soft);margin-top:5px}
+  .sess-sub b{color:var(--accent);font-weight:700}
   .sess-date{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px;white-space:nowrap}
   .sess-note{font-size:12px;color:var(--muted);margin-top:2px}
   .sess-meta{font-size:13px;color:var(--ink-soft)}
   .sess-meta b{color:var(--accent)}
-  .sess-actions{display:flex;gap:6px}
+  .sess-actions{display:flex;gap:6px;flex-shrink:0}
+  .sess-names{margin-top:10px}
+  .sess-names summary{font-size:12.5px;color:var(--muted);cursor:pointer;
+    list-style:none;user-select:none;padding:3px 0;transition:color .2s}
+  .sess-names summary::-webkit-details-marker{display:none}
+  .sess-names summary::before{content:'▸ ';font-size:10px}
+  .sess-names[open] summary::before{content:'▾ '}
+  .sess-names summary:hover{color:var(--accent)}
+  .sess-names-body{font-size:12.5px;color:var(--ink-soft);line-height:1.9;
+    margin-top:8px;padding:12px 14px;background:var(--bg-soft);border-radius:9px}
 
   .toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);background:var(--ink);
     color:#fff;padding:12px 22px;border-radius:10px;font-size:13.5px;font-weight:500;opacity:0;
@@ -322,7 +336,11 @@
         </div>
         <div class="row3">
           <div class="field"><label>训练日期</label><input type="date" id="fDate" /></div>
-          <div class="field"><label>本次总费用（$）</label><input type="number" id="fCost" step="0.01" min="0" placeholder="0" /></div>
+          <div class="field">
+            <label id="fCostLabel">本次总费用（$）</label>
+            <input type="number" id="fCost" step="0.01" min="0" placeholder="0" />
+            <div class="hint" id="fCostHint" style="display:none"></div>
+          </div>
           <div class="field"><label>备注（可选）</label><input type="text" id="fNote" placeholder="例：周三训练 / 场地费" /></div>
         </div>
         <div class="field">
@@ -754,6 +772,14 @@ function render(){
   $('sPaid').textContent   = '$' + Math.round(s.totalPaid);
   $('sUnpaid').textContent = '$' + Math.round(s.totalUnpaid);
 
+  // 学期用总额模式时，单场费用就不重要了
+  const byTerm = t && t.summary.costMode === 'term';
+  $('fCostHint').style.display = byTerm ? '' : 'none';
+  if(byTerm){
+    $('fCostHint').innerHTML =
+      `「${esc(t.name)}」已设总费用 <b>${money(t.summary.totalCost)}</b>，单场费用不参与计算，可以不填。`;
+  }
+
   renderSessions(); renderFees(); renderPayments(); renderPlayers();
   renderCodes(); renderTerms(); renderTags();
 }
@@ -765,25 +791,35 @@ function renderTerms(){
     box.innerHTML = '<div class="empty">还没有学期，点上面的「+ 新学期」建一个</div>';
     return;
   }
-  box.innerHTML = D.terms.map(t=>`
+  box.innerHTML = D.terms.map(t=>{
+    const s = t.summary;
+    return `
     <div class="sess">
       <div>
-        <div class="sess-date">${esc(t.name)} ${t.isActive?'<span class="pill ok" style="margin-left:6px">当前</span>':''}</div>
-        <div class="sess-note">${t.startDate||t.endDate?`${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:'未设日期范围'}</div>
-      </div>
-      <div class="sess-meta">
-        ${t.summary.sessionCount} 场 · ${t.summary.peopleCount} 人 ·
-        总费用 <b>${money(t.summary.totalCost)}</b> · 单价 <b>${money(t.summary.unitPrice)}</b>
+        <div class="sess-title">
+          ${esc(t.name)}${t.isActive?'<span class="pill ok" style="margin-left:8px">当前</span>':''}
+        </div>
+        <div class="sess-sub">
+          总费用 <b>${money(s.totalCost)}</b> · 单价 <b>${money(s.unitPrice)}</b>／次
+          <span style="color:var(--muted)">
+            （${s.totalHeadcount} 人次 · ${s.sessionCount} 场 · ${s.peopleCount} 人）
+          </span>
+        </div>
         <div class="sess-note" style="margin-top:6px">
-          已收 ${money(t.summary.totalPaid)} · 待收 ${money(t.summary.totalUnpaid)}
+          ${s.costMode==='term'
+            ? '费用按学期总额算'
+            : `费用 = 各场次相加${s.sessionSum!==s.totalCost?'':''}`}
+          　·　已收 ${money(s.totalPaid)} · 待收 ${money(s.totalUnpaid)}
+          ${t.startDate||t.endDate?`　·　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}
         </div>
       </div>
       <div class="sess-actions">
         ${t.isActive?'':`<button class="btn ghost sm" data-activate="${t.id}">设为当前</button>`}
-        <button class="btn ghost sm" data-rename="${t.id}">改名</button>
+        <button class="btn ghost sm" data-rename="${t.id}">修改</button>
         <button class="btn danger sm" data-delterm="${t.id}">删除</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   box.querySelectorAll('[data-activate]').forEach(b=>{
     b.onclick = async ()=>{
@@ -795,18 +831,25 @@ function renderTerms(){
   box.querySelectorAll('[data-rename]').forEach(b=>{
     b.onclick = ()=>{
       const t = D.terms.find(x=>String(x.id)===b.dataset.rename);
+      const s = t.summary;
       openEdit({
-        title: '编辑学期',
-        sub: `${t.summary.sessionCount} 场训练 · 总费用 ${money(t.summary.totalCost)}`,
+        title: '修改学期',
+        sub: `${s.sessionCount} 场训练 · ${s.totalHeadcount} 人次 · 当前单价 ${money(s.unitPrice)}／次`,
         fields: [
           {key:'name', label:'学期名称', value:t.name, placeholder:'例：2026 秋季学期'},
+          {key:'totalCost', label:'本学期总费用（$）', type:'number',
+           value: t.totalCostSet || '',
+           placeholder: `留空则用各场次相加（现在 ${money(s.sessionSum)}）`,
+           hint: `填了就用这个数算单价：总费用 ÷ ${s.totalHeadcount || 'N'} 人次。留空则把每场的费用加起来。`},
           {key:'startDate', label:'开始日期', type:'date', value:t.startDate||''},
           {key:'endDate', label:'结束日期', type:'date', value:t.endDate||''},
         ],
         onSubmit: async v=>{
           if(!v.name) throw new Error('学期名称不能为空');
+          const tc = v.totalCost === '' ? 0 : Number(v.totalCost);
+          if(!Number.isFinite(tc) || tc < 0) throw new Error('总费用不对');
           await api('/terms/'+t.id,{method:'PUT',body:JSON.stringify({
-            name:v.name, startDate:v.startDate, endDate:v.endDate })});
+            name:v.name, totalCost:tc, startDate:v.startDate, endDate:v.endDate })});
           await reload(); toast('已更新');
         }
       });
@@ -942,15 +985,20 @@ function renderSessions(){
     box.innerHTML = '<div class="empty">这个学期还没有训练记录</div>';
     return;
   }
+  const byTerm = t && t.summary.costMode === 'term';
   box.innerHTML = list.map(s=>`
     <div class="sess">
       <div>
-        <div class="sess-date">${esc(s.date||'—')}</div>
-        ${s.note?`<div class="sess-note">${esc(s.note)}</div>`:''}
-      </div>
-      <div class="sess-meta">
-        到场 <b>${s.attendees.length}</b> 人 · 费用 <b>${money(s.cost)}</b>
-        <div class="sess-note" style="margin-top:6px">${esc(s.attendees.join('、'))||'—'}</div>
+        <div class="sess-title">
+          ${esc(s.date||'—')}${s.note?`<span class="tag">${esc(s.note)}</span>`:''}
+        </div>
+        <div class="sess-sub">
+          到场 <b>${s.attendees.length}</b> 人${byTerm?'' : ` · 费用 <b>${money(s.cost)}</b>`}
+        </div>
+        <details class="sess-names">
+          <summary>查看名单</summary>
+          <div class="sess-names-body">${esc(s.attendees.join('、'))||'—'}</div>
+        </details>
       </div>
       <div class="sess-actions">
         <button class="btn ghost sm" data-edit="${s.id}">编辑</button>
@@ -1112,6 +1160,9 @@ function newTerm(){
     sub: '这个学期的费用会单独结算，跟别的学期不混在一起',
     fields: [
       {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`, placeholder:'例：2026 秋季学期'},
+      {key:'totalCost', label:'本学期总费用（$，可留空）', type:'number', value:'',
+       placeholder:'例：1000',
+       hint:'知道这学期一共花多少就填；留空的话就把每场训练的费用加起来'},
       {key:'startDate', label:'开始日期（可留空）', type:'date', value:''},
       {key:'endDate', label:'结束日期（可留空）', type:'date', value:''},
     ],
@@ -1119,7 +1170,8 @@ function newTerm(){
     onSubmit: async v=>{
       if(!v.name) throw new Error('学期名称不能为空');
       const r = await api('/terms',{method:'POST',body:JSON.stringify({
-        name:v.name, startDate:v.startDate, endDate:v.endDate, setActive:true })});
+        name:v.name, totalCost: v.totalCost===''?0:Number(v.totalCost),
+        startDate:v.startDate, endDate:v.endDate, setActive:true })});
       curTermId = r.id;
       await reload();
       toast(`已创建「${v.name}」并设为当前学期`);
