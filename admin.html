@@ -59,6 +59,8 @@
   .btn.sm{padding:7px 13px;font-size:12.5px;border-radius:8px}
   .btn.btn-danger-solid{background:var(--danger);border-color:var(--danger);color:#fff}
   .btn.btn-danger-solid:hover{background:#933a3a;box-shadow:0 8px 18px rgba(176,70,70,.28)}
+  .newdot{display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--ok);margin-right:6px;vertical-align:middle}
   .login-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:19px}
   .login-note{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
     font-size:11.5px;color:var(--muted);line-height:1.7}
@@ -956,6 +958,11 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
             `<span class="tag-opt${f.value===o?' on':''}" data-v="${esc(o)}">${esc(o)}</span>`).join('')}
         </div></div>`;
     }
+    if (f.type === 'action') {
+      return `<div class="field" style="margin-top:-6px">
+        <button type="button" class="btn ghost sm" data-act2="${esc(f.key)}">${esc(f.label)}</button>
+      </div>`;
+    }
     if (f.type === 'check') {
       return `<label class="check-row">
         <input type="checkbox" data-chk="${esc(f.key)}" ${f.value?'checked':''} />
@@ -980,6 +987,12 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
       ${f.hint?`<div class="hint" style="margin-top:6px">${f.hint}</div>`:''}
     </div>`;
   }).join('');
+
+  // 字段里的动作按钮
+  $('emFields').querySelectorAll('[data-act2]').forEach(b=>{
+    const f = fields.find(x=>x.key === b.dataset.act2);
+    if(f && f.onClick) b.onclick = e=>{ e.preventDefault(); f.onClick(b); };
+  });
 
   // 标签 / 颜色点击
   $('emFields').querySelectorAll('[data-tagpick], [data-colorpick]').forEach(box=>{
@@ -1101,18 +1114,62 @@ const ROLE_TOKEN  = /^(?:manager|mgr|coach|captain|gk|cb|cm|st|lw|rw|领队|经�
 const ROLE_PREFIX = /^(?:manager|mgr|coach|captain|领队|经理|主教练|教练|助教|队长|队医)\s*/i;
 const HEADER_KW = /(训练|时间|地点|集合|注意|事项|分队|费用|场地|人数|队长|说明|备注|接龙|报名|星期|周[一二三四五六日天]|开始|结束|球衣|门将|守门|穿|带|自备|群里|请|预备队|一队|二队)/;
 
+/* 备注类噪音：迟到 / 早走 / 请假 / 地区 …
+   注意：这些只在「整个词」或「跟在名字后面」时才去掉，不会切名字 */
+const NOISE_MULTI = [
+  '晚点到','可能晚到','会晚到','晚一点','晚一会','提前走','提前离开','需要早走',
+  '要迟到','会迟到','可能迟到','来不了','去不了','不确定','看情况','视情况',
+  '迟到','早走','早退','早退场','先走','晚到','晚来','请假','缺席','待定','未定',
+  '替补','试训','伤病','养伤','恢复中','观战','围观',
+  '加州大学戴维斯','加州大学','戴维斯','湾区','加州','美国','中国',
+  'ucdavis','uc davis','ucd','davis','sacramento','sac','bay area',
+  '北京','上海','广州','深圳','成都','杭州','南京','武汉','西安','重庆','天津',
+  '苏州','长沙','青岛','大连','沈阳','厦门','福州','济南','郑州','合肥','昆明',
+];
+/* 只能整词丢掉、绝不从名字尾巴上切的（怕误伤「王来」这种） */
+const NOISE_SOLO = ['到','走','来','去','新','伤','在','有','无','是','否','约'];
+
+const NOISE_TAIL_RE = new RegExp(
+  '(?:' + NOISE_MULTI.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')+$', 'i');
+const NOISE_WORD_RE = new RegExp(
+  '^(?:' + NOISE_MULTI.concat(NOISE_SOLO).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')$', 'i');
+
 function cleanName(raw){
   let s = String(raw).trim();
   if(!s) return '';
+
+  // 括号备注：（提前离开）(要早走)
   s = s.replace(/[（(【\[][^）)】\]]*[）)】\]]?/g,' ');
+  // emoji
   s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{2BFF}\u{FE0F}\u{200D}\u{2700}-\u{27BF}]/gu,' ');
-  s = s.replace(/[-－—~～·・、|/\\+＋_]+/g,' ');
+  // 时间：7:30 / 7点 / 7点半 / 19点30分
+  s = s.replace(/\d{1,2}\s*[:：]\s*\d{1,2}/g,' ');
+  s = s.replace(/\d{1,2}\s*点\s*(?:\d{1,2}\s*分?|半)?/g,' ');
+  // 连接符 → 空格
+  s = s.replace(/[-－—~～·・、|/\\+＋_,，;；]+/g,' ');
+
   let parts = s.split(/\s+/).filter(Boolean);
-  // 独立的年级 / 职务词直接丢掉
-  parts = parts.filter(p => !GRADE_TOKEN.test(p) && !ROLE_TOKEN.test(p));
-  // 粘在名字前面的：大二何嘉伦 → 何嘉伦，Manager金圣博 → 金圣博
-  parts = parts.map(p => p.replace(GRADE_PREFIX,'').replace(ROLE_PREFIX,''));
-  parts = parts.filter(p => p && !/^\d+$/.test(p));
+
+  // 整词就是年级 / 职务 / 备注 / 纯数字 / 单个字母 → 丢掉
+  parts = parts.filter(p =>
+    !GRADE_TOKEN.test(p) &&
+    !ROLE_TOKEN.test(p)  &&
+    !NOISE_WORD_RE.test(p) &&
+    !/^\d+$/.test(p) &&
+    !/^[A-Za-z]$/.test(p)
+  );
+
+  // 粘在名字上的：大二何嘉伦 → 何嘉伦；何嘉伦迟到 → 何嘉伦
+  parts = parts.map(p =>
+    p.replace(GRADE_PREFIX,'')
+     .replace(ROLE_PREFIX,'')
+     .replace(NOISE_TAIL_RE,'')
+     .trim()
+  ).filter(Boolean);
+
+  // 清完可能又变成噪音了，再筛一遍
+  parts = parts.filter(p => !NOISE_WORD_RE.test(p) && !/^\d+$/.test(p));
+
   return parts.join(' ').replace(/\s+/g,' ').trim();
 }
 
@@ -1345,6 +1402,30 @@ function renderTerms(){
   });
 }
 
+/* ---------- 拼音（按需从 CDN 加载） ---------- */
+function loadScript(src){
+  return new Promise((ok, fail)=>{
+    if(document.querySelector(`script[src="${src}"]`)) return ok();
+    const s = document.createElement('script');
+    s.src = src; s.onload = ok; s.onerror = ()=>fail(new Error('拼音库加载失败'));
+    document.head.appendChild(s);
+  });
+}
+
+/** 中文名 → 姓+名全拼小写，例 刘效尔 → liuxiaoer */
+async function toPinyin(name){
+  const raw = String(name||'').trim();
+  if(!raw) return '';
+  // 本来就是英文名，直接用
+  if(!/[一-龥]/.test(raw)) return raw.toLowerCase().replace(/[^a-z0-9]/g,'');
+
+  await loadScript('https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.3/dist/index.js');
+  const lib = window.pinyinPro;
+  if(!lib) throw new Error('拼音库加载失败');
+  return lib.pinyin(raw, { toneType:'none', type:'array', surname:'head' })
+    .join('').toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+
 /** 训练记录里勾了几场，反映到「导出 PDF」按钮上 */
 function updateSessPickHint(){
   const btn = $('btnSessPdf');
@@ -1419,7 +1500,10 @@ function renderCodes(){
       <td class="num">${c.number
         ? `<span class="jersey">${esc(c.number)}</span>`
         : '<span style="color:var(--muted)">—</span>'}</td>
-      <td><b>${esc(c.name)}</b></td>
+      <td>
+        ${newPlayers.has(c.name)?'<span class="newdot" title="本次新加"></span>':''}
+        <b>${esc(c.name)}</b>
+      </td>
       <td>${c.tag
         ? `<span class="ptag" style="${tagStyle(c.tag,'player')}">${esc(c.tag)}</span>`
         : '<span style="color:var(--muted)">—</span>'}</td>
@@ -1475,11 +1559,44 @@ function renderCodes(){
            value:(D.codes.find(c=>c.name===name)||{}).tag||'',
            options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
           {key:'code', label:'查询码', value:cur},
+          {key:'resetCode', type:'action', label:'重置查询码',
+           onClick: async (btn)=>{
+             const nameInput = $('emFields').querySelector('[data-k="name"]');
+             const codeInput = $('emFields').querySelector('[data-k="code"]');
+             const who = (nameInput?.value || name).trim();
+             if(!who) return;
+
+             // 第一次点：生成并要求再点一次确认
+             if(btn.dataset.pending){
+               codeInput.value = btn.dataset.pending;
+               btn.dataset.pending = '';
+               btn.textContent = '重置查询码';
+               btn.classList.remove('btn-danger-solid');
+               $('emErr').textContent = '';
+               codeInput.focus();
+               return;
+             }
+             const old = btn.textContent;
+             btn.disabled = true; btn.textContent = '生成中…';
+             try{
+               const py = await toPinyin(who);
+               if(!py) throw new Error('转不出拼音，手动填一个');
+               btn.dataset.pending = py;
+               btn.textContent = `确认改成 ${py}`;
+               btn.classList.add('btn-danger-solid');
+               $('emErr').textContent = '再点一次确认，或直接改上面的输入框';
+             }catch(e){
+               $('emErr').textContent = e.message;
+               btn.textContent = old;
+             }finally{ btn.disabled = false; }
+           }},
         ],
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
           await api('/players/'+encodeURIComponent(name),{method:'PUT',
             body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number})});
+          newPlayers.delete(name);      // 看过就不再提示
+          newPlayers.delete(v.name);
           await reload();
           toast(v.name !== name ? `已改名为「${v.name}」` : '已更新');
         }
@@ -2085,7 +2202,9 @@ function doMatch(autoDate, suppressAsk){
 }
 
 /** 识别结果的小标签：绿色=会记进去，灰色=不记 */
-let excluded = new Set();     // 被取消勾选的名字
+let excluded   = new Set();   // 手动取消勾选的
+let approved   = new Set();   // 弹窗里确认过的生面孔（保存时才真的入库）
+let newPlayers = new Set();   // 本次登录新加的球员，名册里带小圆点
 
 function renderChips(){
   const chips = $('matchChips');
@@ -2098,8 +2217,9 @@ function renderChips(){
 
   chips.innerHTML = all.map(({n, known})=>{
     const off = excluded.has(n);
-    const cls = off ? 'chip off' : (known ? 'chip ok' : 'chip warn');
-    return `<span class="${cls}" data-toggle="${esc(n)}">${off ? '○' : (known ? '✓' : '?')} ${esc(n)}</span>`;
+    const ok  = known || approved.has(n);     // 确认过的生面孔也算绿勾
+    const cls = off ? 'chip off' : (ok ? 'chip ok' : 'chip warn');
+    return `<span class="${cls}" data-toggle="${esc(n)}">${off ? '○' : (ok ? '✓' : '?')} ${esc(n)}</span>`;
   }).join('');
 
   chips.querySelectorAll('[data-toggle]').forEach(el=>{
@@ -2116,10 +2236,13 @@ function updateMatchCount(){
   if(!pendingMatch) return;
   const on = [...pendingMatch.matched, ...pendingMatch.unmatched]
     .filter(n=>!excluded.has(n));
-  const u  = pendingMatch.unmatched.filter(n=>!excluded.has(n)).length;
+  const rest = pendingMatch.unmatched.filter(n=>!excluded.has(n));
+  const u    = rest.filter(n=>!approved.has(n)).length;
+  const a    = rest.filter(n=> approved.has(n)).length;
   $('matchCount').innerHTML =
     `计入 <b style="color:var(--ok)">${on.length}</b> 人` +
     (u ? ` · 其中 <b style="color:var(--warn)">${u}</b> 人不在名册里` : '') +
+    (a ? ` · 其中 <b style="color:var(--ok)">${a}</b> 人保存后加入名册` : '') +
     (excluded.size ? ` · 已排除 <b>${excluded.size}</b>` : '');
 }
 
@@ -2225,7 +2348,7 @@ function resetForm(){
   $('matchBox').style.display='none';
   $('editFlag').innerHTML='';
   $('btnCancelEdit').style.display='none';
-  pendingMatch=null; excluded=new Set();
+  pendingMatch=null; excluded=new Set(); approved=new Set();
   const d=$('fDate'); setDate(d, today()); d.dataset.auto='1';
   setKind('training');
 }
@@ -2245,22 +2368,31 @@ $('btnSaveSess').onclick = async ()=>{
     .filter(n => !excluded.has(n));
   if(!finalNames.length) return toast('没有识别到有效名字', true);
 
-  // 里面有不在名册的 → 先问一句，加完让用户确认后再点保存
-  const strangers = pendingMatch.unmatched.filter(n => !excluded.has(n));
+  // 里面有不在名册、也没确认过的 → 先问一句
+  const strangers = pendingMatch.unmatched.filter(n => !excluded.has(n) && !approved.has(n));
   if(strangers.length){
-    const ok = await openEdit({
-      title: `有 ${strangers.length} 个名字不在名册里`,
-      sub: `<b>${strangers.map(esc).join('、')}</b>`,
-      fields: [],
-      okText: '加入名册',
-      onSubmit: async ()=>{
-        await api('/players',{method:'POST',body:JSON.stringify({names:strangers})});
-        await reload(false);
-        doMatch(false, true);
-        toast(`已加入 ${strangers.length} 人，请确认无误后点击保存`);
+    await openEdit({
+      title: `有 ${strangers.length} 人不在名册里`,
+      sub: '确认一下名字，清空则跳过',
+      fields: strangers.map((n,i)=>({ key:'n'+i, label:`第 ${i+1} 个`, value:n })),
+      okText: '确认',
+      onSubmit: async v=>{
+        const names = strangers.map((_,i)=>String(v['n'+i]||'').trim()).filter(Boolean);
+        if(!names.length) throw new Error('名字都空了，没有可加的人');
+        // 名字被改过的：原写法排除，改后的名字加进来
+        strangers.forEach((orig,i)=>{
+          const fixed = String(v['n'+i]||'').trim();
+          if(fixed !== orig){
+            excluded.add(orig);
+            if(fixed) pendingMatch.unmatched.push(fixed);
+          }
+        });
+        names.forEach(n => approved.add(n));   // 打绿勾，保存时才真的入库
+        renderChips(); updateMatchCount();
+        toast(`已确认 ${names.length} 人，请确认无误后点击保存`);
       }
     });
-    return;   // 不管加没加，都回到页面让用户自己再点一次保存
+    return;   // 回到页面让用户自己再点一次保存
   }
 
   const wasEditing = !!editingId;     // resetForm 会清掉 editingId，先记下来
@@ -2274,6 +2406,8 @@ $('btnSaveSess').onclick = async ()=>{
       termId:curTermId, kind:curKind });
     if(wasEditing) await api('/sessions/'+editingId,{method:'PUT',body:payload});
     else           await api('/sessions',{method:'POST',body:payload});
+    // 这次新进名册的人，名册页给个小圆点提示
+    finalNames.forEach(n=>{ if(approved.has(n)) newPlayers.add(n); });
     resetForm();
     await reload();
     toast(wasEditing ? '已更新' : (wasMatch ? '已保存这场比赛' : '已保存这次训练'));
