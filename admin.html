@@ -816,11 +816,10 @@
     <div class="pdf-hd">
       <div>
         <h3 id="pdfTitle">费用结算</h3>
-        <div class="pdf-sub">A4 · 预览效果</div>
+        <div class="pdf-sub">A4 · 点「下载 PDF」后选「存储为 PDF」</div>
       </div>
       <div class="pdf-actions">
         <button class="btn" id="pdfDownload">下载 PDF</button>
-        <button class="btn ghost" id="pdfPrint">打印</button>
         <button class="btn ghost" id="pdfClose">关闭</button>
       </div>
     </div>
@@ -2507,64 +2506,48 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'Escape' && $('pdfModal').classList.contains('on')) closePdf();
 });
 
-/* 打印：把同一份内容 + 同一份样式丢进新窗口 */
-$('pdfPrint').onclick = ()=>{
+/* 下载 PDF = 走浏览器打印。
+   浏览器自己的排版引擎，跟预览一模一样，文字可选中可搜索，文件也小 */
+$('pdfDownload').onclick = ()=>{
+  // 把主页面里 .rpt 那套样式原样抓出来给打印窗口
   const css = [...document.styleSheets]
     .flatMap(sh=>{ try{ return [...sh.cssRules].map(r=>r.cssText); }catch(e){ return []; } })
     .filter(r=>r.startsWith('.rpt'))
     .join('\n');
-  const w = window.open('', '_blank');
-  if(!w) return toast('浏览器拦了弹窗，允许一下再试', true);
+
+  const w = window.open('', '_blank', 'width=900,height=1000');
+  if(!w) return toast('浏览器拦了弹窗，允许弹窗后再试', true);
+
   w.document.write(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<title>${esc(pdfName)}</title><style>
-@page{size:A4;margin:0}
-*{margin:0;padding:0}
-body{background:#fff}
-${css}
-.rpt{transform:none!important;margin:0 auto}
-</style></head><body><div class="rpt">${$('pdfDoc').innerHTML}</div></body></html>`);
-  w.document.close();
-  setTimeout(()=>{ w.focus(); w.print(); }, 350);
-};
-
-/* 直接下载：用 html2pdf（按需从 CDN 加载） */
-function loadScript(src){
-  return new Promise((ok, fail)=>{
-    if(document.querySelector(`script[src="${src}"]`)) return ok();
-    const s = document.createElement('script');
-    s.src = src; s.onload = ok; s.onerror = ()=>fail(new Error('加载失败'));
-    document.head.appendChild(s);
-  });
-}
-
-$('pdfDownload').onclick = async ()=>{
-  const btn = $('pdfDownload');
-  const doc = $('pdfDoc');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 生成中';
-  const savedTransform = doc.style.transform;
-  doc.style.transform = 'none';        // 截图时必须是 1:1，不能带缩放
-  try{
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js');
-    const name = `${pdfName}.pdf`;
-    await html2pdf().set({
-      margin: 0,
-      filename: name,
-      image: { type:'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2, useCORS: true, backgroundColor: '#ffffff',
-        width: A4_W, windowWidth: A4_W,      // 跟预览同宽 → 排版一致
-        scrollX: 0, scrollY: 0
-      },
-      jsPDF: { unit:'px', format:[A4_W, A4_H], orientation:'portrait', hotfixes:['px_scaling'] },
-      pagebreak: { mode:['css','legacy'], avoid:['tr','.rec'] }
-    }).from(doc).save();
-    toast('已下载');
-  }catch(e){
-    toast('下载失败，用「打印」→ 存储为 PDF', true);
-  }finally{
-    doc.style.transform = savedTransform;
-    btn.disabled = false; btn.textContent = '下载 PDF';
+<title>${esc(pdfName)}</title>
+<style>
+  @page{ size:A4; margin:14mm 12mm; }
+  *{ margin:0; padding:0; }
+  html,body{ background:#fff; }
+  ${css}
+  /* 打印时交给浏览器自己排版，不要固定宽度和缩放 */
+  .rpt{
+    width:auto !important; min-height:0 !important;
+    padding:0 !important; transform:none !important;
   }
+  .rpt .rec, .rpt tr, .rpt .r-box{ page-break-inside:avoid; }
+  .rpt thead{ display:table-header-group; }   /* 跨页时表头重复 */
+  .rpt tfoot{ display:table-footer-group; }
+  @media screen{
+    body{ background:#e8e6e0; padding:24px; }
+    .rpt{ max-width:794px; margin:0 auto; padding:40px !important;
+          background:#fff; box-shadow:0 4px 20px rgba(0,0,0,.15); border-radius:4px; }
+    .tip{ max-width:794px; margin:0 auto 16px; padding:12px 18px;
+          background:#1e3a8a; color:#fff; border-radius:10px;
+          font:600 13px/1.6 -apple-system,"PingFang SC",sans-serif; }
+  }
+  @media print{ .tip{ display:none !important; } }
+</style></head><body>
+<div class="tip">打印窗口里把「目标 / Destination」选成「存储为 PDF」，然后点储存。</div>
+<div class="rpt">${$('pdfDoc').innerHTML}</div>
+</body></html>`);
+  w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); }, 400);
 };
 
 /* 名册搜索 */
