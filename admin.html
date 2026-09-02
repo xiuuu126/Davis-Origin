@@ -2119,7 +2119,7 @@ function updateMatchCount(){
   const u  = pendingMatch.unmatched.filter(n=>!excluded.has(n)).length;
   $('matchCount').innerHTML =
     `计入 <b style="color:var(--ok)">${on.length}</b> 人` +
-    (u ? ` · 其中 <b style="color:var(--warn)">${u}</b> 个不在名册里` : '') +
+    (u ? ` · 其中 <b style="color:var(--warn)">${u}</b> 人不在名册里` : '') +
     (excluded.size ? ` · 已排除 <b>${excluded.size}</b>` : '');
 }
 
@@ -2257,7 +2257,7 @@ $('btnSaveSess').onclick = async ()=>{
         await api('/players',{method:'POST',body:JSON.stringify({names:strangers})});
         await reload(false);
         doMatch(false, true);
-        toast(`已加入 ${strangers.length} 人，确认无误后点保存`);
+        toast(`已加入 ${strangers.length} 人，请确认无误后点击保存`);
       }
     });
     return;   // 不管加没加，都回到页面让用户自己再点一次保存
