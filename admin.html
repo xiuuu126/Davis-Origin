@@ -248,9 +248,30 @@
   .pdf-hd h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
   .pdf-sub{font-size:12px;color:var(--muted);margin-top:3px}
   .pdf-actions{display:flex;gap:8px;flex-wrap:wrap}
-  .pdf-body{flex:1;overflow:auto;background:#e8e6e0;padding:20px;min-height:340px}
+  .pdf-main{flex:1;display:flex;overflow:hidden;min-height:0}
+  .pdf-side{width:250px;flex-shrink:0;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;background:var(--bg-soft)}
+  .pdf-side-hd{padding:12px 14px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);
+    text-transform:uppercase;flex-wrap:wrap}
+  .pdf-side-hd .btn{padding:4px 9px;font-size:11px}
+  .pdf-picks{flex:1;overflow:auto;padding:8px}
+  .pdf-pick{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;
+    border-radius:8px;cursor:pointer;transition:background .15s;user-select:none}
+  .pdf-pick:hover{background:var(--accent-soft)}
+  .pdf-pick input{margin-top:1px;flex-shrink:0}
+  .pdf-pick-name{font-size:13px;font-weight:600;color:var(--ink);line-height:1.35}
+  .pdf-pick-meta{font-size:11px;color:var(--muted);margin-top:2px;
+    font-variant-numeric:tabular-nums}
+  .pdf-body{flex:1;overflow:auto;background:#e8e6e0;padding:20px;min-width:0}
   .pdf-body iframe{width:100%;height:1000px;border:none;background:#fff;
     border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.12);display:block}
+  @media(max-width:820px){
+    .pdf-main{flex-direction:column}
+    .pdf-side{width:100%;max-height:180px;border-right:none;
+      border-bottom:1px solid var(--line)}
+  }
 
   /* 小搜索框 */
   .mini-search{position:relative}
@@ -763,8 +784,20 @@
         <button class="btn ghost" id="pdfClose">关闭</button>
       </div>
     </div>
-    <div class="pdf-body">
-      <iframe id="pdfFrame" title="预览"></iframe>
+    <div class="pdf-main">
+      <div class="pdf-side">
+        <div class="pdf-side-hd">
+          <span id="pdfPickCount">包含全部</span>
+          <div>
+            <button class="btn ghost sm" id="pdfPickAll">全选</button>
+            <button class="btn ghost sm" id="pdfPickNone">全不选</button>
+          </div>
+        </div>
+        <div class="pdf-picks" id="pdfPickList"></div>
+      </div>
+      <div class="pdf-body">
+        <iframe id="pdfFrame" title="预览"></iframe>
+      </div>
     </div>
   </div>
 </div>
@@ -981,6 +1014,18 @@ const norm = s => String(s ?? '').trim().replace(/\s+/g,'').toLowerCase();
 function today(){
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+/** 明天 */
+function tomorrow(){
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+/** 给日期框赋值（必须发 change，不然自定义日历的按钮文字不刷新） */
+function setDate(input, val){
+  if(!input) return;
+  input.value = val || '';
+  input.dispatchEvent(new Event('change', { bubbles:true }));
 }
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1212,8 +1257,8 @@ function renderTerms(){
           {key:'name', label:'学期名称', value:t.name, placeholder:'例：2026 秋季学期'},
           {key:'totalCost', label:'本学期训练总费用', type:'number',
            value: t.totalCostSet || ''},
-          {key:'startDate', label:'开始日期', type:'date', value:t.startDate||''},
-          {key:'endDate', label:'结束日期', type:'date', value:t.endDate||''},
+          {key:'startDate', label:'开始日期', type:'date', value:t.startDate||today()},
+          {key:'endDate', label:'结束日期', type:'date', value:t.endDate||tomorrow()},
         ],
         onSubmit: async v=>{
           if(!v.name) throw new Error('学期名称不能为空');
@@ -1626,7 +1671,7 @@ function renderSessions(){
       const s = (T()?.sessions || []).find(x=>String(x.id)===b.dataset.edit);
       if(!s) return;
       editingId = s.id;
-      const dEl = $('fDate'); dEl.value = s.date||''; dEl.dataset.auto='0';
+      const dEl = $('fDate'); setDate(dEl, s.date || today()); dEl.dataset.auto='0';
       $('fCost').value = s.cost||'';
       $('fNote').value = s.note||'';
       $('fNames').value = s.attendees.map((n,i)=>`${i+1}. ${n}`).join('\n');
@@ -1941,7 +1986,7 @@ function doMatch(autoDate){
 
   if(autoDate !== false){
     const d = detectDate(raw), dEl = $('fDate');
-    if(d && (!dEl.value || dEl.dataset.auto === '1')){ dEl.value = d; dEl.dataset.auto = '1'; }
+    if(d && (!dEl.value || dEl.dataset.auto === '1')){ setDate(dEl, d); dEl.dataset.auto = '1'; }
   }
 
   pendingMatch = matchNames(parsed.names);
@@ -1993,8 +2038,8 @@ function newTerm(){
     fields: [
       {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`},
       {key:'totalCost', label:'本学期训练总费用', type:'number', value:''},
-      {key:'startDate', label:'开始日期', type:'date', value:''},
-      {key:'endDate', label:'结束日期', type:'date', value:''},
+      {key:'startDate', label:'开始日期', type:'date', value:today()},
+      {key:'endDate', label:'结束日期', type:'date', value:tomorrow()},
       {key:'resetNumbers', label:'清空所有球衣号码', type:'check', value:false},
     ],
     okText: '创建',
@@ -2029,18 +2074,18 @@ $('btnStatPdf').onclick = ()=>{
   if(!sel.length) return toast('请先选择学期', true);
   const agg = aggregate(sel);
   if(!agg.people.length) return toast('没有数据', true);
-  pdfKind = 'fee';
-  $('pdfTitle').textContent = '跨学期合计';
-  const f = $('pdfFrame');
-  f.srcdoc = buildReport({
-    name: sel.map(t=>t.name).join(' + '),
-    people: agg.people,
-    summary: agg.summary,
+  openPdf({
+    kind:'fee',
+    term:{ name: sel.map(t=>t.name).join(' + '), people: agg.people, summary: agg.summary },
+    title:'跨学期合计',
+    fileName:`跨学期合计-${today()}`,
+    items: agg.people.map(p=>({
+      id: p.name,
+      label: p.name,
+      meta: `${p.count} 次 · 未付 ${money(p.balance)}`,
+      data: p,
+    })),
   });
-  $('pdfModal').classList.add('on');
-  f.onload = ()=>{
-    try{ f.style.height = Math.max(600, f.contentDocument.body.scrollHeight + 60) + 'px'; }catch(e){}
-  };
 };
 
 /* 训练 / 比赛 切换 */
@@ -2077,7 +2122,7 @@ function resetForm(){
   $('editFlag').innerHTML='';
   $('btnCancelEdit').style.display='none';
   pendingMatch=null;
-  const d=$('fDate'); d.value=today(); d.dataset.auto='1';
+  const d=$('fDate'); setDate(d, today()); d.dataset.auto='1';
   setKind('training');
 }
 $('btnCancelEdit').onclick = resetForm;
@@ -2214,13 +2259,19 @@ $('btnBulkPay').onclick = ()=>{
 };
 
 /* ---------- 导出 PDF（走浏览器打印） ---------- */
-/* 生成结算单 HTML */
-function buildReport(t){
+/* 生成结算单 HTML（people 是已经筛过的） */
+function buildReport(t, peopleIn){
   const s = t.summary;
+  const people = peopleIn || t.people;
   const today = new Date().toLocaleDateString('zh-CN');
-  const unpaid = t.people.filter(p=>p.balance>0.005);
+  const unpaid = people.filter(p=>p.balance>0.005);
+  // 合计按实际列出来的人算
+  const sOwed   = Math.round(people.reduce((n,p)=>n+p.owed,0)*100)/100;
+  const sPaid   = Math.round(people.reduce((n,p)=>n+p.paid,0)*100)/100;
+  const sUnpaid = Math.round(people.reduce((n,p)=>n+p.balance,0)*100)/100;
+  const sHead   = people.reduce((n,p)=>n+p.count,0);
 
-  const rows = t.people.map((f,i)=>`
+  const rows = people.map((f,i)=>`
     <tr>
       <td class="n">${playerNum(f.name)||''}</td>
       <td><b>${esc(f.name)}</b>${playerTag(f.name)?` <span class="pt">${esc(playerTag(f.name))}</span>`:''}</td>
@@ -2273,8 +2324,8 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
   <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
   ${s.unitPrice?`<div><span>训练单价／次</span><b>${money(s.unitPrice)}</b></div>`:''}
   ${s.matchCount?`<div><span>比赛费用</span><b>${money(s.matchCost)}</b></div>`:''}
-  <div><span>已收</span><b>${money(s.totalPaid)}</b></div>
-  <div><span>待收</span><b style="color:#b04646">${money(s.totalUnpaid)}</b></div>
+  <div><span>已收</span><b>${money(sPaid)}</b></div>
+  <div><span>待收</span><b style="color:#b04646">${money(sUnpaid)}</b></div>
 </div>
 
 <table>
@@ -2284,11 +2335,11 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
   </tr></thead>
   <tbody>${rows}</tbody>
   <tfoot><tr>
-    <td colspan="2">合计 ${t.people.length} 人</td>
-    <td class="n">${s.totalHeadcount}</td>
-    <td class="n">${money(s.totalOwed)}</td>
-    <td class="n">${money(s.totalPaid)}</td>
-    <td class="n owe">${money(s.totalUnpaid)}</td>
+    <td colspan="2">合计 ${people.length} 人</td>
+    <td class="n">${sHead}</td>
+    <td class="n">${money(sOwed)}</td>
+    <td class="n">${money(sPaid)}</td>
+    <td class="n owe">${money(sUnpaid)}</td>
   </tr></tfoot>
 </table>
 
@@ -2303,56 +2354,77 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
   return html;
 }
 
-/* 生成训练记录 HTML */
-function buildSessionReport(t){
-  const s = t.summary;
+/* 生成训练记录 HTML（sessions 是已经筛过的） */
+function buildSessionReport(t, sessions){
   const day = new Date().toLocaleDateString('zh-CN');
-  const list = [...t.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const list = [...sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
 
-  const rows = list.map((x,i)=>{
+  const head  = list.reduce((n,x)=>n+x.attendees.length, 0);
+  const costs = list.reduce((n,x)=>n+x.cost, 0);
+  const names = new Set(); list.forEach(x=>x.attendees.forEach(n=>names.add(n)));
+  const nTrain = list.filter(x=>x.kind!=='match').length;
+  const nMatch = list.filter(x=>x.kind==='match').length;
+
+  const blocks = list.map((x,i)=>{
     const isMatch = x.kind === 'match';
-    const per = isMatch && x.attendees.length ? x.cost/x.attendees.length : 0;
     return `
-    <tr>
-      <td class="n">${i+1}</td>
-      <td class="nowrap"><b>${esc(x.date||'—')}</b></td>
-      <td>${isMatch?'<span class="mt">比赛</span>':'训练'}</td>
-      <td>${esc(x.note||'')}</td>
-      <td class="n">${x.attendees.length}</td>
-      <td class="n">${x.cost?money(x.cost):'—'}</td>
-      <td class="names">${esc(x.attendees.join('、'))||'—'}</td>
-    </tr>`;
+    <div class="rec">
+      <div class="rec-top">
+        <div class="rec-l">
+          <span class="rec-no">${i+1}</span>
+          <b class="rec-date">${esc(x.date||'—')}</b>
+          <span class="rec-kind ${isMatch?'m':''}">${isMatch?'比赛':'训练'}</span>
+          ${x.note?`<span class="rec-note">${esc(x.note)}</span>`:''}
+        </div>
+        <div class="rec-r">
+          <span>${x.attendees.length} 人</span>
+          ${x.cost?`<span class="rec-cost">${money(x.cost)}</span>`:''}
+        </div>
+      </div>
+      <div class="rec-names">${esc(x.attendees.join('、'))||'—'}</div>
+    </div>`;
   }).join('');
 
   return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <title>${esc(t.name)} 训练记录</title>
 <style>
-@page{size:A4;margin:14mm}
+@page{size:A4;margin:15mm}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  color:#0a0e1a;font-size:11px;line-height:1.55;padding:4px}
+  color:#0a0e1a;font-size:11.5px;line-height:1.6;padding:4px}
 .hd{display:flex;justify-content:space-between;align-items:flex-end;
   border-bottom:2px solid #0a0e1a;padding-bottom:12px;margin-bottom:16px}
 h1{font-size:21px;font-weight:800;letter-spacing:-.02em}
 .sub{font-size:10.5px;color:#666;margin-top:4px}
 .meta{text-align:right;font-size:10.5px;color:#666;line-height:1.8}
-.box{background:#f2f5fb;border-radius:8px;padding:11px 16px;margin-bottom:16px;
-  display:flex;gap:26px;flex-wrap:wrap}
+.box{background:#f2f5fb;border-radius:8px;padding:11px 18px;margin-bottom:18px;
+  display:flex;gap:30px;flex-wrap:wrap}
 .box div span{display:block;font-size:9px;color:#666;letter-spacing:.1em;text-transform:uppercase}
 .box div b{font-size:15px;font-weight:800;color:#1e3a8a}
-table{width:100%;border-collapse:collapse;table-layout:fixed}
-th{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#666;
-  text-align:left;padding:0 6px 7px;border-bottom:1.5px solid #0a0e1a}
-td{padding:7px 6px;border-bottom:1px solid #e6e2d8;vertical-align:top}
-.n{text-align:right;font-variant-numeric:tabular-nums}
-.nowrap{white-space:nowrap}
-.names{font-size:10px;color:#444;line-height:1.7;word-break:break-all}
-.mt{font-size:9.5px;color:#b0762a;border:1px solid #e0c99a;background:#fbf2e3;
-  padding:1px 5px;border-radius:4px}
-tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;padding-top:9px}
-.ft{margin-top:20px;padding-top:10px;border-top:1px solid #e6e2d8;
+
+.rec{padding:10px 0;border-bottom:1px solid #e6e2d8;page-break-inside:avoid}
+.rec:first-child{padding-top:0}
+.rec-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
+.rec-l{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0}
+.rec-no{font-size:10px;color:#aaa;font-variant-numeric:tabular-nums;
+  min-width:16px;display:inline-block}
+.rec-date{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.rec-kind{font-size:9.5px;padding:1px 7px;border-radius:4px;
+  background:#eef1f6;color:#555;border:1px solid #dde2ea}
+.rec-kind.m{color:#b0762a;border-color:#e0c99a;background:#fbf2e3}
+.rec-note{font-size:11px;color:#666}
+.rec-r{display:flex;gap:12px;white-space:nowrap;font-size:11.5px;color:#444;
+  font-variant-numeric:tabular-nums}
+.rec-cost{font-weight:700;color:#1e3a8a}
+.rec-names{font-size:11px;color:#444;line-height:1.8;margin-top:5px;
+  padding-left:25px;word-break:break-word}
+
+.tot{display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;
+  border-top:2px solid #0a0e1a;font-weight:800;font-size:12.5px}
+.tot-r{display:flex;gap:20px;font-variant-numeric:tabular-nums}
+.ft{margin-top:22px;padding-top:10px;border-top:1px solid #e6e2d8;
   font-size:9.5px;color:#999}
-tr{page-break-inside:avoid}
 </style></head><body>
 <div class="hd">
   <div>
@@ -2361,70 +2433,125 @@ tr{page-break-inside:avoid}
   </div>
   <div class="meta">
     导出日期 ${day}<br>
-    ${s.trainCount} 场训练${s.matchCount?` · ${s.matchCount} 场比赛`:''}
+    ${nTrain} 场训练${nMatch?` · ${nMatch} 场比赛`:''}
   </div>
 </div>
 
 <div class="box">
-  <div><span>场次</span><b>${s.sessionCount}</b></div>
-  <div><span>总人次</span><b>${s.totalHeadcount}</b></div>
-  <div><span>参与人数</span><b>${s.peopleCount}</b></div>
-  <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
+  <div><span>场次</span><b>${list.length}</b></div>
+  <div><span>总人次</span><b>${head}</b></div>
+  <div><span>参与人数</span><b>${names.size}</b></div>
+  ${costs?`<div><span>费用合计</span><b>${money(costs)}</b></div>`:''}
 </div>
 
-<table>
-  <colgroup>
-    <col style="width:26px"><col style="width:66px"><col style="width:42px">
-    <col style="width:78px"><col style="width:34px"><col style="width:52px"><col>
-  </colgroup>
-  <thead><tr>
-    <th class="n">#</th><th>日期</th><th>类型</th><th>备注</th>
-    <th class="n">人数</th><th class="n">费用</th><th>出勤名单</th>
-  </tr></thead>
-  <tbody>${rows}</tbody>
-  <tfoot><tr>
-    <td colspan="4">合计 ${list.length} 场</td>
-    <td class="n">${s.totalHeadcount}</td>
-    <td class="n">${money(s.totalCost)}</td>
-    <td></td>
-  </tr></tfoot>
-</table>
+${blocks || '<div style="color:#999;padding:30px 0;text-align:center">没有选中任何场次</div>'}
+
+<div class="tot">
+  <span>合计 ${list.length} 场</span>
+  <div class="tot-r">
+    <span>${head} 人次</span>
+    ${costs?`<span>${money(costs)}</span>`:''}
+  </div>
+</div>
 
 <div class="ft">${esc(t.name)}${t.startDate||t.endDate?`　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}</div>
 </body></html>`;
 }
 
 /* ---------- PDF 预览 / 下载 ---------- */
-let pdfKind = 'fee';   // 记住当前预览的是哪种，下载时用
+let pdfKind  = 'fee';        // 'fee' | 'session'
+let pdfTerm  = null;         // 当前报表的学期对象
+let pdfItems = [];           // [{id,label,meta,data}]
+let pdfPick  = new Set();    // 选中的 id
+let pdfName  = '报表';
 
-$('btnSessPdf').onclick = ()=>{
-  const t = T();
-  if(!t || !t.sessions.length) return toast('没有数据', true);
-  pdfKind = 'session';
-  $('pdfTitle').textContent = `${t.name}　训练记录`;
-  const f = $('pdfFrame');
-  f.srcdoc = buildSessionReport(t);
+/** 打开预览（items 里每一项都能单独勾选） */
+function openPdf({ kind, term, title, fileName, items }){
+  pdfKind  = kind;
+  pdfTerm  = term;
+  pdfName  = fileName;
+  pdfItems = items;
+  pdfPick  = new Set(items.map(x=>x.id));   // 默认全选
+  $('pdfTitle').textContent = title;
+  renderPdfPicks();
+  refreshPdf();
   $('pdfModal').classList.add('on');
+}
+
+function renderPdfPicks(){
+  const box = $('pdfPickList');
+  box.innerHTML = pdfItems.map(x=>`
+    <label class="pdf-pick">
+      <input type="checkbox" data-pk="${esc(String(x.id))}" ${pdfPick.has(x.id)?'checked':''} />
+      <span>
+        <span class="pdf-pick-name">${esc(x.label)}</span>
+        ${x.meta?`<span class="pdf-pick-meta">${esc(x.meta)}</span>`:''}
+      </span>
+    </label>`).join('');
+
+  box.querySelectorAll('[data-pk]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const item = pdfItems.find(x=>String(x.id) === cb.dataset.pk);
+      if(!item) return;
+      cb.checked ? pdfPick.add(item.id) : pdfPick.delete(item.id);
+      updatePickCount();
+      refreshPdf();
+    };
+  });
+  updatePickCount();
+}
+
+function updatePickCount(){
+  const n = pdfPick.size, all = pdfItems.length;
+  $('pdfPickCount').textContent = n === all ? `包含全部 ${all}` : `已选 ${n} / ${all}`;
+}
+
+function refreshPdf(){
+  const f = $('pdfFrame');
+  const chosen = pdfItems.filter(x=>pdfPick.has(x.id)).map(x=>x.data);
+  f.srcdoc = pdfKind === 'session'
+    ? buildSessionReport(pdfTerm, chosen)
+    : buildReport(pdfTerm, chosen);
   f.onload = ()=>{
     try{ f.style.height = Math.max(600, f.contentDocument.body.scrollHeight + 60) + 'px'; }catch(e){}
   };
+}
+
+$('pdfPickAll').onclick  = ()=>{ pdfPick = new Set(pdfItems.map(x=>x.id)); renderPdfPicks(); refreshPdf(); };
+$('pdfPickNone').onclick = ()=>{ pdfPick = new Set(); renderPdfPicks(); refreshPdf(); };
+
+/* 训练记录 */
+$('btnSessPdf').onclick = ()=>{
+  const t = T();
+  if(!t || !t.sessions.length) return toast('没有数据', true);
+  const list = [...t.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  openPdf({
+    kind:'session', term:t,
+    title:`${t.name}　训练记录`,
+    fileName:`${t.name}-训练记录-${today()}`,
+    items: list.map(x=>({
+      id: x.id,
+      label: `${x.date}${x.kind==='match'?'  比赛':''}`,
+      meta: `${x.attendees.length} 人${x.cost?` · ${money(x.cost)}`:''}${x.note?` · ${x.note}`:''}`,
+      data: x,
+    })),
+  });
 };
 
 $('btnExportPdf').onclick = ()=>{
   const t = T();
   if(!t || !t.people.length) return toast('没有数据', true);
-  pdfKind = 'fee';
-  $('pdfTitle').textContent = `${t.name}　费用结算`;
-  const f = $('pdfFrame');
-  f.srcdoc = buildReport(t);
-  $('pdfModal').classList.add('on');
-  // 让 iframe 高度贴合内容
-  f.onload = ()=>{
-    try{
-      const h = f.contentDocument.body.scrollHeight;
-      f.style.height = Math.max(600, h + 60) + 'px';
-    }catch(e){}
-  };
+  openPdf({
+    kind:'fee', term:t,
+    title:`${t.name}　费用结算`,
+    fileName:`${t.name}-费用结算-${today()}`,
+    items: t.people.map(p=>({
+      id: p.name,
+      label: p.name,
+      meta: `${p.count} 次 · 未付 ${money(p.balance)}`,
+      data: p,
+    })),
+  });
 };
 
 function closePdf(){ $('pdfModal').classList.remove('on'); }
@@ -2450,15 +2577,13 @@ function loadScript(src){
 }
 
 $('pdfDownload').onclick = async ()=>{
-  const t = T();
-  if(!t) return;
+  if(!pdfPick.size) return toast('至少选一项', true);
   const btn = $('pdfDownload');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 生成中';
   try{
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js');
     const doc = $('pdfFrame').contentDocument;
-    const kindName = pdfKind === 'session' ? '训练记录' : '费用结算';
-    const name = `${t.name}-${kindName}-${today()}.pdf`;
+    const name = `${pdfName}.pdf`;
     await html2pdf().set({
       margin: 0,
       filename: name,
