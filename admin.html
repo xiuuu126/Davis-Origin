@@ -588,6 +588,7 @@
       <div class="card">
         <div class="card-head">
           <div><div class="card-title">训练记录</div><div class="card-sub" id="listSub">共 0 场</div></div>
+          <button class="btn ghost sm" id="btnSessPdf">导出 PDF</button>
         </div>
         <div id="sessList"></div>
       </div>
@@ -754,7 +755,7 @@
     <div class="pdf-hd">
       <div>
         <h3 id="pdfTitle">费用结算</h3>
-        <div class="pdf-sub">A4 · 预览效果就是下载出来的样子</div>
+        <div class="pdf-sub">A4 · 预览效果</div>
       </div>
       <div class="pdf-actions">
         <button class="btn" id="pdfDownload">下载 PDF</button>
@@ -796,7 +797,7 @@
       <label>付款方式</label>
       <div class="tag-pick" id="payTags"></div>
     </div>
-    <div class="field"><label>备注（可选）</label><input type="text" id="payNote" placeholder="比如转账后四位" /></div>
+    <div class="field"><label>备注</label><input type="text" id="payNote" placeholder="可选" /></div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button class="btn ok" id="payConfirm" style="flex:1">确认收款</button>
       <button class="btn ghost" id="payCancel">取消</button>
@@ -1116,7 +1117,7 @@ function renderTermBar(){
 
   $('termHint').innerHTML = t
     ? `全部 ${D.overall.termCount} 个学期 · 累计待收 <b>${money(D.overall.totalUnpaid)}</b>`
-    : '先新建一个学期才能录训练';
+    : '新建一个学期才能录训练';
 }
 
 function render(){
@@ -1162,7 +1163,7 @@ function renderTerms(){
   const box = $('termList');
   if(!box) return;
   if(!D.terms.length){
-    box.innerHTML = '<div class="empty">还没有学期，点上面的「+ 新学期」建一个</div>';
+    box.innerHTML = '<div class="empty">还没有学期，请新建一个学期</div>';
     return;
   }
   box.innerHTML = D.terms.map(t=>{
@@ -1232,9 +1233,8 @@ function renderTerms(){
       openEdit({
         title: `删除「${t.name}」？`,
         sub: n
-          ? `这个学期下面有 <b style="color:var(--danger)">${n}</b> 场训练，删不掉。<br>
-             要删的话先把这些训练删了，或者改到别的学期。`
-          : '还没有训练记录，可以放心删。',
+          ? `这个学期下面有 <b style="color:var(--danger)">${n}</b> 场训练，无法删除`
+          : '还没有训练记录，可以删除',
         fields: [], okText: '确认删除', danger: true,
         onSubmit: async ()=>{
           await api('/terms/'+t.id,{method:'DELETE'});
@@ -1334,13 +1334,10 @@ function renderCodes(){
       openEdit({
         title: `删除「${name}」？`,
         sub: n
-          ? `这个人有 <b style="color:var(--danger)">${n}</b> 次出勤记录。<br>
-             删掉之后他从名册消失、查不了自己的账，<b>但已有的出勤和收款记录会保留</b>（费用还是照算）。<br>
-             如果只是想让他查不了，把查询码清空就行，不用删。`
-          : '还没有出勤记录，可以放心删。',
+          ? `这个人有 <b style="color:var(--danger)">${n}</b> 次出勤记录`
+          : '还没有出勤记录，可以删除',
         fields: [
-          {key:'confirm', label:`确认请输入球员姓名`, value:'', placeholder:name,
-           hint:'防手滑，必须打对才能删'}
+          {key:'confirm', label:`确认请输入球员姓名`, value:'', placeholder:name}
         ],
         okText: '确认删除',
         danger: true,
@@ -1541,8 +1538,8 @@ function renderTagKind(kind, boxId){
       openEdit({
         title:`删除「${t.name}」？`,
         sub: kind==='player'
-          ? '球员身上的这个分组会被清空，别的数据不受影响'
-          : '已有收款记录上的这个标签会被清空，金额不受影响',
+          ? '球员身上的此分组会被清空'
+          : '已有收款记录上的此标签会被清空',
         fields:[], okText:'确认删除', danger:true,
         onSubmit: async ()=>{
           await api('/tags/'+t.id,{method:'DELETE'});
@@ -1615,7 +1612,7 @@ function renderSessions(){
       openEdit({
         title: '删除这次训练？',
         sub: `<b>${esc(s.date)}</b>${s.note?`　${esc(s.note)}`:''}<br>
-              到场 <b>${s.attendees.length}</b> 人。删掉后这些人的出勤次数会减少，费用重新分摊。`,
+              到场 <b>${s.attendees.length}</b> 人`,
         fields: [], okText: '确认删除', danger: true,
         onSubmit: async ()=>{
           await api('/sessions/'+s.id,{method:'DELETE'});
@@ -1659,9 +1656,9 @@ function makeDatePicker(input, opts = {}){
   input.style.display = 'none';
   wrap.appendChild(input);
 
-  const btn = document.createElement('button');
-  btn.type = 'button';
+  const btn = document.createElement('div');
   btn.className = 'dp-input';
+  btn.tabIndex = 0;
   wrap.appendChild(btn);
 
   const pop = document.createElement('div');
@@ -1924,8 +1921,7 @@ function renderPayments(){
       if(!p) return;
       openEdit({
         title: '删除这笔收款？',
-        sub: `<b>${esc(p.player_name)}</b>　${money(p.amount)}　${esc(p.paid_at)}<br>
-              删掉后这个人的未付金额会加回去。`,
+        sub: `<b>${esc(p.player_name)}</b>　${money(p.amount)}　${esc(p.paid_at)}`,
         fields: [], okText: '确认删除', danger: true,
         onSubmit: async ()=>{
           await api('/payments/'+p.id,{method:'DELETE'});
@@ -1969,13 +1965,7 @@ function doMatch(autoDate){
     };
   });
 
-  if(parsed.skipped.length){
-    skipBox.style.display='block';
-    skipBox.innerHTML = `<div class="hint" style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">`+
-      `已跳过 ${parsed.skipped.length} 行（当成日期 / 时间 / 注意事项）：<br>`+
-      parsed.skipped.slice(0,8).map(s=>`<code>${esc(s)}</code>`).join('　')+
-      (parsed.skipped.length>8?' …':'')+`</div>`;
-  } else skipBox.style.display='none';
+  skipBox.style.display = 'none';
 }
 
 /* ===================== Tabs ===================== */
@@ -2036,9 +2026,10 @@ $('btnStatNone').onclick = ()=>{ statPick = new Set(); renderStats(); };
 
 $('btnStatPdf').onclick = ()=>{
   const sel = D.terms.filter(t=>statPick.has(t.id));
-  if(!sel.length) return toast('先选学期', true);
+  if(!sel.length) return toast('请先选择学期', true);
   const agg = aggregate(sel);
   if(!agg.people.length) return toast('没有数据', true);
+  pdfKind = 'fee';
   $('pdfTitle').textContent = '跨学期合计';
   const f = $('pdfFrame');
   f.srcdoc = buildReport({
@@ -2095,11 +2086,11 @@ $('btnSaveSess').onclick = async ()=>{
   const date = $('fDate').value;
   const cost = parseFloat($('fCost').value) || 0;
   const note = $('fNote').value.trim();
-  if(!date) return toast('请填训练日期', true);
+  if(!date) return toast('请填写训练日期', true);
   if(!pendingMatch) doMatch(false);
   if(!pendingMatch || !pendingMatch.matched.length) return toast('没有识别到有效名字', true);
 
-  if(!curTermId) return toast('请先建一个学期', true);
+  if(!curTermId) return toast('请新建一个学期', true);
 
   const wasEditing = !!editingId;     // resetForm 会清掉 editingId，先记下来
   const wasMatch   = curKind === 'match';
@@ -2205,7 +2196,7 @@ $('btnBulkPay').onclick = ()=>{
     fields: [
       {key:'paidAt', label:'收款日期', type:'date', value:today()},
       {key:'tag', label:'付款方式', type:'tags', value:'', options:payTags},
-      {key:'note', label:'备注', value:'', placeholder:'可留空'},
+      {key:'note', label:'备注', value:'', placeholder:'可选'},
     ],
     okText: `确认收 ${money(sum)}`,
     onSubmit: async v=>{
@@ -2312,10 +2303,117 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
   return html;
 }
 
+/* 生成训练记录 HTML */
+function buildSessionReport(t){
+  const s = t.summary;
+  const day = new Date().toLocaleDateString('zh-CN');
+  const list = [...t.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+
+  const rows = list.map((x,i)=>{
+    const isMatch = x.kind === 'match';
+    const per = isMatch && x.attendees.length ? x.cost/x.attendees.length : 0;
+    return `
+    <tr>
+      <td class="n">${i+1}</td>
+      <td class="nowrap"><b>${esc(x.date||'—')}</b></td>
+      <td>${isMatch?'<span class="mt">比赛</span>':'训练'}</td>
+      <td>${esc(x.note||'')}</td>
+      <td class="n">${x.attendees.length}</td>
+      <td class="n">${x.cost?money(x.cost):'—'}</td>
+      <td class="names">${esc(x.attendees.join('、'))||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>${esc(t.name)} 训练记录</title>
+<style>
+@page{size:A4;margin:14mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:#0a0e1a;font-size:11px;line-height:1.55;padding:4px}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid #0a0e1a;padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.sub{font-size:10.5px;color:#666;margin-top:4px}
+.meta{text-align:right;font-size:10.5px;color:#666;line-height:1.8}
+.box{background:#f2f5fb;border-radius:8px;padding:11px 16px;margin-bottom:16px;
+  display:flex;gap:26px;flex-wrap:wrap}
+.box div span{display:block;font-size:9px;color:#666;letter-spacing:.1em;text-transform:uppercase}
+.box div b{font-size:15px;font-weight:800;color:#1e3a8a}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#666;
+  text-align:left;padding:0 6px 7px;border-bottom:1.5px solid #0a0e1a}
+td{padding:7px 6px;border-bottom:1px solid #e6e2d8;vertical-align:top}
+.n{text-align:right;font-variant-numeric:tabular-nums}
+.nowrap{white-space:nowrap}
+.names{font-size:10px;color:#444;line-height:1.7;word-break:break-all}
+.mt{font-size:9.5px;color:#b0762a;border:1px solid #e0c99a;background:#fbf2e3;
+  padding:1px 5px;border-radius:4px}
+tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;padding-top:9px}
+.ft{margin-top:20px;padding-top:10px;border-top:1px solid #e6e2d8;
+  font-size:9.5px;color:#999}
+tr{page-break-inside:avoid}
+</style></head><body>
+<div class="hd">
+  <div>
+    <h1>${esc(t.name)}　训练记录</h1>
+    <div class="sub">Davis Origin · 戴维斯原点足球俱乐部</div>
+  </div>
+  <div class="meta">
+    导出日期 ${day}<br>
+    ${s.trainCount} 场训练${s.matchCount?` · ${s.matchCount} 场比赛`:''}
+  </div>
+</div>
+
+<div class="box">
+  <div><span>场次</span><b>${s.sessionCount}</b></div>
+  <div><span>总人次</span><b>${s.totalHeadcount}</b></div>
+  <div><span>参与人数</span><b>${s.peopleCount}</b></div>
+  <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
+</div>
+
+<table>
+  <colgroup>
+    <col style="width:26px"><col style="width:66px"><col style="width:42px">
+    <col style="width:78px"><col style="width:34px"><col style="width:52px"><col>
+  </colgroup>
+  <thead><tr>
+    <th class="n">#</th><th>日期</th><th>类型</th><th>备注</th>
+    <th class="n">人数</th><th class="n">费用</th><th>出勤名单</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+  <tfoot><tr>
+    <td colspan="4">合计 ${list.length} 场</td>
+    <td class="n">${s.totalHeadcount}</td>
+    <td class="n">${money(s.totalCost)}</td>
+    <td></td>
+  </tr></tfoot>
+</table>
+
+<div class="ft">${esc(t.name)}${t.startDate||t.endDate?`　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}</div>
+</body></html>`;
+}
+
 /* ---------- PDF 预览 / 下载 ---------- */
+let pdfKind = 'fee';   // 记住当前预览的是哪种，下载时用
+
+$('btnSessPdf').onclick = ()=>{
+  const t = T();
+  if(!t || !t.sessions.length) return toast('没有数据', true);
+  pdfKind = 'session';
+  $('pdfTitle').textContent = `${t.name}　训练记录`;
+  const f = $('pdfFrame');
+  f.srcdoc = buildSessionReport(t);
+  $('pdfModal').classList.add('on');
+  f.onload = ()=>{
+    try{ f.style.height = Math.max(600, f.contentDocument.body.scrollHeight + 60) + 'px'; }catch(e){}
+  };
+};
+
 $('btnExportPdf').onclick = ()=>{
   const t = T();
   if(!t || !t.people.length) return toast('没有数据', true);
+  pdfKind = 'fee';
   $('pdfTitle').textContent = `${t.name}　费用结算`;
   const f = $('pdfFrame');
   f.srcdoc = buildReport(t);
@@ -2359,7 +2457,8 @@ $('pdfDownload').onclick = async ()=>{
   try{
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js');
     const doc = $('pdfFrame').contentDocument;
-    const name = `${t.name}-费用结算-${today()}.pdf`;
+    const kindName = pdfKind === 'session' ? '训练记录' : '费用结算';
+    const name = `${t.name}-${kindName}-${today()}.pdf`;
     await html2pdf().set({
       margin: 0,
       filename: name,
