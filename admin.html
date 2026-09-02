@@ -172,14 +172,16 @@
   .dd-item.on .dd-item-meta{color:var(--accent);opacity:.75}
 
   /* ===== 自定义日历 ===== */
-  .dp{position:relative;display:block;width:100%}
-  .dp-input{display:block;width:100%;box-sizing:border-box;
-    height:42px;line-height:1;padding:0 14px;
+  .dp{position:relative;display:block;width:100%;align-self:start}
+  .dp-input{display:flex;align-items:center;justify-content:flex-start;
+    width:100%;box-sizing:border-box;
+    height:42px;min-height:42px;max-height:42px;
+    line-height:1;padding:0 14px;margin:0;
     border:1px solid var(--line);border-radius:10px;
     background:var(--bg-soft);color:var(--ink);
     cursor:pointer;font-family:inherit;font-size:15px;text-align:left;
     font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;
-    text-overflow:ellipsis;
+    text-overflow:ellipsis;-webkit-appearance:none;appearance:none;
     transition:border-color .2s,box-shadow .2s,background .2s}
   .dp-input:hover{border-color:var(--accent)}
   .dp-input:focus,.dp.open .dp-input{outline:none;border-color:var(--accent);
@@ -838,6 +840,29 @@ function T(){
   return D.terms.find(t => t.id === curTermId) || D.terms[0];
 }
 
+/** 时间上最近的学期：先看谁的日期范围包含今天，
+ *  没有就按开始日期最新的，再没有就按最后建的 */
+function latestTerm(){
+  if(!D || !D.terms.length) return null;
+  const now = today();
+
+  const covering = D.terms.filter(t =>
+    t.startDate && t.endDate && t.startDate <= now && now <= t.endDate);
+  if(covering.length)
+    return covering.sort((a,b)=> b.startDate.localeCompare(a.startDate))[0];
+
+  const dated = D.terms.filter(t => t.startDate);
+  if(dated.length){
+    // 已经开始的里面挑最新的；都没开始就挑最早要开始的
+    const started = dated.filter(t => t.startDate <= now);
+    if(started.length)
+      return started.sort((a,b)=> b.startDate.localeCompare(a.startDate))[0];
+    return dated.sort((a,b)=> a.startDate.localeCompare(b.startDate))[0];
+  }
+  // 都没填日期 → 最后创建的（后端按 id DESC 返回）
+  return D.terms[0];
+}
+
 /* ===================== 工具 ===================== */
 const $ = id => document.getElementById(id);
 
@@ -1098,8 +1123,13 @@ function render(){
   if(!D) return;
   if(!D.terms.length){ curTermId = null; }
   else if(!D.terms.some(t=>t.id===curTermId)){
-    curTermId = D.activeTermId || D.terms[0].id;
+    // 优先恢复上次看的，其次进时间上最近的那个
+    const saved = Number(localStorage.getItem('do_last_term') || 0);
+    curTermId = D.terms.some(t=>t.id===saved)
+      ? saved
+      : (latestTerm() || D.terms[0]).id;
   }
+  if(curTermId) localStorage.setItem('do_last_term', String(curTermId));
   renderTermBar();
 
   const t = T();
@@ -1970,13 +2000,12 @@ function newTerm(){
   const season = m < 5 ? '春季' : m < 7 ? '夏季' : '秋季';
   openEdit({
     title: '新建学期',
-    sub: '这个学期的费用会单独结算，跟别的学期不混在一起',
     fields: [
       {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`},
       {key:'totalCost', label:'本学期训练总费用', type:'number', value:''},
       {key:'startDate', label:'开始日期', type:'date', value:''},
       {key:'endDate', label:'结束日期', type:'date', value:''},
-      {key:'resetNumbers', label:'清空所有球衣号', type:'check', value:false},
+      {key:'resetNumbers', label:'清空所有球衣号码', type:'check', value:false},
     ],
     okText: '创建',
     onSubmit: async v=>{
