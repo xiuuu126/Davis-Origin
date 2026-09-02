@@ -35,9 +35,11 @@
   .field{text-align:left;margin-bottom:14px}
   .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;
     text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-  .field input,.field textarea,.field select{width:100%;padding:11px 14px;border:1px solid var(--line);
-    border-radius:10px;background:var(--bg-soft);color:var(--ink);
+  .field input,.field textarea,.field select{width:100%;box-sizing:border-box;
+    padding:0 14px;height:42px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-soft);color:var(--ink);font-size:15px;
     transition:border-color .2s,box-shadow .2s,background .2s}
+  .field textarea{height:auto;padding:11px 14px;line-height:1.6;resize:vertical}
   .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);
     box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;
@@ -170,11 +172,14 @@
   .dd-item.on .dd-item-meta{color:var(--accent);opacity:.75}
 
   /* ===== 自定义日历 ===== */
-  .dp{position:relative}
-  .dp-input{width:100%;padding:11px 14px;border:1px solid var(--line);
-    border-radius:10px;background:var(--bg-soft);color:var(--ink);
+  .dp{position:relative;display:block;width:100%}
+  .dp-input{display:block;width:100%;box-sizing:border-box;
+    height:42px;line-height:1;padding:0 14px;
+    border:1px solid var(--line);border-radius:10px;
+    background:var(--bg-soft);color:var(--ink);
     cursor:pointer;font-family:inherit;font-size:15px;text-align:left;
-    font-variant-numeric:tabular-nums;
+    font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;
     transition:border-color .2s,box-shadow .2s,background .2s}
   .dp-input:hover{border-color:var(--accent)}
   .dp-input:focus,.dp.open .dp-input{outline:none;border-color:var(--accent);
@@ -182,7 +187,7 @@
   .dp-input.empty{color:var(--muted)}
   .dp-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:70;
     background:var(--card);border:1px solid var(--line);border-radius:14px;
-    box-shadow:0 16px 40px rgba(13,18,36,.16);padding:14px;width:268px;display:none}
+    box-shadow:0 16px 40px rgba(13,18,36,.16);padding:12px;width:246px;display:none}
   .dp.open .dp-pop{display:block;animation:ddIn .18s cubic-bezier(.4,0,.2,1)}
   .dp-hd{display:flex;align-items:center;justify-content:space-between;
     margin-bottom:10px;gap:8px}
