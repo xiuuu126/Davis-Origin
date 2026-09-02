@@ -57,6 +57,9 @@
   .btn.ok{background:var(--ok);border-color:var(--ok)}
   .btn.ok:hover{background:#12604a;box-shadow:0 8px 18px rgba(23,121,94,.25)}
   .btn.sm{padding:7px 13px;font-size:12.5px;border-radius:8px}
+  /* 只有图标的小按钮（垃圾桶） */
+  .btn.icon{padding:7px 9px;line-height:0}
+  .btn.icon svg{width:14px;height:14px;display:block}
   .btn.btn-danger-solid{background:var(--danger);border-color:var(--danger);color:#fff}
   .btn.btn-danger-solid:hover{background:#933a3a;box-shadow:0 8px 18px rgba(176,70,70,.28)}
   .newdot{display:inline-block;width:6px;height:6px;border-radius:50%;
@@ -79,8 +82,13 @@
   .topbar-actions{display:flex;gap:8px;align-items:center}
   main.wrap{max-width:1280px;margin:0 auto;padding:28px 32px 64px}
 
-  .tabs{display:flex;gap:6px;margin-bottom:22px;overflow-x:auto;
-    background:rgba(13,18,36,.035);padding:5px;border-radius:12px}
+  /* 滑到顶栏底下就钉住 */
+  .tabs{display:flex;gap:6px;overflow-x:auto;
+    background:#efede9;padding:5px;border-radius:12px;
+    position:sticky;top:var(--topbar-h,63px);z-index:30;margin-bottom:22px;
+    box-shadow:0 0 0 8px var(--bg);
+    transition:box-shadow .2s}
+  .tabs.stuck{box-shadow:0 0 0 8px var(--bg), 0 8px 18px -6px rgba(13,18,36,.18)}
   .tab{padding:9px 18px;border:none;background:none;color:var(--muted);font-weight:600;
     cursor:pointer;white-space:nowrap;border-radius:8px;font-size:14px;
     transition:color .2s,background .2s,box-shadow .2s}
@@ -1122,6 +1130,11 @@ function setDate(input, val){
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* 列表里的删除按钮统一用垃圾桶 */
+const TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>`;
+
 function toast(msg, bad){
   const t = $('toast');
   t.textContent = msg;
@@ -1392,7 +1405,7 @@ function renderTerms(){
       <div class="sess-actions">
         ${t.isActive?'':`<button class="btn ghost sm" data-activate="${t.id}">设为当前</button>`}
         <button class="btn ghost sm" data-rename="${t.id}">修改</button>
-        <button class="btn danger sm" data-delterm="${t.id}">删除</button>
+        <button class="btn danger sm icon" data-delterm="${t.id}" title="删除学期">${TRASH}</button>
       </div>
     </div>`;
   }).join('');
@@ -1566,7 +1579,7 @@ function renderCodes(){
       <td class="num">${n ? `<span class="cnt-badge">${n}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td class="num" style="white-space:nowrap">
         <button class="btn ghost sm" data-code="${esc(c.name)}">编辑</button>
-        <button class="btn danger sm" data-delplayer="${esc(c.name)}" style="margin-left:4px">删除</button>
+        <button class="btn danger sm icon" data-delplayer="${esc(c.name)}" style="margin-left:4px" title="删除球员">${TRASH}</button>
       </td>
     </tr>`;
   }).join('');
@@ -1626,7 +1639,7 @@ function renderCodes(){
                const py = await toPinyin(who);
                if(!py) throw new Error('重置失败');
                btn.disabled = false; btn.textContent = old;
-               if(!await confirmMini(`把「${who}」的查询码重置为 ${py}？`, '确认重置')) return;
+               if(!await confirmMini(`确认重置「${who}」的查询码？`, '确认重置')) return;
                codeInput.value = py;
                $('emErr').textContent = '';
                codeInput.focus();
@@ -1780,7 +1793,7 @@ function renderTagKind(kind, boxId){
         ${kind==='player' ? `${used} 人` : `用了 ${used} 次`}</span>
       <div style="flex:1"></div>
       <button class="btn ghost sm" data-edittag="${t.id}">编辑</button>
-      <button class="btn danger sm" data-deltag="${t.id}">删除</button>
+      <button class="btn danger sm icon" data-deltag="${t.id}" title="删除分组">${TRASH}</button>
     </div>`;
   }).join('');
 
@@ -1876,7 +1889,7 @@ function renderSessions(){
       </div>
       <div class="sess-actions">
         <button class="btn ghost sm" data-edit="${s.id}">编辑</button>
-        <button class="btn danger sm" data-del="${s.id}">删除</button>
+        <button class="btn danger sm icon" data-del="${s.id}" title="删除记录">${TRASH}</button>
       </div>
     </div>`;
   }).join('');
@@ -2204,7 +2217,7 @@ function renderPayments(){
       <td class="num money clear">${money(p.amount)}</td>
       <td>${p.tag?`<span class="ptag" style="${tagStyle(p.tag,'payment')}">${esc(p.tag)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
       <td style="color:var(--muted);font-size:13px">${esc(p.note||'—')}</td>
-      <td class="num"><button class="btn danger sm" data-delpay="${p.id}">删</button></td>
+      <td class="num"><button class="btn danger sm icon" data-delpay="${p.id}" title="删除这笔">${TRASH}</button></td>
     </tr>`).join('');
   body.querySelectorAll('[data-delpay]').forEach(b=>{
     b.onclick = ()=>{
@@ -2294,8 +2307,33 @@ function updateMatchCount(){
 function switchTab(n){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===n));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='tab-'+n));
+  // 换页签时滚回目录栏，不然会停在半空
+  const tabs = document.querySelector('.tabs');
+  if(tabs && tabs.getBoundingClientRect().top < topbarH()) {
+    window.scrollTo({ top: tabs.offsetTop - topbarH(), behavior:'auto' });
+  }
 }
 document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>switchTab(t.dataset.tab));
+
+/* 目录栏钉在顶栏底下：量一下顶栏多高，钉住时加个阴影 */
+function topbarH(){
+  const el = document.querySelector('.topbar');
+  return el ? el.getBoundingClientRect().height : 63;
+}
+function syncTabsTop(){
+  document.documentElement.style.setProperty('--topbar-h', topbarH() + 'px');
+}
+function watchTabsStuck(){
+  const tabs = document.querySelector('.tabs');
+  if(!tabs) return;
+  const onScroll = ()=>{
+    tabs.classList.toggle('stuck', tabs.getBoundingClientRect().top <= topbarH() + 1);
+  };
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+}
+window.addEventListener('resize', syncTabsTop);
+syncTabsTop();
 
 /* ===================== 事件 ===================== */
 /* 学期切换 / 新建 */
@@ -2865,6 +2903,7 @@ async function boot(){
     $('apiWarn').innerHTML = '';
     upgradeDates();          // 主界面的日期框换成网页日历
     resetForm();
+    syncTabsTop(); watchTabsStuck();
   }catch(e){
     $('apiWarn').innerHTML = `<div class="callout err"><b>连不上 API：</b>${esc(e.message)}<br>
       检查 Worker 是否部署、路由是否配好。</div>`;
