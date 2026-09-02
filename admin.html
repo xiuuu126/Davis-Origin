@@ -478,6 +478,15 @@
   .modal-actions{display:flex;gap:10px;margin-top:22px}
   .modal-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
 
+  /* 小确认框：可以叠在编辑弹窗上面 */
+  .mini-bg{position:fixed;inset:0;background:rgba(10,14,26,.4);backdrop-filter:blur(2px);
+    display:none;place-items:center;z-index:200;padding:24px}
+  .mini-bg.on{display:grid;animation:mfade .16s ease}
+  .mini{background:var(--card);border-radius:14px;padding:22px 24px;width:100%;max-width:320px;
+    box-shadow:0 24px 56px rgba(0,0,0,.28);animation:mup .2s cubic-bezier(.4,0,.2,1)}
+  .mini p{font-size:14px;line-height:1.6;margin-bottom:18px}
+  .mini-actions{display:flex;gap:9px}
+
   /* 标签选择 */
   .tag-pick{display:flex;flex-wrap:wrap;gap:7px}
   .tag-opt{padding:7px 14px;border:1px solid var(--line);border-radius:999px;
@@ -837,6 +846,17 @@
   </div>
 </div>
 
+<!-- 小确认框 -->
+<div class="mini-bg" id="miniModal">
+  <div class="mini">
+    <p id="miniText"></p>
+    <div class="mini-actions">
+      <button class="btn" id="miniOk" style="flex:1">确认</button>
+      <button class="btn ghost" id="miniCancel">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- 通用编辑弹窗 -->
 <div class="modal-bg" id="editModal">
   <div class="modal">
@@ -941,6 +961,32 @@ const $ = id => document.getElementById(id);
  *   → Promise<values|null>   点取消返回 null
  * onSubmit 里可以 throw 出错误信息，会显示在弹窗里而不关闭
  */
+/** 小确认框，可以叠在编辑弹窗上面。返回 true / false */
+function confirmMini(text, okText = '确认', danger = false){
+  return new Promise(resolve=>{
+    const bg = $('miniModal');
+    $('miniText').textContent = text;
+    $('miniOk').textContent = okText;
+    $('miniOk').classList.toggle('btn-danger-solid', !!danger);
+    bg.classList.add('on');
+    const close = v=>{
+      bg.classList.remove('on');
+      $('miniOk').onclick = null; $('miniCancel').onclick = null;
+      bg.onclick = null; document.removeEventListener('keydown', onKey);
+      resolve(v);
+    };
+    const onKey = e=>{
+      if(e.key === 'Escape'){ e.stopPropagation(); close(false); }
+      if(e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); close(true); }
+    };
+    $('miniOk').onclick = ()=>close(true);
+    $('miniCancel').onclick = ()=>close(false);
+    bg.onclick = e=>{ if(e.target === bg) close(false); };
+    document.addEventListener('keydown', onKey);
+    setTimeout(()=>$('miniOk').focus(), 30);
+  });
+}
+
 function openEdit({ title, sub = '', fields = [], okText = '保存', danger = false, onSubmit }) {
   const bg = $('editModal');
   $('emTitle').textContent = title;
@@ -1536,7 +1582,7 @@ function renderCodes(){
           ? `这个人有 <b style="color:var(--danger)">${n}</b> 次出勤记录`
           : '还没有出勤记录，可以删除',
         fields: [
-          {key:'confirm', label:`输入球员姓名，或输入「确认删除」`, value:'', placeholder:name}
+          {key:'confirm', label:`确认请输入球员姓名`, value:'', placeholder:name}
         ],
         okText: '确认删除',
         danger: true,
@@ -1574,29 +1620,19 @@ function renderCodes(){
              const who = (nameInput?.value || name).trim();
              if(!who) return;
 
-             // 第一次点：生成并要求再点一次确认
-             if(btn.dataset.pending){
-               codeInput.value = btn.dataset.pending;
-               btn.dataset.pending = '';
-               btn.textContent = '重置查询码';
-               btn.classList.remove('btn-danger-solid');
-               $('emErr').textContent = '';
-               codeInput.focus();
-               return;
-             }
              const old = btn.textContent;
              btn.disabled = true; btn.textContent = '生成中…';
              try{
                const py = await toPinyin(who);
-               if(!py) throw new Error('转不出拼音，手动填一个');
-               btn.dataset.pending = py;
-               btn.textContent = `确认改成 ${py}`;
-               btn.classList.add('btn-danger-solid');
-               $('emErr').textContent = '再点一次确认，或直接改上面的输入框';
+               if(!py) throw new Error('重置失败');
+               btn.disabled = false; btn.textContent = old;
+               if(!await confirmMini(`把「${who}」的查询码重置为 ${py}？`, '确认重置')) return;
+               codeInput.value = py;
+               $('emErr').textContent = '';
+               codeInput.focus();
              }catch(e){
                $('emErr').textContent = e.message;
-               btn.textContent = old;
-             }finally{ btn.disabled = false; }
+             }finally{ btn.disabled = false; btn.textContent = old; }
            }},
         ],
         onSubmit: async v=>{
@@ -2250,7 +2286,7 @@ function updateMatchCount(){
   $('matchCount').innerHTML =
     `计入 <b style="color:var(--ok)">${on.length}</b> 人` +
     (u ? ` · 其中 <b style="color:var(--warn)">${u}</b> 人不在名册里` : '') +
-    (a ? ` · 其中 <b style="color:var(--ok)">${a}</b> 人保存后加入名册` : '') +
+    (a ? ` · 其中 <b style="color:var(--ok)">${a}</b> 人保存后已加入名册` : '') +
     (excluded.size ? ` · 已排除 <b>${excluded.size}</b>` : '');
 }
 
@@ -2381,7 +2417,7 @@ $('btnSaveSess').onclick = async ()=>{
   if(strangers.length){
     await openEdit({
       title: `有 ${strangers.length} 人不在名册里`,
-      sub: '确认一下名字，清空则跳过',
+      sub: '请确认名字',
       fields: strangers.map((n,i)=>({ key:'n'+i, label:`第 ${i+1} 个`, value:n })),
       okText: '确认',
       onSubmit: async v=>{
@@ -2441,7 +2477,7 @@ $('btnAddPlayers').onclick = async (e)=>{
     $('fNewPlayers').value='';
     names.forEach(n=>newPlayers.add(n));
     await reload();
-    toast(`已添加 ${names.length} 人，查询码已自动生成`);
+    toast(`已添加 ${names.length} 人`);
   }catch(e){ toast(e.message,true); }
   finally{ btn.disabled = false; btn.textContent = old; }
 };
