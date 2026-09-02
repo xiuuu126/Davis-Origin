@@ -140,6 +140,78 @@
     letter-spacing:-.02em}
   .jersey.sm{min-width:24px;height:20px;font-size:11px;border-radius:5px}
 
+  /* ===== 自定义下拉 ===== */
+  .dd{position:relative;display:inline-block}
+  .dd-btn{display:flex;align-items:center;gap:10px;padding:9px 14px;
+    border:1px solid var(--line);border-radius:10px;background:var(--bg-soft);
+    color:var(--ink);font-weight:600;font-size:14px;cursor:pointer;
+    min-width:200px;justify-content:space-between;font-family:inherit;
+    transition:border-color .2s,box-shadow .2s,background .2s}
+  .dd-btn:hover{border-color:var(--accent)}
+  .dd.open .dd-btn{border-color:var(--accent);background:#fff;
+    box-shadow:0 0 0 3px var(--accent-soft)}
+  .dd-btn .caret{width:8px;height:8px;border-right:1.8px solid var(--muted);
+    border-bottom:1.8px solid var(--muted);transform:rotate(45deg) translate(-2px,-2px);
+    transition:transform .25s;flex-shrink:0}
+  .dd.open .dd-btn .caret{transform:rotate(-135deg) translate(-3px,-3px);
+    border-color:var(--accent)}
+  .dd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:100%;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 14px 36px rgba(13,18,36,.14);padding:6px;z-index:60;
+    display:none;max-height:320px;overflow:auto;white-space:nowrap}
+  .dd.open .dd-menu{display:block;animation:ddIn .18s cubic-bezier(.4,0,.2,1)}
+  @keyframes ddIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  .dd-item{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:10px 13px;border-radius:8px;cursor:pointer;font-size:14px;
+    transition:background .15s,color .15s}
+  .dd-item:hover{background:var(--accent-soft);color:var(--accent)}
+  .dd-item.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .dd-item-meta{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .dd-item.on .dd-item-meta{color:var(--accent);opacity:.75}
+
+  /* ===== 自定义日历 ===== */
+  .dp{position:relative}
+  .dp-input{width:100%;padding:11px 14px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-soft);color:var(--ink);
+    cursor:pointer;font-family:inherit;font-size:15px;text-align:left;
+    font-variant-numeric:tabular-nums;
+    transition:border-color .2s,box-shadow .2s,background .2s}
+  .dp-input:hover{border-color:var(--accent)}
+  .dp-input:focus,.dp.open .dp-input{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+  .dp-input.empty{color:var(--muted)}
+  .dp-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:70;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 16px 40px rgba(13,18,36,.16);padding:14px;width:268px;display:none}
+  .dp.open .dp-pop{display:block;animation:ddIn .18s cubic-bezier(.4,0,.2,1)}
+  .dp-hd{display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;gap:8px}
+  .dp-title{font-weight:700;font-size:14.5px;letter-spacing:-.01em}
+  .dp-nav{display:flex;gap:4px}
+  .dp-nav button{width:28px;height:28px;border:1px solid var(--line);
+    background:var(--bg-soft);border-radius:7px;cursor:pointer;color:var(--ink-soft);
+    display:grid;place-items:center;font-size:12px;transition:all .18s;padding:0}
+  .dp-nav button:hover{border-color:var(--accent);color:var(--accent);
+    background:var(--accent-soft)}
+  .dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .dp-dow{text-align:center;font-size:10px;color:var(--muted);font-weight:700;
+    padding:6px 0;letter-spacing:.06em}
+  .dp-day{aspect-ratio:1;display:grid;place-items:center;border-radius:8px;
+    cursor:pointer;font-size:13px;font-variant-numeric:tabular-nums;
+    transition:background .15s,color .15s;border:1px solid transparent}
+  .dp-day:hover{background:var(--accent-soft);color:var(--accent)}
+  .dp-day.out{color:var(--line)}
+  .dp-day.today{border-color:var(--accent);font-weight:700}
+  .dp-day.on{background:var(--accent);color:#fff;font-weight:700}
+  .dp-day.on:hover{background:var(--accent-deep)}
+  .dp-ft{display:flex;gap:8px;margin-top:12px;padding-top:10px;
+    border-top:1px solid var(--line)}
+  .dp-ft button{flex:1;padding:7px;border:1px solid var(--line);background:var(--bg-soft);
+    border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--ink-soft);
+    font-family:inherit;transition:all .18s}
+  .dp-ft button:hover{border-color:var(--accent);color:var(--accent);
+    background:var(--accent-soft)}
+
   /* 弹窗里的勾选行 */
   .check-row{display:flex;align-items:flex-start;gap:11px;cursor:pointer;
     padding:13px 15px;border:1px solid var(--line);border-radius:11px;
@@ -364,6 +436,11 @@
 
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+  /* 浅色按钮上的转圈 */
+  .refresh-spin{display:inline-block;width:12px;height:12px;
+    border:2px solid rgba(30,58,138,.22);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;
+    margin-right:5px}
   @keyframes spin{to{transform:rotate(360deg)}}
   .loading{text-align:center;padding:80px 20px;color:var(--muted)}
 
@@ -390,7 +467,7 @@
     <form id="loginForm">
       <div class="field">
         <label>管理密码</label>
-        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••" />
+        <input type="password" id="loginPass" autocomplete="current-password" />
       </div>
       <button class="btn full" type="submit" id="loginBtn">登录</button>
       <div class="login-err" id="loginErr"></div>
@@ -408,7 +485,6 @@
       </div>
       <div class="topbar-actions">
         <button class="btn ghost sm" id="btnRefresh">刷新</button>
-        <button class="btn ghost sm" id="btnExport">备份</button>
         <button class="btn ghost sm" id="btnLogout">退出</button>
       </div>
     </div>
@@ -419,7 +495,12 @@
 
     <div class="term-bar">
       <div class="term-bar-label">当前学期</div>
-      <select id="termSelect"></select>
+      <div class="dd" id="termDd">
+        <button type="button" class="dd-btn" id="termDdBtn">
+          <span id="termDdLabel">—</span><span class="caret"></span>
+        </button>
+        <div class="dd-menu" id="termDdMenu"></div>
+      </div>
       <button class="btn ghost sm" id="btnNewTerm">+ 新学期</button>
       <div class="term-bar-spacer"></div>
       <div class="term-bar-hint" id="termHint"></div>
@@ -473,11 +554,11 @@
             <input type="number" id="fCost" step="0.01" min="0" placeholder="0" />
             <div class="hint" id="fCostHint" style="display:none"></div>
           </div>
-          <div class="field"><label>备注</label><input type="text" id="fNote" placeholder="可留空" /></div>
+          <div class="field"><label>备注</label><input type="text" id="fNote" placeholder="可选" /></div>
         </div>
         <div class="field">
-          <label>到场名单</label>
-          <textarea id="fNames" rows="9" placeholder="微信接龙整段粘进来&#10;&#10;5月10日训练&#10;时间：19:00-21:00&#10;1. 大二-何嘉伦&#10;2. 大二 刘彦君&#10;3. 朱超凡"></textarea>
+          <label>出勤名单</label>
+          <textarea id="fNames" rows="9"></textarea>
         </div>
         <div id="matchBox" style="display:none">
           <div class="field">
@@ -569,7 +650,7 @@
         </div>
 
         <div class="add-row">
-          <textarea id="fNewPlayers" rows="1" placeholder="添加球员，每行一个"></textarea>
+          <textarea id="fNewPlayers" rows="1" placeholder="添加球员"></textarea>
           <button class="btn ghost" id="btnAddPlayers">添加</button>
         </div>
 
@@ -654,7 +735,7 @@
             <tbody id="statBody"></tbody>
           </table>
         </div>
-        <div class="empty" id="statEmpty">勾选上面的学期看合计</div>
+        <div class="empty" id="statEmpty">勾选学期查看合计</div>
       </div>
     </section>
   </main>
@@ -813,8 +894,12 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
     });
   });
 
+  upgradeDates($('emFields'));
   bg.classList.add('on');
-  setTimeout(()=>{ const i = $('emFields').querySelector('input'); if(i){ i.focus(); i.select(); } }, 60);
+  setTimeout(()=>{
+    const i = $('emFields').querySelector('input:not([type=date]):not([type=checkbox])');
+    if(i){ i.focus(); i.select(); }
+  }, 60);
 
   return new Promise(resolve => {
     const close = (val) => {
@@ -979,12 +1064,26 @@ function matchNames(list){
 
 /* ===================== 渲染 ===================== */
 function renderTermBar(){
-  const sel = $('termSelect');
-  sel.innerHTML = D.terms.map(t =>
-    `<option value="${t.id}"${t.id===curTermId?' selected':''}>${esc(t.name)}${t.isActive?' ·当前':''}</option>`
-  ).join('') || '<option value="">还没有学期</option>';
-
   const t = T();
+  $('termDdLabel').textContent = t ? t.name : '还没有学期';
+
+  $('termDdMenu').innerHTML = D.terms.length
+    ? D.terms.map(x=>`
+        <div class="dd-item ${x.id===curTermId?'on':''}" data-tid="${x.id}">
+          <span>${esc(x.name)}${x.isActive?' ·当前':''}</span>
+          <span class="dd-item-meta">${x.summary.sessionCount} 场</span>
+        </div>`).join('')
+    : '<div class="dd-item" style="color:var(--muted)">还没有学期</div>';
+
+  $('termDdMenu').querySelectorAll('[data-tid]').forEach(el=>{
+    el.onclick = e=>{
+      e.stopPropagation();
+      curTermId = Number(el.dataset.tid);
+      $('termDd').classList.remove('open');
+      render();
+    };
+  });
+
   $('termHint').innerHTML = t
     ? `全部 ${D.overall.termCount} 个学期 · 累计待收 <b>${money(D.overall.totalUnpaid)}</b>`
     : '先新建一个学期才能录训练';
@@ -1006,7 +1105,7 @@ function render(){
   $('uUnit').textContent = money(s.unitPrice);
   $('uFormula').innerHTML = t
     ? `训练 ${money(s.trainCost)} ÷ ${s.trainHead} 人次` +
-      (s.matchCount ? `<br>比赛 ${money(s.matchCost)}（${s.matchCount} 场单独分摊）` : '') +
+      (s.matchCount ? `<br>比赛 ${money(s.matchCost)}` : '') +
       `<br><span style="opacity:.75">${esc(t.name)} · ${s.peopleCount} 人</span>`
     : '还没有学期';
   $('sTrain').textContent  = s.sessionCount;
@@ -1046,8 +1145,7 @@ function renderTerms(){
             <span style="color:var(--muted)">（${s.matchCount} 场，各自按参赛人数分摊）</span>` : ''}
         </div>
         <div class="sess-note" style="margin-top:6px">
-          总费用 ${money(s.totalCost)}　·　${s.peopleCount} 人　·
-          ${s.costMode==='term' ? '训练费按学期总额算' : '训练费 = 各场次相加'}
+          总费用 ${money(s.totalCost)}　·　${s.peopleCount} 人
           　·　已收 ${money(s.totalPaid)} · 待收 ${money(s.totalUnpaid)}
           ${t.startDate||t.endDate?`　·　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}
         </div>
@@ -1076,10 +1174,8 @@ function renderTerms(){
         sub: `${s.trainCount} 场训练 · ${s.trainHead} 人次 · 当前训练单价 ${money(s.unitPrice)}／次`,
         fields: [
           {key:'name', label:'学期名称', value:t.name, placeholder:'例：2026 秋季学期'},
-          {key:'totalCost', label:'本学期训练总费用（$）', type:'number',
-           value: t.totalCostSet || '',
-           placeholder: `留空则用各场次相加（现在 ${money(s.sessionSum)}）`,
-           hint: `只管训练：填了就用它 ÷ ${s.trainHead || 'N'} 训练人次算单价。比赛费用不受影响，永远按各场参赛人数分摊。`},
+          {key:'totalCost', label:'本学期训练总费用', type:'number',
+           value: t.totalCostSet || ''},
           {key:'startDate', label:'开始日期', type:'date', value:t.startDate||''},
           {key:'endDate', label:'结束日期', type:'date', value:t.endDate||''},
         ],
@@ -1230,19 +1326,15 @@ function renderCodes(){
       const n = attCountAll(name);
       openEdit({
         title: '编辑球员',
-        sub: n ? `已有 <b>${n}</b> 次出勤记录，改名字会一起改掉，不会丢数据`
-               : '还没有出勤记录',
+        sub: n ? `已有 <b>${n}</b> 次出勤记录` : '还没有出勤记录',
         fields: [
           {key:'name', label:'球员姓名', value:name},
           {key:'number', label:'球衣号', type:'number',
-           value:(D.codes.find(c=>c.name===name)||{}).number||'',
-           placeholder:'留空 = 没有号'},
+           value:(D.codes.find(c=>c.name===name)||{}).number||''},
           {key:'tag', label:'分组', type:'tags',
            value:(D.codes.find(c=>c.name===name)||{}).tag||'',
            options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
-          {key:'code', label:'查询码', value:cur,
-           placeholder:'姓+名全拼，例 liuxiaoer',
-           hint:'至少 4 位，留空则这人查不了自己的记录'},
+          {key:'code', label:'查询码', value:cur},
         ],
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
@@ -1396,7 +1488,6 @@ function renderTagKind(kind, boxId){
       const t = D.tags.find(x=>String(x.id)===b.dataset.edittag);
       openEdit({
         title:'编辑',
-        sub: kind==='player' ? '改名字会把球员身上的分组一起改掉' : '改名字会把已有收款记录一起改掉',
         fields:[
           {key:'name', label:'名称', value:t.name},
           {key:'color', label:'颜色', type:'colors', value:t.color||''},
@@ -1431,8 +1522,7 @@ function newTagOf(kind){
   openEdit({
     title: kind==='player' ? '新建球员分组' : '新建付款方式',
     fields:[
-      {key:'name', label:'名称', value:'',
-       placeholder: kind==='player' ? '例：一队 / 预备队' : '例：Venmo'},
+      {key:'name', label:'名称', value:''},
       {key:'color', label:'颜色', type:'colors', value:''},
     ],
     okText:'创建',
@@ -1518,6 +1608,133 @@ function renderSessions(){
 }
 
 let picked = new Set();
+
+/* ===================== 自定义日历 ===================== */
+const DOW = ['日','一','二','三','四','五','六'];
+const fmtDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+/** 把一个 <input type=date> 换成网页内日历 */
+function makeDatePicker(input, opts = {}){
+  if(input.dataset.dpReady) return;
+  input.dataset.dpReady = '1';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'dp';
+  input.parentNode.insertBefore(wrap, input);
+  input.style.display = 'none';
+  wrap.appendChild(input);
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'dp-input';
+  wrap.appendChild(btn);
+
+  const pop = document.createElement('div');
+  pop.className = 'dp-pop';
+  wrap.appendChild(pop);
+
+  let view = new Date();
+
+  const paintBtn = ()=>{
+    if(input.value){
+      btn.textContent = input.value;
+      btn.classList.remove('empty');
+    }else{
+      btn.textContent = opts.placeholder || '选择日期';
+      btn.classList.add('empty');
+    }
+  };
+
+  function draw(){
+    const y = view.getFullYear(), m = view.getMonth();
+    const first = new Date(y, m, 1);
+    const start = new Date(first);
+    start.setDate(1 - first.getDay());
+    const todayStr = fmtDate(new Date());
+
+    let cells = '';
+    for(let i=0;i<42;i++){
+      const d = new Date(start);
+      d.setDate(start.getDate()+i);
+      const ds = fmtDate(d);
+      const cls = ['dp-day'];
+      if(d.getMonth() !== m) cls.push('out');
+      if(ds === todayStr) cls.push('today');
+      if(ds === input.value) cls.push('on');
+      cells += `<div class="${cls.join(' ')}" data-d="${ds}">${d.getDate()}</div>`;
+    }
+
+    pop.innerHTML = `
+      <div class="dp-hd">
+        <div class="dp-title">${y} 年 ${m+1} 月</div>
+        <div class="dp-nav">
+          <button type="button" data-mv="-1">‹</button>
+          <button type="button" data-mv="1">›</button>
+        </div>
+      </div>
+      <div class="dp-grid">
+        ${DOW.map(w=>`<div class="dp-dow">${w}</div>`).join('')}
+        ${cells}
+      </div>
+      <div class="dp-ft">
+        <button type="button" data-act="today">今天</button>
+        <button type="button" data-act="clear">清空</button>
+      </div>`;
+
+    pop.querySelectorAll('[data-mv]').forEach(b=>{
+      b.onclick = e=>{
+        e.stopPropagation();
+        view = new Date(view.getFullYear(), view.getMonth() + Number(b.dataset.mv), 1);
+        draw();
+      };
+    });
+    pop.querySelectorAll('[data-d]').forEach(c=>{
+      c.onclick = e=>{
+        e.stopPropagation();
+        input.value = c.dataset.d;
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+        input.dispatchEvent(new Event('change', {bubbles:true}));
+        paintBtn(); close();
+      };
+    });
+    pop.querySelector('[data-act="today"]').onclick = e=>{
+      e.stopPropagation();
+      input.value = today();
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+      input.dispatchEvent(new Event('change', {bubbles:true}));
+      paintBtn(); close();
+    };
+    pop.querySelector('[data-act="clear"]').onclick = e=>{
+      e.stopPropagation();
+      input.value = '';
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+      input.dispatchEvent(new Event('change', {bubbles:true}));
+      paintBtn(); close();
+    };
+  }
+
+  const close = ()=> wrap.classList.remove('open');
+  const open = ()=>{
+    document.querySelectorAll('.dp.open').forEach(x=>x.classList.remove('open'));
+    view = input.value ? new Date(input.value + 'T12:00:00') : new Date();
+    draw();
+    wrap.classList.add('open');
+  };
+
+  btn.onclick = e=>{ e.stopPropagation(); wrap.classList.contains('open') ? close() : open(); };
+  input.addEventListener('change', paintBtn);
+  paintBtn();
+  return { refresh: paintBtn };
+}
+
+/** 页面上所有 date 输入框都换成自定义日历 */
+function upgradeDates(root = document){
+  root.querySelectorAll('input[type=date]').forEach(i => makeDatePicker(i));
+}
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.dp.open').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.dd.open').forEach(x=>x.classList.remove('open'));
+});
 
 /* ===================== 表格排序 ===================== */
 // 默认：名册按号码升序（没号的排后面）；费用按未付降序
@@ -1735,9 +1952,12 @@ document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>switchTab(t.datase
 
 /* ===================== 事件 ===================== */
 /* 学期切换 / 新建 */
-$('termSelect').onchange = e=>{
-  curTermId = Number(e.target.value) || null;
-  render();
+$('termDdBtn').onclick = e=>{
+  e.stopPropagation();
+  const dd = $('termDd');
+  const wasOpen = dd.classList.contains('open');
+  document.querySelectorAll('.dd.open,.dp.open').forEach(x=>x.classList.remove('open'));
+  if(!wasOpen) dd.classList.add('open');
 };
 function newTerm(){
   const now = new Date();
@@ -1747,14 +1967,11 @@ function newTerm(){
     title: '新建学期',
     sub: '这个学期的费用会单独结算，跟别的学期不混在一起',
     fields: [
-      {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`, placeholder:'例：2026 秋季学期'},
-      {key:'totalCost', label:'本学期总费用（$，可留空）', type:'number', value:'',
-       placeholder:'例：1000',
-       hint:'知道这学期一共花多少就填；留空的话就把每场训练的费用加起来'},
-      {key:'startDate', label:'开始日期（可留空）', type:'date', value:''},
-      {key:'endDate', label:'结束日期（可留空）', type:'date', value:''},
-      {key:'resetNumbers', label:'清空所有球衣号', type:'check', value:false,
-       hint:'新赛季换球衣的话勾上。出勤和费用本来就是按学期分开算的，不受影响。'},
+      {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`},
+      {key:'totalCost', label:'本学期训练总费用', type:'number', value:''},
+      {key:'startDate', label:'开始日期', type:'date', value:''},
+      {key:'endDate', label:'结束日期', type:'date', value:''},
+      {key:'resetNumbers', label:'清空所有球衣号', type:'check', value:false},
     ],
     okText: '创建',
     onSubmit: async v=>{
@@ -1808,8 +2025,8 @@ function setKind(k){
     b.classList.toggle('on', b.dataset.kind===curKind));
   const isMatch = curKind==='match';
   $('addTitle').textContent = isMatch ? '录入比赛' : '录入训练';
-  $('fCostLabel').textContent = isMatch ? '这场比赛的费用' : '本次费用';
-  $('fNote').placeholder = isMatch ? '例：vs UCSD / 报名费' : '可留空';
+  $('fCostLabel').textContent = '本次费用';
+  $('fNote').placeholder = '可选';
   $('btnSaveSess').textContent = editingId
     ? '保存修改'
     : (isMatch ? '保存这场比赛' : '保存这次训练');
@@ -1820,19 +2037,7 @@ document.querySelectorAll('.kind-opt').forEach(b=>{
 });
 
 function updateCostHint(){
-  const t = T();
-  const box = $('fCostHint');
-  if(curKind === 'match'){
-    box.style.display = '';
-    box.innerHTML = '比赛费用按<b>这场参赛人数</b>单独分摊，不进学期单价。';
-    return;
-  }
-  const byTerm = t && t.summary.costMode === 'term';
-  box.style.display = byTerm ? '' : 'none';
-  if(byTerm){
-    box.innerHTML =
-      `「${esc(t.name)}」已设训练总费用 <b>${money(t.summary.trainCost)}</b>，单场费用不参与计算，可以不填。`;
-  }
+  $('fCostHint').style.display = 'none';
 }
 
 $('btnMatch').onclick = ()=>doMatch();
@@ -1919,6 +2124,8 @@ function openPay(name){
     };
   });
 
+  upgradeDates($('payModal'));
+  $('payDate').dispatchEvent(new Event('change'));
   $('payModal').classList.add('on');
   setTimeout(()=>$('payAmt').focus(),50);
 }
@@ -2145,20 +2352,17 @@ $('qPlayer').addEventListener('keydown', e=>{
   if(e.key === 'Escape'){ e.target.value=''; renderCodes(); }
 });
 
-$('btnExport').onclick = ()=>{
-  if(!D) return;
-  const blob = new Blob([JSON.stringify({
-    updatedAt:new Date().toISOString(),
-    players:D.players, sessions:D.sessions, payments:D.payments
-  },null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`davisorigin-backup-${today()}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
-  toast('已下载备份');
+$('btnRefresh').onclick = async ()=>{
+  const btn = $('btnRefresh');
+  if(btn.disabled) return;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="refresh-spin"></span> 刷新中';
+  try{
+    await reload();
+    toast('已刷新');
+  }catch(e){ toast(e.message, true); }
+  finally{ btn.disabled = false; btn.textContent = '刷新'; }
 };
-
-$('btnRefresh').onclick = async ()=>{ await reload(); toast('已刷新'); };
 $('btnLogout').onclick = ()=>{ sessionStorage.removeItem(TK); location.reload(); };
 
 /* ===================== 登录 / 启动 ===================== */
@@ -2194,6 +2398,7 @@ async function boot(){
   try{
     await reload();
     $('apiWarn').innerHTML = '';
+    upgradeDates();          // 主界面的日期框换成网页日历
     resetForm();
   }catch(e){
     $('apiWarn').innerHTML = `<div class="callout err"><b>连不上 API：</b>${esc(e.message)}<br>
