@@ -412,6 +412,11 @@
     font-size:12.5px;border:1px solid var(--line);background:var(--bg-soft)}
   .chip.ok{background:var(--ok-soft);border-color:rgba(23,121,94,.28);color:var(--ok)}
   .chip.warn{background:var(--warn-soft);border-color:rgba(176,118,42,.3);color:var(--warn)}
+  /* 识别结果可以点，点了变灰=不计入 */
+  .chip[data-toggle]{cursor:pointer;user-select:none;transition:all .18s}
+  .chip[data-toggle]:hover{transform:translateY(-1px)}
+  .chip.off{background:#f0efe9;border-color:var(--line);color:var(--muted);
+    text-decoration:line-through;opacity:.75}
   .chip button{border:none;background:none;cursor:pointer;color:inherit;opacity:.55;
     font-size:14px;line-height:1;padding:0}
   .chip button:hover{opacity:1}
@@ -2071,41 +2076,51 @@ function doMatch(autoDate, suppressAsk){
 
   pendingMatch = matchNames(parsed.names);
   box.style.display = 'block';
-  const m = pendingMatch.matched.length, u = pendingMatch.unmatched.length;
-  $('matchCount').innerHTML =
-    `识别到 <b>${m+u}</b> 人 · 匹配 <b style="color:var(--ok)">${m}</b>` +
-    (u?` · 待确认 <b style="color:var(--warn)">${u}</b>`:'');
-  chips.innerHTML =
-    pendingMatch.matched.map(n=>`<span class="chip ok">✓ ${esc(n)}</span>`).join('') +
-    pendingMatch.unmatched.map(n=>`<span class="chip warn">? ${esc(n)}</span>`).join('');
+  // 之前取消过的，保持不选中状态
+  excluded = new Set([...excluded].filter(n =>
+    pendingMatch.matched.includes(n) || pendingMatch.unmatched.includes(n)));
 
-  // 有没匹配上的 → 弹窗问要不要加进名册
-  if(u && !suppressAsk) askAddUnmatched();
-
+  renderChips();
   skipBox.style.display = 'none';
 }
 
-/** 未匹配的名字：问一句要不要加进名册 */
-let askingUnmatched = false;
-function askAddUnmatched(){
-  if(askingUnmatched) return;
-  const list = pendingMatch ? [...pendingMatch.unmatched] : [];
-  if(!list.length) return;
-  askingUnmatched = true;
+/** 识别结果的小标签：绿色=会记进去，灰色=不记 */
+let excluded = new Set();     // 被取消勾选的名字
 
-  openEdit({
-    title: `有 ${list.length} 个名字不在名册里`,
-    sub: `<b>${list.map(esc).join('、')}</b><br>
-          <span style="color:var(--muted)">加进名册后才会计入出勤和费用</span>`,
-    fields: [],
-    okText: `加入名册`,
-    onSubmit: async ()=>{
-      await api('/players',{method:'POST',body:JSON.stringify({names:list})});
-      await reload(false);
-      doMatch(false, true);          // 重新匹配，但别再弹一次
-      toast(`已加入 ${list.length} 人`);
-    }
-  }).finally(()=>{ askingUnmatched = false; });
+function renderChips(){
+  const chips = $('matchChips');
+  if(!pendingMatch) { chips.innerHTML = ''; return; }
+
+  const all = [
+    ...pendingMatch.matched.map(n=>({ n, known:true })),
+    ...pendingMatch.unmatched.map(n=>({ n, known:false })),
+  ];
+
+  chips.innerHTML = all.map(({n, known})=>{
+    const off = excluded.has(n);
+    const cls = off ? 'chip off' : (known ? 'chip ok' : 'chip warn');
+    return `<span class="${cls}" data-toggle="${esc(n)}">${off ? '○' : (known ? '✓' : '?')} ${esc(n)}</span>`;
+  }).join('');
+
+  chips.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.onclick = ()=>{
+      const n = el.dataset.toggle;
+      excluded.has(n) ? excluded.delete(n) : excluded.add(n);
+      renderChips(); updateMatchCount();
+    };
+  });
+  updateMatchCount();
+}
+
+function updateMatchCount(){
+  if(!pendingMatch) return;
+  const on = [...pendingMatch.matched, ...pendingMatch.unmatched]
+    .filter(n=>!excluded.has(n));
+  const u  = pendingMatch.unmatched.filter(n=>!excluded.has(n)).length;
+  $('matchCount').innerHTML =
+    `计入 <b style="color:var(--ok)">${on.length}</b> 人` +
+    (u ? ` · 其中 <b style="color:var(--warn)">${u}</b> 个不在名册里` : '') +
+    (excluded.size ? ` · 已排除 <b>${excluded.size}</b>` : '');
 }
 
 /* ===================== Tabs ===================== */
@@ -2210,7 +2225,7 @@ function resetForm(){
   $('matchBox').style.display='none';
   $('editFlag').innerHTML='';
   $('btnCancelEdit').style.display='none';
-  pendingMatch=null;
+  pendingMatch=null; excluded=new Set();
   const d=$('fDate'); setDate(d, today()); d.dataset.auto='1';
   setKind('training');
 }
@@ -2222,9 +2237,31 @@ $('btnSaveSess').onclick = async ()=>{
   const note = $('fNote').value.trim();
   if(!date) return toast('请填写训练日期', true);
   if(!pendingMatch) doMatch(false);
-  if(!pendingMatch || !pendingMatch.matched.length) return toast('没有识别到有效名字', true);
-
+  if(!pendingMatch) return toast('没有识别到有效名字', true);
   if(!curTermId) return toast('请新建一个学期', true);
+
+  // 最终要记进去的人（去掉手动排除的）
+  const finalNames = [...pendingMatch.matched, ...pendingMatch.unmatched]
+    .filter(n => !excluded.has(n));
+  if(!finalNames.length) return toast('没有识别到有效名字', true);
+
+  // 里面有不在名册的 → 先问一句，加完让用户确认后再点保存
+  const strangers = pendingMatch.unmatched.filter(n => !excluded.has(n));
+  if(strangers.length){
+    const ok = await openEdit({
+      title: `有 ${strangers.length} 个名字不在名册里`,
+      sub: `<b>${strangers.map(esc).join('、')}</b>`,
+      fields: [],
+      okText: '加入名册',
+      onSubmit: async ()=>{
+        await api('/players',{method:'POST',body:JSON.stringify({names:strangers})});
+        await reload(false);
+        doMatch(false, true);
+        toast(`已加入 ${strangers.length} 人，确认无误后点保存`);
+      }
+    });
+    return;   // 不管加没加，都回到页面让用户自己再点一次保存
+  }
 
   const wasEditing = !!editingId;     // resetForm 会清掉 editingId，先记下来
   const wasMatch   = curKind === 'match';
@@ -2233,7 +2270,7 @@ $('btnSaveSess').onclick = async ()=>{
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
   try{
     const payload = JSON.stringify({
-      date, cost, note, attendees:pendingMatch.matched,
+      date, cost, note, attendees: finalNames,
       termId:curTermId, kind:curKind });
     if(wasEditing) await api('/sessions/'+editingId,{method:'PUT',body:payload});
     else           await api('/sessions',{method:'POST',body:payload});
