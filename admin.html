@@ -89,6 +89,31 @@
     box-shadow:0 0 0 8px var(--bg);
     transition:box-shadow .2s}
   .tabs.stuck{box-shadow:0 0 0 8px var(--bg), 0 8px 18px -6px rgba(13,18,36,.18)}
+
+  /* 刚存好的那一条，黄色渐隐一下 */
+  @keyframes flashRow{
+    0%,45%{background:rgba(214,158,46,.22)}
+    100%{background:transparent}
+  }
+  .flash, .flash>td{animation:flashRow 1.5s ease-out}
+
+  /* 接龙识别出来的名字，逐个铺开 */
+  @keyframes chipIn{
+    from{opacity:0;transform:translateY(5px) scale(.96)}
+    to{opacity:1;transform:none}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;animation-delay:0ms!important}
+  }
+
+  /* 表格能横滑时，右边给个渐隐提示；滑到头就消失 */
+  .tbl-fade{position:relative}
+  .tbl-fade::after{content:'';position:absolute;top:0;right:0;bottom:0;width:36px;
+    pointer-events:none;opacity:0;transition:opacity .2s;
+    background:linear-gradient(to right,rgba(255,255,255,0),var(--card))}
+  .tbl-fade.scrollable::after{opacity:1}
+  .tbl-fade.scroll-end::after{opacity:0}
   .tab{padding:9px 18px;border:none;background:none;color:var(--muted);font-weight:600;
     cursor:pointer;white-space:nowrap;border-radius:8px;font-size:14px;
     transition:color .2s,background .2s,box-shadow .2s}
@@ -1129,6 +1154,30 @@ function setDate(input, val){
 }
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/** 名字塞进属性选择器前先转义 */
+const cssEsc = s => String(s).replace(/["\\]/g, '\\$&');
+
+/** 刚存好的行/卡片闪一下，顺便滚到看得见的地方 */
+let flashScrolled = false;
+function flashRow(sel, scroll = true){
+  requestAnimationFrame(()=>{
+    let el = null;
+    try{ el = document.querySelector(sel); }catch(e){ return; }
+    if(!el) return;
+    el.classList.remove('flash');
+    void el.offsetWidth;              // 重启动画
+    el.classList.add('flash');
+    const r = el.getBoundingClientRect();
+    // 一批里只滚一次，不然会互相打架
+    if(scroll && !flashScrolled && (r.top < topbarH() + 60 || r.bottom > innerHeight)){
+      flashScrolled = true;
+      el.scrollIntoView({ block:'center', behavior:'smooth' });
+      setTimeout(()=>{ flashScrolled = false; }, 700);
+    }
+    setTimeout(()=>el.classList.remove('flash'), 1600);
+  });
+}
 
 /* 列表里的删除按钮统一用垃圾桶 */
 const TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2254,7 +2303,7 @@ function doMatch(autoDate, suppressAsk){
   excluded = new Set([...excluded].filter(n =>
     pendingMatch.matched.includes(n) || pendingMatch.unmatched.includes(n)));
 
-  renderChips();
+  renderChips(true);       // 逐个铺开
   skipBox.style.display = 'none';
 }
 
@@ -2263,7 +2312,7 @@ let excluded   = new Set();   // 手动取消勾选的
 let approved   = new Set();   // 弹窗里确认过的生面孔（保存时才真的入库）
 let newPlayers = new Set();   // 本次登录新加的球员，名册里带小圆点
 
-function renderChips(){
+function renderChips(stagger = false){
   const chips = $('matchChips');
   if(!pendingMatch) { chips.innerHTML = ''; return; }
 
@@ -2272,11 +2321,15 @@ function renderChips(){
     ...pendingMatch.unmatched.map(n=>({ n, known:false })),
   ];
 
-  chips.innerHTML = all.map(({n, known})=>{
+  chips.innerHTML = all.map(({n, known}, i)=>{
     const off = excluded.has(n);
     const ok  = known || approved.has(n);     // 确认过的生面孔也算绿勾
     const cls = off ? 'chip off' : (ok ? 'chip ok' : 'chip warn');
-    return `<span class="${cls}" data-toggle="${esc(n)}">${off ? '○' : (ok ? '✓' : '?')} ${esc(n)}</span>`;
+    // 第一次识别时从左到右铺开，方便一眼看出识别了多少人
+    const anim = stagger
+      ? ` style="animation:chipIn .28s ease-out both;animation-delay:${Math.min(i*25, 900)}ms"`
+      : '';
+    return `<span class="${cls}" data-toggle="${esc(n)}"${anim}>${off ? '○' : (ok ? '✓' : '?')} ${esc(n)}</span>`;
   }).join('');
 
   chips.querySelectorAll('[data-toggle]').forEach(el=>{
@@ -2304,21 +2357,58 @@ function updateMatchCount(){
 }
 
 /* ===================== Tabs ===================== */
+const TAB_KEY = 'do_admin_tab';
 function switchTab(n){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===n));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='tab-'+n));
+  try{ sessionStorage.setItem(TAB_KEY, n); }catch(e){}
+  syncTblFade();   // 刚显示出来的表格才量得准
   // 换页签时滚回目录栏，不然会停在半空
   const tabs = document.querySelector('.tabs');
   if(tabs && tabs.getBoundingClientRect().top < topbarH()) {
     window.scrollTo({ top: tabs.offsetTop - topbarH(), behavior:'auto' });
   }
 }
+/** 刷新后回到上次的页签 */
+function restoreTab(){
+  let n = '';
+  try{ n = sessionStorage.getItem(TAB_KEY) || ''; }catch(e){}
+  if(n && document.querySelector(`.tab[data-tab="${n}"]`)) switchTab(n);
+}
 document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>switchTab(t.dataset.tab));
+
+/* 表格宽过屏幕时，右边显示渐隐提示，滑到头就消失 */
+function syncTblFade(){
+  document.querySelectorAll('.tbl-wrap').forEach(w=>{
+    const box = w.parentElement;
+    if(!box || !box.classList.contains('tbl-fade')) return;
+    const over = w.scrollWidth - w.clientWidth > 4;
+    box.classList.toggle('scrollable', over);
+    box.classList.toggle('scroll-end', over && w.scrollLeft >= w.scrollWidth - w.clientWidth - 4);
+  });
+}
+function watchTblFade(){
+  document.querySelectorAll('.tbl-wrap').forEach(w=>{
+    // 渐隐层要贴在不滚动的外壳上，不然会跟着内容一起滑走
+    if(!w.parentElement || !w.parentElement.classList.contains('tbl-fade')){
+      const box = document.createElement('div');
+      box.className = 'tbl-fade';
+      w.parentNode.insertBefore(box, w);
+      box.appendChild(w);
+    }
+    if(w.dataset.fadeOn) return;
+    w.dataset.fadeOn = '1';
+    w.addEventListener('scroll', syncTblFade, { passive:true });
+  });
+  syncTblFade();
+}
+window.addEventListener('resize', syncTblFade);
 
 /* 目录栏钉在顶栏底下：量一下顶栏多高，钉住时加个阴影 */
 function topbarH(){
   const el = document.querySelector('.topbar');
-  return el ? el.getBoundingClientRect().height : 63;
+  const h = el ? el.getBoundingClientRect().height : 0;
+  return h > 0 ? h : 63;      // 还没排版好时给个兜底值，别让目录栏钻到顶栏底下
 }
 function syncTabsTop(){
   document.documentElement.style.setProperty('--topbar-h', topbarH() + 'px');
@@ -2492,13 +2582,18 @@ $('btnSaveSess').onclick = async ()=>{
     const payload = JSON.stringify({
       date, cost, note, attendees: finalNames,
       termId:curTermId, kind:curKind });
+    let sid = editingId;
     if(wasEditing) await api('/sessions/'+editingId,{method:'PUT',body:payload});
-    else           await api('/sessions',{method:'POST',body:payload});
+    else {
+      const r = await api('/sessions',{method:'POST',body:payload});
+      sid = r && r.id;
+    }
     fresh.forEach(n => newPlayers.add(n));   // 名册页给个小圆点提示
     resetForm();
     await reload();
     toast(wasEditing ? '已更新' : (wasMatch ? '已保存这场比赛' : '已保存这次训练'));
     switchTab('list');
+    if(sid) flashRow(`[data-srow="${sid}"]`);   // 刚存的那条闪一下
   }catch(e){ toast(e.message,true); }
   finally{ btn.disabled=false; setKind(curKind); }
 };
@@ -2564,9 +2659,11 @@ $('payConfirm').onclick = async ()=>{
       note: $('payNote').value.trim(), termId: curTermId,
       tag: tagOn ? tagOn.dataset.v : ''
     })});
+    const who = payTarget;
     $('payModal').classList.remove('on');
     await reload();
-    toast(`已记录 ${payTarget} ${money(amount)}`);
+    toast(`已记录 ${who} ${money(amount)}`);
+    flashRow(`[data-row="${cssEsc(who)}"]`);
   }catch(e){ toast(e.message,true); }
 };
 
@@ -2607,6 +2704,7 @@ $('btnBulkPay').onclick = ()=>{
       picked = new Set();
       await reload();
       toast(`已记录 ${r.count} 笔，共 ${money(r.total)}`);
+      sel.forEach(p=>flashRow(`[data-row="${cssEsc(p.name)}"]`));
     }
   });
 };
@@ -2892,6 +2990,7 @@ $('loginForm').onsubmit = async e=>{
 async function reload(showToast){
   D = await api('/data');
   render();
+  watchTblFade();
 }
 
 async function boot(){
@@ -2903,7 +3002,7 @@ async function boot(){
     $('apiWarn').innerHTML = '';
     upgradeDates();          // 主界面的日期框换成网页日历
     resetForm();
-    syncTabsTop(); watchTabsStuck();
+    syncTabsTop(); watchTabsStuck(); restoreTab();
   }catch(e){
     $('apiWarn').innerHTML = `<div class="callout err"><b>连不上 API：</b>${esc(e.message)}<br>
       检查 Worker 是否部署、路由是否配好。</div>`;
