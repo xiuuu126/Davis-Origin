@@ -1258,7 +1258,7 @@ function renderTerms(){
           {key:'totalCost', label:'本学期训练总费用', type:'number',
            value: t.totalCostSet || ''},
           {key:'startDate', label:'开始日期', type:'date', value:t.startDate||today()},
-          {key:'endDate', label:'结束日期', type:'date', value:t.endDate||tomorrow()},
+          {key:'endDate', label:'结束日期', type:'date', value:t.endDate||''},
         ],
         onSubmit: async v=>{
           if(!v.name) throw new Error('学期名称不能为空');
@@ -2039,7 +2039,7 @@ function newTerm(){
       {key:'name', label:'学期名称', value:`${now.getFullYear()} ${season}学期`},
       {key:'totalCost', label:'本学期训练总费用', type:'number', value:''},
       {key:'startDate', label:'开始日期', type:'date', value:today()},
-      {key:'endDate', label:'结束日期', type:'date', value:tomorrow()},
+      {key:'endDate', label:'结束日期', type:'date', value:''},
       {key:'resetNumbers', label:'清空所有球衣号码', type:'check', value:false},
     ],
     okText: '创建',
