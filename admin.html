@@ -816,7 +816,6 @@
     <div class="pdf-hd">
       <div>
         <h3 id="pdfTitle">费用结算</h3>
-        <div class="pdf-sub">A4 · 点「下载 PDF」后选「存储为 PDF」</div>
       </div>
       <div class="pdf-actions">
         <button class="btn" id="pdfDownload">下载 PDF</button>
@@ -2359,7 +2358,7 @@ function buildReport(t, peopleIn){
     <th class="n" style="width:34px">号</th><th>球员</th>
     <th class="n">出勤</th><th class="n">应付</th><th class="n">已付</th><th class="n">未付</th>
   </tr></thead>
-  <tbody>${rows || '<tr><td colspan="6" class="r-empty">没有选中任何人</td></tr>'}</tbody>
+  <tbody>${rows || '<tr><td colspan="6" class="r-empty">没有选中任何球员</td></tr>'}</tbody>
   <tfoot><tr>
     <td colspan="2">合计 ${people.length} 人</td>
     <td class="n">${sHead}</td>
@@ -2537,13 +2536,8 @@ $('pdfDownload').onclick = ()=>{
     body{ background:#e8e6e0; padding:24px; }
     .rpt{ max-width:794px; margin:0 auto; padding:40px !important;
           background:#fff; box-shadow:0 4px 20px rgba(0,0,0,.15); border-radius:4px; }
-    .tip{ max-width:794px; margin:0 auto 16px; padding:12px 18px;
-          background:#1e3a8a; color:#fff; border-radius:10px;
-          font:600 13px/1.6 -apple-system,"PingFang SC",sans-serif; }
   }
-  @media print{ .tip{ display:none !important; } }
 </style></head><body>
-<div class="tip">打印窗口里把「目标 / Destination」选成「存储为 PDF」，然后点储存。</div>
 <div class="rpt">${$('pdfDoc').innerHTML}</div>
 </body></html>`);
   w.document.close();
