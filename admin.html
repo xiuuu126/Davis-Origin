@@ -1426,6 +1426,13 @@ async function toPinyin(name){
     .join('').toLowerCase().replace(/[^a-z0-9]/g,'');
 }
 
+/** 一批名字转查询码；拼音库挂了就返回空串，不挡着建人 */
+async function toPinyinAll(names){
+  try{
+    return await Promise.all(names.map(n=>toPinyin(n).catch(()=>'')));
+  }catch(e){ return names.map(()=>''); }
+}
+
 /** 训练记录里勾了几场，反映到「导出 PDF」按钮上 */
 function updateSessPickHint(){
   const btn = $('btnSessPdf');
@@ -1529,12 +1536,13 @@ function renderCodes(){
           ? `这个人有 <b style="color:var(--danger)">${n}</b> 次出勤记录`
           : '还没有出勤记录，可以删除',
         fields: [
-          {key:'confirm', label:`确认请输入球员姓名`, value:'', placeholder:name}
+          {key:'confirm', label:`输入球员姓名，或输入「确认删除」`, value:'', placeholder:name}
         ],
         okText: '确认删除',
         danger: true,
         onSubmit: async v=>{
-          if(String(v.confirm).trim() !== name) throw new Error('名字不对，没有删除');
+          const t = String(v.confirm).trim();
+          if(t !== name && t !== '确认删除') throw new Error('输入不对，没有删除');
           await api('/players/'+encodeURIComponent(name),{method:'DELETE'});
           await reload();
           toast(`已从名册移除「${name}」`);
@@ -2401,13 +2409,18 @@ $('btnSaveSess').onclick = async ()=>{
   const btn = $('btnSaveSess');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中';
   try{
+    // 确认过的生面孔：这时候才真正入库，顺手把查询码（全拼）建好
+    const fresh = finalNames.filter(n => approved.has(n));
+    if(fresh.length){
+      const codes = await toPinyinAll(fresh);
+      await api('/players',{method:'POST',body:JSON.stringify({names:fresh, codes})});
+    }
     const payload = JSON.stringify({
       date, cost, note, attendees: finalNames,
       termId:curTermId, kind:curKind });
     if(wasEditing) await api('/sessions/'+editingId,{method:'PUT',body:payload});
     else           await api('/sessions',{method:'POST',body:payload});
-    // 这次新进名册的人，名册页给个小圆点提示
-    finalNames.forEach(n=>{ if(approved.has(n)) newPlayers.add(n); });
+    fresh.forEach(n => newPlayers.add(n));   // 名册页给个小圆点提示
     resetForm();
     await reload();
     toast(wasEditing ? '已更新' : (wasMatch ? '已保存这场比赛' : '已保存这次训练'));
@@ -2416,15 +2429,21 @@ $('btnSaveSess').onclick = async ()=>{
   finally{ btn.disabled=false; setKind(curKind); }
 };
 
-$('btnAddPlayers').onclick = async ()=>{
+$('btnAddPlayers').onclick = async (e)=>{
+  const btn = e.currentTarget;
   const names = parseNames($('fNewPlayers').value);
   if(!names.length) return toast('没有名字', true);
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = '添加中…';
   try{
-    await api('/players',{method:'POST',body:JSON.stringify({names})});
+    const codes = await toPinyinAll(names);   // 查询码 = 姓名全拼
+    await api('/players',{method:'POST',body:JSON.stringify({names, codes})});
     $('fNewPlayers').value='';
+    names.forEach(n=>newPlayers.add(n));
     await reload();
-    toast(`已添加 ${names.length} 人`);
+    toast(`已添加 ${names.length} 人，查询码已自动生成`);
   }catch(e){ toast(e.message,true); }
+  finally{ btn.disabled = false; btn.textContent = old; }
 };
 
 /* 收款弹窗 */
