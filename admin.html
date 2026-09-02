@@ -248,28 +248,61 @@
   .pdf-hd h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
   .pdf-sub{font-size:12px;color:var(--muted);margin-top:3px}
   .pdf-actions{display:flex;gap:8px;flex-wrap:wrap}
-  .pdf-main{flex:1;display:flex;overflow:hidden;min-height:0}
-  .pdf-side{width:250px;flex-shrink:0;border-right:1px solid var(--line);
-    display:flex;flex-direction:column;background:var(--bg-soft)}
-  .pdf-side-hd{padding:12px 14px;border-bottom:1px solid var(--line);
-    display:flex;align-items:center;justify-content:space-between;gap:8px;
-    font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);
-    text-transform:uppercase;flex-wrap:wrap}
-  .pdf-side-hd .btn{padding:4px 9px;font-size:11px}
-  .pdf-picks{flex:1;overflow:auto;padding:8px}
-  .pdf-pick{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;
-    border-radius:8px;cursor:pointer;transition:background .15s;user-select:none}
-  .pdf-pick:hover{background:var(--accent-soft)}
-  .pdf-pick input{margin-top:1px;flex-shrink:0}
-  .pdf-pick-name{font-size:13px;font-weight:600;color:var(--ink);line-height:1.35}
-  .pdf-pick-meta{font-size:11px;color:var(--muted);margin-top:2px;
-    font-variant-numeric:tabular-nums}
   .pdf-body{flex:1;overflow:auto;background:#e8e6e0;padding:20px;min-width:0}
-  /* 舞台按缩放后的尺寸占位，里面的 iframe 是真实 A4 宽度 */
   .pdf-stage{position:relative;margin:0 auto;background:#fff;
     border-radius:4px;box-shadow:0 4px 18px rgba(0,0,0,.14);overflow:hidden}
-  .pdf-stage iframe{width:794px;border:none;background:#fff;display:block;
-    transform-origin:top left}
+  .pdf-stage .rpt{transform-origin:top left}
+
+  /* ============ 报表（预览和导出用的是同一份） ============ */
+  .rpt{width:794px;min-height:1123px;box-sizing:border-box;
+    padding:56px 52px 60px;background:#fff;color:#0a0e1a;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:12px;line-height:1.6}
+  .rpt *{box-sizing:border-box;margin:0;padding:0}
+  .rpt .r-hd{display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid #0a0e1a;padding-bottom:12px;margin-bottom:18px}
+  .rpt h1{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+  .rpt .r-sub{font-size:10.5px;color:#666;margin-top:5px}
+  .rpt .r-meta{text-align:right;font-size:10.5px;color:#666;line-height:1.8}
+  .rpt .r-box{background:#f2f5fb;border-radius:8px;padding:12px 18px;margin-bottom:18px;
+    display:flex;gap:30px;flex-wrap:wrap}
+  .rpt .r-box div span{display:block;font-size:9px;color:#666;
+    letter-spacing:.1em;text-transform:uppercase}
+  .rpt .r-box div b{font-size:15px;font-weight:800;color:#1e3a8a}
+  .rpt table{width:100%;border-collapse:collapse}
+  .rpt th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#666;
+    text-align:left;padding:0 8px 8px;border-bottom:1.5px solid #0a0e1a}
+  .rpt td{padding:8px;border-bottom:1px solid #e6e2d8}
+  .rpt .n{text-align:right;font-variant-numeric:tabular-nums}
+  .rpt .owe{color:#b04646;font-weight:700}
+  .rpt .ok{color:#17795e}
+  .rpt .pt{font-size:9.5px;color:#666;border:1px solid #ccc;
+    padding:1px 5px;border-radius:8px}
+  .rpt tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;
+    font-weight:800;padding-top:10px}
+  .rpt .r-ft{margin-top:24px;padding-top:12px;border-top:1px solid #e6e2d8;
+    font-size:10px;color:#999;display:flex;justify-content:space-between;gap:16px}
+  /* 训练记录条目 */
+  .rpt .rec{padding:10px 0;border-bottom:1px solid #e6e2d8}
+  .rpt .rec-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
+  .rpt .rec-l{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0}
+  .rpt .rec-no{font-size:10px;color:#aaa;font-variant-numeric:tabular-nums;
+    min-width:16px;display:inline-block}
+  .rpt .rec-date{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;
+    white-space:nowrap}
+  .rpt .rec-kind{font-size:9.5px;padding:1px 7px;border-radius:4px;
+    background:#eef1f6;color:#555;border:1px solid #dde2ea}
+  .rpt .rec-kind.m{color:#b0762a;border-color:#e0c99a;background:#fbf2e3}
+  .rpt .rec-note{font-size:11px;color:#666}
+  .rpt .rec-r{display:flex;gap:12px;white-space:nowrap;font-size:11.5px;
+    color:#444;font-variant-numeric:tabular-nums}
+  .rpt .rec-cost{font-weight:700;color:#1e3a8a}
+  .rpt .rec-names{font-size:11px;color:#444;line-height:1.8;margin-top:5px;
+    padding-left:25px;word-break:break-word}
+  .rpt .r-tot{display:flex;justify-content:space-between;margin-top:14px;
+    padding-top:12px;border-top:2px solid #0a0e1a;font-weight:800;font-size:12.5px}
+  .rpt .r-tot-r{display:flex;gap:20px;font-variant-numeric:tabular-nums}
+  .rpt .r-empty{color:#999;padding:30px 0;text-align:center}
   @media(max-width:820px){
     .pdf-main{flex-direction:column}
     .pdf-side{width:100%;max-height:180px;border-right:none;
@@ -390,9 +423,13 @@
   .callout.err{background:var(--danger-soft);border-color:rgba(176,70,70,.28);color:#8a3535}
   .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
 
-  .sess{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:flex-start;
+  .sess-chk{display:flex;align-items:flex-start;padding-top:2px;cursor:pointer}
+  .sess.picked{border-color:var(--accent);background:var(--accent-soft)}
+  .sess{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:flex-start;
     padding:18px 20px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;
-    background:var(--card);transition:border-color .2s,box-shadow .2s}
+    background:var(--card);transition:border-color .2s,box-shadow .2s,background .2s}
+  /* 训练记录那张（带勾选框）多一列 */
+  .sess:has(.sess-chk){grid-template-columns:auto 1fr auto}
   .sess:hover{border-color:var(--accent);box-shadow:0 8px 20px rgba(13,18,36,.05)}
   .sess-title{font-size:17px;font-weight:700;letter-spacing:-.01em;
     font-variant-numeric:tabular-nums;line-height:1.3}
@@ -787,21 +824,9 @@
         <button class="btn ghost" id="pdfClose">关闭</button>
       </div>
     </div>
-    <div class="pdf-main">
-      <div class="pdf-side">
-        <div class="pdf-side-hd">
-          <span id="pdfPickCount">包含全部</span>
-          <div>
-            <button class="btn ghost sm" id="pdfPickAll">全选</button>
-            <button class="btn ghost sm" id="pdfPickNone">全不选</button>
-          </div>
-        </div>
-        <div class="pdf-picks" id="pdfPickList"></div>
-      </div>
-      <div class="pdf-body" id="pdfBody">
-        <div class="pdf-stage" id="pdfStage">
-          <iframe id="pdfFrame" title="预览" scrolling="no"></iframe>
-        </div>
+    <div class="pdf-body" id="pdfBody">
+      <div class="pdf-stage" id="pdfStage">
+        <div class="rpt" id="pdfDoc"></div>
       </div>
     </div>
   </div>
@@ -1295,6 +1320,14 @@ function renderTerms(){
   });
 }
 
+/** 训练记录里勾了几场，反映到「导出 PDF」按钮上 */
+function updateSessPickHint(){
+  const btn = $('btnSessPdf');
+  if(!btn) return;
+  const n = pickedSess.size;
+  btn.textContent = n ? `导出 PDF（${n} 场）` : '导出 PDF';
+}
+
 /** 当前学期的出勤次数（每个新学期从 0 开始） */
 function attCount(name){
   const t = T();
@@ -1622,10 +1655,14 @@ function renderSessions(){
   const t = T();
   const list = t ? t.sessions : [];
   $('listSub').textContent = t ? `${t.name} · 共 ${list.length} 场` : '还没有学期';
+  window.__sessTotal = list.length;
   if(!list.length){
     box.innerHTML = '<div class="empty">这个学期还没有训练记录</div>';
     return;
   }
+  // 清掉已经不在这个学期的勾选
+  pickedSess = new Set([...pickedSess].filter(id => list.some(s=>s.id===id)));
+
   const byTerm = t && t.summary.costMode === 'term';
   box.innerHTML = list.map(s=>{
     const isMatch = s.kind === 'match';
@@ -1633,7 +1670,10 @@ function renderSessions(){
     const showCost = isMatch || !byTerm;
     const per = isMatch && s.attendees.length ? s.cost/s.attendees.length : 0;
     return `
-    <div class="sess">
+    <div class="sess ${pickedSess.has(s.id)?'picked':''}" data-srow="${s.id}">
+      <label class="sess-chk">
+        <input type="checkbox" data-spick="${s.id}" ${pickedSess.has(s.id)?'checked':''} />
+      </label>
       <div>
         <div class="sess-title">
           ${esc(s.date||'—')}
@@ -1654,6 +1694,17 @@ function renderSessions(){
       </div>
     </div>`;
   }).join('');
+
+  box.querySelectorAll('[data-spick]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const id = Number(cb.dataset.spick);
+      cb.checked ? pickedSess.add(id) : pickedSess.delete(id);
+      const row = box.querySelector(`[data-srow="${id}"]`);
+      if(row) row.classList.toggle('picked', cb.checked);
+      updateSessPickHint();
+    };
+  });
+  updateSessPickHint();
 
   box.querySelectorAll('[data-del]').forEach(b=>{
     b.onclick = ()=>{
@@ -1824,6 +1875,7 @@ let sortCode = { k:'number', dir:1 };
 let sortFee  = { k:'balance', dir:-1 };
 let sortStat = { k:'balance', dir:-1 };
 let statPick = new Set();   // 跨学期统计选中的学期 id
+let pickedSess = new Set(); // 训练记录里勾选的场次（空 = 全部）
 
 /** 通用比较：数字比大小，文字按中文拼音，空值永远排最后 */
 function cmp(a, b, dir){
@@ -1946,6 +1998,9 @@ function updateBulk(){
   all.checked       = unpaid.length>0 && sel.length===unpaid.length;
   all.indeterminate = sel.length>0 && sel.length<unpaid.length;
   all.disabled      = unpaid.length===0;
+
+  const pdfBtn = $('btnExportPdf');
+  if(pdfBtn) pdfBtn.textContent = sel.length ? `导出 PDF（${sel.length} 人）` : '导出 PDF';
 }
 
 function renderPayments(){
@@ -2079,17 +2134,11 @@ $('btnStatPdf').onclick = ()=>{
   if(!sel.length) return toast('请先选择学期', true);
   const agg = aggregate(sel);
   if(!agg.people.length) return toast('没有数据', true);
+  const fake = { name: sel.map(t=>t.name).join(' + '), people: agg.people, summary: agg.summary };
   openPdf({
-    kind:'fee',
-    term:{ name: sel.map(t=>t.name).join(' + '), people: agg.people, summary: agg.summary },
-    title:'跨学期合计',
-    fileName:`跨学期合计-${today()}`,
-    items: agg.people.map(p=>({
-      id: p.name,
-      label: p.name,
-      meta: `${p.count} 次 · 未付 ${money(p.balance)}`,
-      data: p,
-    })),
+    title: '跨学期合计',
+    fileName: `跨学期合计-${today()}`,
+    html: buildReport(fake, agg.people),
   });
 };
 
@@ -2286,48 +2335,19 @@ function buildReport(t, peopleIn){
       <td class="n ${f.balance>0.005?'owe':'ok'}">${f.balance>0.005?money(f.balance):'已结清'}</td>
     </tr>`).join('');
 
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<title>${esc(t.name)} 费用结算</title>
-<style>
-@page{size:A4;margin:0}
-@media print{ html,body{width:auto} body{padding:15mm 14mm} }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:794px;background:#fff}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  color:#0a0e1a;font-size:12px;line-height:1.6;padding:56px 52px 60px}
-.hd{display:flex;justify-content:space-between;align-items:flex-end;
-  border-bottom:2px solid #0a0e1a;padding-bottom:12px;margin-bottom:18px}
-h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
-.sub{font-size:11px;color:#666;margin-top:4px}
-.meta{text-align:right;font-size:11px;color:#666;line-height:1.8}
-.box{background:#f2f5fb;border-radius:8px;padding:12px 16px;margin-bottom:18px;
-  display:flex;gap:28px;flex-wrap:wrap}
-.box div span{display:block;font-size:9.5px;color:#666;letter-spacing:.1em;text-transform:uppercase}
-.box div b{font-size:16px;font-weight:800;color:#1e3a8a}
-table{width:100%;border-collapse:collapse}
-th{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#666;
-  text-align:left;padding:0 8px 8px;border-bottom:1.5px solid #0a0e1a}
-td{padding:8px;border-bottom:1px solid #e6e2d8;font-size:12px}
-.n{text-align:right;font-variant-numeric:tabular-nums}
-.owe{color:#b04646;font-weight:700}
-.ok{color:#17795e}
-.pt{font-size:9.5px;color:#666;border:1px solid #ccc;padding:1px 5px;border-radius:8px}
-tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;padding-top:10px}
-.ft{margin-top:24px;padding-top:12px;border-top:1px solid #e6e2d8;
-  font-size:10px;color:#999;display:flex;justify-content:space-between}
-</style></head><body>
-<div class="hd">
+  return `
+<div class="r-hd">
   <div>
     <h1>${esc(t.name)}　费用结算</h1>
-    <div class="sub">Davis Origin · 戴维斯原点足球俱乐部</div>
+    <div class="r-sub">Davis Origin · 戴维斯原点足球俱乐部</div>
   </div>
-  <div class="meta">
+  <div class="r-meta">
     导出日期 ${today}<br>
-    ${s.trainCount} 场训练${s.matchCount?` · ${s.matchCount} 场比赛`:''} · ${s.peopleCount} 人参与
+    ${s.trainCount} 场训练${s.matchCount?` · ${s.matchCount} 场比赛`:''} · ${people.length} 人
   </div>
 </div>
 
-<div class="box">
+<div class="r-box">
   <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
   ${s.unitPrice?`<div><span>训练单价／次</span><b>${money(s.unitPrice)}</b></div>`:''}
   ${s.matchCount?`<div><span>比赛费用</span><b>${money(s.matchCost)}</b></div>`:''}
@@ -2340,7 +2360,7 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
     <th class="n" style="width:34px">号</th><th>球员</th>
     <th class="n">出勤</th><th class="n">应付</th><th class="n">已付</th><th class="n">未付</th>
   </tr></thead>
-  <tbody>${rows}</tbody>
+  <tbody>${rows || '<tr><td colspan="6" class="r-empty">没有选中任何人</td></tr>'}</tbody>
   <tfoot><tr>
     <td colspan="2">合计 ${people.length} 人</td>
     <td class="n">${sHead}</td>
@@ -2350,15 +2370,12 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
   </tr></tfoot>
 </table>
 
-<div class="ft">
+<div class="r-ft">
   <span>${s.unitPrice
     ? `训练单价 = ${money(s.trainCost)} ÷ ${s.trainHead} 人次 = ${money(s.unitPrice)}${s.matchCount?`　｜　比赛费用各场按参赛人数分摊`:''}`
     : `跨学期合计，各学期单价不同`}</span>
   <span>${unpaid.length ? `${unpaid.length} 人未结清` : '全部结清'}</span>
-</div>
-</body></html>`;
-
-  return html;
+</div>`;
 }
 
 /* 生成训练记录 HTML（sessions 是已经筛过的） */
@@ -2392,196 +2409,94 @@ function buildSessionReport(t, sessions){
     </div>`;
   }).join('');
 
-  return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<title>${esc(t.name)} 训练记录</title>
-<style>
-@page{size:A4;margin:0}
-@media print{ html,body{width:auto} body{padding:15mm 14mm} }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:794px;background:#fff}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  color:#0a0e1a;font-size:11.5px;line-height:1.6;padding:56px 52px 60px}
-.hd{display:flex;justify-content:space-between;align-items:flex-end;
-  border-bottom:2px solid #0a0e1a;padding-bottom:12px;margin-bottom:16px}
-h1{font-size:21px;font-weight:800;letter-spacing:-.02em}
-.sub{font-size:10.5px;color:#666;margin-top:4px}
-.meta{text-align:right;font-size:10.5px;color:#666;line-height:1.8}
-.box{background:#f2f5fb;border-radius:8px;padding:11px 18px;margin-bottom:18px;
-  display:flex;gap:30px;flex-wrap:wrap}
-.box div span{display:block;font-size:9px;color:#666;letter-spacing:.1em;text-transform:uppercase}
-.box div b{font-size:15px;font-weight:800;color:#1e3a8a}
-
-.rec{padding:10px 0;border-bottom:1px solid #e6e2d8;page-break-inside:avoid}
-.rec:first-child{padding-top:0}
-.rec-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
-.rec-l{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0}
-.rec-no{font-size:10px;color:#aaa;font-variant-numeric:tabular-nums;
-  min-width:16px;display:inline-block}
-.rec-date{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;
-  white-space:nowrap}
-.rec-kind{font-size:9.5px;padding:1px 7px;border-radius:4px;
-  background:#eef1f6;color:#555;border:1px solid #dde2ea}
-.rec-kind.m{color:#b0762a;border-color:#e0c99a;background:#fbf2e3}
-.rec-note{font-size:11px;color:#666}
-.rec-r{display:flex;gap:12px;white-space:nowrap;font-size:11.5px;color:#444;
-  font-variant-numeric:tabular-nums}
-.rec-cost{font-weight:700;color:#1e3a8a}
-.rec-names{font-size:11px;color:#444;line-height:1.8;margin-top:5px;
-  padding-left:25px;word-break:break-word}
-
-.tot{display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;
-  border-top:2px solid #0a0e1a;font-weight:800;font-size:12.5px}
-.tot-r{display:flex;gap:20px;font-variant-numeric:tabular-nums}
-.ft{margin-top:22px;padding-top:10px;border-top:1px solid #e6e2d8;
-  font-size:9.5px;color:#999}
-</style></head><body>
-<div class="hd">
+  return `
+<div class="r-hd">
   <div>
     <h1>${esc(t.name)}　训练记录</h1>
-    <div class="sub">Davis Origin · 戴维斯原点足球俱乐部</div>
+    <div class="r-sub">Davis Origin · 戴维斯原点足球俱乐部</div>
   </div>
-  <div class="meta">
+  <div class="r-meta">
     导出日期 ${day}<br>
     ${nTrain} 场训练${nMatch?` · ${nMatch} 场比赛`:''}
   </div>
 </div>
 
-<div class="box">
+<div class="r-box">
   <div><span>场次</span><b>${list.length}</b></div>
   <div><span>总人次</span><b>${head}</b></div>
   <div><span>参与人数</span><b>${names.size}</b></div>
   ${costs?`<div><span>费用合计</span><b>${money(costs)}</b></div>`:''}
 </div>
 
-${blocks || '<div style="color:#999;padding:30px 0;text-align:center">没有选中任何场次</div>'}
+${blocks || '<div class="r-empty">没有选中任何场次</div>'}
 
-<div class="tot">
+<div class="r-tot">
   <span>合计 ${list.length} 场</span>
-  <div class="tot-r">
+  <div class="r-tot-r">
     <span>${head} 人次</span>
     ${costs?`<span>${money(costs)}</span>`:''}
   </div>
 </div>
 
-<div class="ft">${esc(t.name)}${t.startDate||t.endDate?`　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}</div>
-</body></html>`;
+<div class="r-ft"><span>${esc(t.name)}${t.startDate||t.endDate?`　${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}`:''}</span></div>`;
 }
 
 /* ---------- PDF 预览 / 下载 ---------- */
-let pdfKind  = 'fee';        // 'fee' | 'session'
-let pdfTerm  = null;         // 当前报表的学期对象
-let pdfItems = [];           // [{id,label,meta,data}]
-let pdfPick  = new Set();    // 选中的 id
-let pdfName  = '报表';
-
-/** 打开预览（items 里每一项都能单独勾选） */
-function openPdf({ kind, term, title, fileName, items }){
-  pdfKind  = kind;
-  pdfTerm  = term;
-  pdfName  = fileName;
-  pdfItems = items;
-  pdfPick  = new Set(items.map(x=>x.id));   // 默认全选
-  $('pdfTitle').textContent = title;
-  renderPdfPicks();
-  refreshPdf();
-  $('pdfModal').classList.add('on');
-}
-
-function renderPdfPicks(){
-  const box = $('pdfPickList');
-  box.innerHTML = pdfItems.map(x=>`
-    <label class="pdf-pick">
-      <input type="checkbox" data-pk="${esc(String(x.id))}" ${pdfPick.has(x.id)?'checked':''} />
-      <span>
-        <span class="pdf-pick-name">${esc(x.label)}</span>
-        ${x.meta?`<span class="pdf-pick-meta">${esc(x.meta)}</span>`:''}
-      </span>
-    </label>`).join('');
-
-  box.querySelectorAll('[data-pk]').forEach(cb=>{
-    cb.onchange = ()=>{
-      const item = pdfItems.find(x=>String(x.id) === cb.dataset.pk);
-      if(!item) return;
-      cb.checked ? pdfPick.add(item.id) : pdfPick.delete(item.id);
-      updatePickCount();
-      refreshPdf();
-    };
-  });
-  updatePickCount();
-}
-
-function updatePickCount(){
-  const n = pdfPick.size, all = pdfItems.length;
-  $('pdfPickCount').textContent = n === all ? `包含全部 ${all}` : `已选 ${n} / ${all}`;
-}
+let pdfName = '报表';
 
 const A4_W = 794;   // A4 宽度 @96dpi
 const A4_H = 1123;  // A4 高度 @96dpi
 
-/** 按容器宽度等比缩放预览，保证跟导出的 PDF 一模一样 */
-function fitPdfFrame(){
-  const f = $('pdfFrame'), stage = $('pdfStage'), body = $('pdfBody');
-  let h = A4_H;
-  try{
-    const d = f.contentDocument;
-    h = Math.max(A4_H, d.documentElement.scrollHeight, d.body.scrollHeight);
-  }catch(e){}
+/** 打开预览。html 是报表内容片段，会塞进主页面的 .rpt 里 ——
+ *  预览和导出用的是同一个 DOM，所以看到什么就是什么 */
+function openPdf({ title, fileName, html }){
+  pdfName = fileName;
+  $('pdfTitle').textContent = title;
+  $('pdfDoc').innerHTML = html;
+  $('pdfModal').classList.add('on');
+  requestAnimationFrame(fitPdfDoc);
+}
 
+/** 等比缩放预览，让 A4 宽度塞进弹窗 */
+function fitPdfDoc(){
+  const doc = $('pdfDoc'), stage = $('pdfStage'), body = $('pdfBody');
+  doc.style.transform = 'none';
+  const h = Math.max(A4_H, doc.scrollHeight);
   const avail = Math.max(240, body.clientWidth - 40);
   const scale = Math.min(1, avail / A4_W);
-
-  f.style.height = h + 'px';
-  f.style.transform = `scale(${scale})`;
+  doc.style.transform = `scale(${scale})`;
   stage.style.width  = Math.round(A4_W * scale) + 'px';
   stage.style.height = Math.round(h * scale) + 'px';
 }
-
-function refreshPdf(){
-  const f = $('pdfFrame');
-  const chosen = pdfItems.filter(x=>pdfPick.has(x.id)).map(x=>x.data);
-  f.srcdoc = pdfKind === 'session'
-    ? buildSessionReport(pdfTerm, chosen)
-    : buildReport(pdfTerm, chosen);
-  f.onload = ()=> setTimeout(fitPdfFrame, 30);
-}
 window.addEventListener('resize', ()=>{
-  if($('pdfModal').classList.contains('on')) fitPdfFrame();
+  if($('pdfModal').classList.contains('on')) fitPdfDoc();
 }, { passive:true });
 
-$('pdfPickAll').onclick  = ()=>{ pdfPick = new Set(pdfItems.map(x=>x.id)); renderPdfPicks(); refreshPdf(); };
-$('pdfPickNone').onclick = ()=>{ pdfPick = new Set(); renderPdfPicks(); refreshPdf(); };
-
-/* 训练记录 */
+/* 训练记录：只导出勾选的场次（没勾就是全部） */
 $('btnSessPdf').onclick = ()=>{
   const t = T();
   if(!t || !t.sessions.length) return toast('没有数据', true);
-  const list = [...t.sessions].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const chosen = pickedSess.size
+    ? t.sessions.filter(s=>pickedSess.has(s.id))
+    : t.sessions;
+  if(!chosen.length) return toast('没有选中的场次', true);
   openPdf({
-    kind:'session', term:t,
-    title:`${t.name}　训练记录`,
-    fileName:`${t.name}-训练记录-${today()}`,
-    items: list.map(x=>({
-      id: x.id,
-      label: `${x.date}${x.kind==='match'?'  比赛':''}`,
-      meta: `${x.attendees.length} 人${x.cost?` · ${money(x.cost)}`:''}${x.note?` · ${x.note}`:''}`,
-      data: x,
-    })),
+    title: `${t.name}　训练记录`,
+    fileName: `${t.name}-训练记录-${today()}`,
+    html: buildSessionReport(t, chosen),
   });
 };
 
+/* 费用结算：只导出勾选的人（没勾就是全部） */
 $('btnExportPdf').onclick = ()=>{
   const t = T();
   if(!t || !t.people.length) return toast('没有数据', true);
+  const chosen = picked.size ? t.people.filter(p=>picked.has(p.name)) : t.people;
+  if(!chosen.length) return toast('没有选中的球员', true);
   openPdf({
-    kind:'fee', term:t,
-    title:`${t.name}　费用结算`,
-    fileName:`${t.name}-费用结算-${today()}`,
-    items: t.people.map(p=>({
-      id: p.name,
-      label: p.name,
-      meta: `${p.count} 次 · 未付 ${money(p.balance)}`,
-      data: p,
-    })),
+    title: `${t.name}　费用结算`,
+    fileName: `${t.name}-费用结算-${today()}`,
+    html: buildReport(t, chosen),
   });
 };
 
@@ -2592,9 +2507,24 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'Escape' && $('pdfModal').classList.contains('on')) closePdf();
 });
 
+/* 打印：把同一份内容 + 同一份样式丢进新窗口 */
 $('pdfPrint').onclick = ()=>{
-  const w = $('pdfFrame').contentWindow;
-  w.focus(); w.print();
+  const css = [...document.styleSheets]
+    .flatMap(sh=>{ try{ return [...sh.cssRules].map(r=>r.cssText); }catch(e){ return []; } })
+    .filter(r=>r.startsWith('.rpt'))
+    .join('\n');
+  const w = window.open('', '_blank');
+  if(!w) return toast('浏览器拦了弹窗，允许一下再试', true);
+  w.document.write(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>${esc(pdfName)}</title><style>
+@page{size:A4;margin:0}
+*{margin:0;padding:0}
+body{background:#fff}
+${css}
+.rpt{transform:none!important;margin:0 auto}
+</style></head><body><div class="rpt">${$('pdfDoc').innerHTML}</div></body></html>`);
+  w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); }, 350);
 };
 
 /* 直接下载：用 html2pdf（按需从 CDN 加载） */
@@ -2608,12 +2538,13 @@ function loadScript(src){
 }
 
 $('pdfDownload').onclick = async ()=>{
-  if(!pdfPick.size) return toast('至少选一项', true);
   const btn = $('pdfDownload');
+  const doc = $('pdfDoc');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 生成中';
+  const savedTransform = doc.style.transform;
+  doc.style.transform = 'none';        // 截图时必须是 1:1，不能带缩放
   try{
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js');
-    const doc = $('pdfFrame').contentDocument;
     const name = `${pdfName}.pdf`;
     await html2pdf().set({
       margin: 0,
@@ -2626,11 +2557,12 @@ $('pdfDownload').onclick = async ()=>{
       },
       jsPDF: { unit:'px', format:[A4_W, A4_H], orientation:'portrait', hotfixes:['px_scaling'] },
       pagebreak: { mode:['css','legacy'], avoid:['tr','.rec'] }
-    }).from(doc.body).save();
+    }).from(doc).save();
     toast('已下载');
   }catch(e){
     toast('下载失败，用「打印」→ 存储为 PDF', true);
   }finally{
+    doc.style.transform = savedTransform;
     btn.disabled = false; btn.textContent = '下载 PDF';
   }
 };
