@@ -1154,15 +1154,37 @@ function parseNames(text){
 }
 
 function matchNames(list){
-  const map = new Map();
-  (D?.players || []).forEach(p => map.set(norm(p), p));
+  const players = D?.players || [];
+  const exact = new Map();
+  players.forEach(p => exact.set(norm(p), p));
+
+  // 长名字优先，避免「刘奕」抢在「刘奕辰」前面匹配上
+  const byLen = [...players].sort((a,b)=> norm(b).length - norm(a).length);
+
   const matched = [], unmatched = [], seen = new Set();
+
   list.forEach(raw=>{
     const k = norm(raw);
-    if(!k || seen.has(k)) return;
-    seen.add(k);
-    if(map.has(k)) matched.push(map.get(k)); else unmatched.push(raw);
+    if(!k) return;
+
+    // ① 完全一致
+    let hit = exact.get(k);
+
+    // ② 名册里的某个名字被包在这一行里 —— 前后是年级、省份、职务、备注都不管
+    if(!hit){
+      hit = byLen.find(p => {
+        const np = norm(p);
+        return np.length >= 2 && k.includes(np);
+      });
+    }
+
+    if(hit){
+      if(!seen.has(hit)){ seen.add(hit); matched.push(hit); }
+    }else{
+      if(!seen.has(k)){ seen.add(k); unmatched.push(raw); }
+    }
   });
+
   return { matched, unmatched };
 }
 
@@ -1732,7 +1754,7 @@ function renderSessions(){
       $('editFlag').innerHTML = `<span class="pill part">编辑中 · ${esc(s.date)}</span>`;
       $('btnCancelEdit').style.display = '';
       setKind(s.kind || 'training');
-      switchTab('add'); doMatch(false);
+      switchTab('add'); doMatch(false, true);
       window.scrollTo({top:0,behavior:'smooth'});
     };
   });
@@ -2036,7 +2058,7 @@ function renderPayments(){
 }
 
 /* ===================== 匹配 UI ===================== */
-function doMatch(autoDate){
+function doMatch(autoDate, suppressAsk){
   const raw = $('fNames').value;
   const box = $('matchBox'), chips = $('matchChips'), skipBox = $('skipBox');
   const parsed = parseRelay(raw);
@@ -2055,20 +2077,35 @@ function doMatch(autoDate){
     (u?` · 待确认 <b style="color:var(--warn)">${u}</b>`:'');
   chips.innerHTML =
     pendingMatch.matched.map(n=>`<span class="chip ok">✓ ${esc(n)}</span>`).join('') +
-    pendingMatch.unmatched.map(n=>`<span class="chip warn">? ${esc(n)}<button data-add="${esc(n)}" title="加入名册">+</button></span>`).join('');
+    pendingMatch.unmatched.map(n=>`<span class="chip warn">? ${esc(n)}</span>`).join('');
 
-  chips.querySelectorAll('[data-add]').forEach(b=>{
-    b.onclick = async ()=>{
-      try{
-        await api('/players',{method:'POST',body:JSON.stringify({names:[b.dataset.add]})});
-        await reload(false);
-        doMatch(false);
-        toast(`已把「${b.dataset.add}」加入名册`);
-      }catch(e){ toast(e.message,true); }
-    };
-  });
+  // 有没匹配上的 → 弹窗问要不要加进名册
+  if(u && !suppressAsk) askAddUnmatched();
 
   skipBox.style.display = 'none';
+}
+
+/** 未匹配的名字：问一句要不要加进名册 */
+let askingUnmatched = false;
+function askAddUnmatched(){
+  if(askingUnmatched) return;
+  const list = pendingMatch ? [...pendingMatch.unmatched] : [];
+  if(!list.length) return;
+  askingUnmatched = true;
+
+  openEdit({
+    title: `有 ${list.length} 个名字不在名册里`,
+    sub: `<b>${list.map(esc).join('、')}</b><br>
+          <span style="color:var(--muted)">加进名册后才会计入出勤和费用</span>`,
+    fields: [],
+    okText: `加入名册`,
+    onSubmit: async ()=>{
+      await api('/players',{method:'POST',body:JSON.stringify({names:list})});
+      await reload(false);
+      doMatch(false, true);          // 重新匹配，但别再弹一次
+      toast(`已加入 ${list.length} 人`);
+    }
+  }).finally(()=>{ askingUnmatched = false; });
 }
 
 /* ===================== Tabs ===================== */
