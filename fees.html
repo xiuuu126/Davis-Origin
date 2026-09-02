@@ -131,6 +131,19 @@
   .term-formula{background:var(--accent-soft);border-radius:12px;padding:15px 18px;
     font-size:14px;color:var(--accent-deep);line-height:1.85;text-align:center}
   .term-formula b{font-weight:800}
+  /* 每学期的 应付 / 已付 / 未付 */
+  .term-money{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;margin-top:14px}
+  .term-money div{background:var(--card);padding:14px 12px;text-align:center}
+  .term-money span{display:block;font-size:10px;color:var(--muted);
+    letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  .term-money b{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;color:var(--ink)}
+  .term-money b.paid{color:var(--ok)}
+  .term-money b.owe{color:var(--danger)}
+  .term-money b.clear{color:var(--ok)}
+
   .term-detail{margin-top:14px}
   .term-detail summary{font-size:12.5px;color:var(--muted);cursor:pointer;
     padding:6px 0;list-style:none;user-select:none;transition:color .2s}
@@ -378,7 +391,12 @@ function showResult(d){
         <div class="term-formula">
           ${t.trainCount ? `训练 <b>${t.trainCount}</b> 次 × ${money(t.unitPrice)} = <b>${money(t.trainOwed)}</b><br />` : ''}
           ${t.matchCount ? `比赛 <b>${t.matchCount}</b> 场 = <b>${money(t.matchOwed)}</b><br />` : ''}
-          合计应付 <b>${money(t.owed)}</b>${t.paid>0?`　·　已付 ${money(t.paid)}`:''}
+        </div>
+
+        <div class="term-money">
+          <div><span>应付</span><b>${money(t.owed)}</b></div>
+          <div><span>已付</span><b class="paid">${money(t.paid)}</b></div>
+          <div><span>未付</span><b class="${tc?'clear':'owe'}">${money(t.balance)}</b></div>
         </div>
 
         <details class="term-detail">

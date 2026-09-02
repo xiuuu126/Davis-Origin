@@ -140,6 +140,26 @@
     letter-spacing:-.02em}
   .jersey.sm{min-width:24px;height:20px;font-size:11px;border-radius:5px}
 
+  /* 弹窗里的勾选行 */
+  .check-row{display:flex;align-items:flex-start;gap:11px;cursor:pointer;
+    padding:13px 15px;border:1px solid var(--line);border-radius:11px;
+    background:var(--bg-soft);margin-bottom:14px;transition:border-color .2s,background .2s}
+  .check-row:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .check-row input{margin-top:2px;flex-shrink:0}
+  .check-row b{font-weight:600;font-size:14px}
+  .check-hint{display:block;font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6}
+
+  /* 学期多选 */
+  .term-picks{display:flex;flex-wrap:wrap;gap:9px}
+  .term-pick{display:inline-flex;align-items:center;gap:9px;padding:10px 16px;
+    border:1.5px solid var(--line);border-radius:11px;cursor:pointer;
+    background:var(--bg-soft);transition:all .2s;user-select:none}
+  .term-pick:hover{border-color:var(--accent)}
+  .term-pick.on{border-color:var(--accent);background:var(--accent-soft)}
+  .term-pick-name{font-weight:600;font-size:14px}
+  .term-pick.on .term-pick-name{color:var(--accent)}
+  .term-pick-meta{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
   /* PDF 预览弹窗 */
   .pdf-modal{background:var(--card);border-radius:18px;width:100%;max-width:900px;
     max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
@@ -427,6 +447,7 @@
       <button class="tab" data-tab="fees">费用 / 收款</button>
       <button class="tab" data-tab="players">球员名册</button>
       <button class="tab" data-tab="terms">学期管理</button>
+      <button class="tab" data-tab="stats">跨学期统计</button>
     </div>
 
     <!-- 录入 -->
@@ -560,7 +581,7 @@
               <th class="sortable" data-k="name">球员</th>
               <th class="sortable" data-k="tag">分组</th>
               <th class="sortable" data-k="code">查询码</th>
-              <th class="sortable num" data-k="att">出勤</th>
+              <th class="sortable num" data-k="att">本学期出勤</th>
               <th></th>
             </tr></thead>
             <tbody id="codeBody"></tbody>
@@ -595,6 +616,46 @@
         <div id="tagList"></div>
       </div>
 
+    </section>
+
+    <!-- 跨学期统计 -->
+    <section class="panel" id="tab-stats">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">选择学期</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn ghost sm" id="btnStatAll">全选</button>
+            <button class="btn ghost sm" id="btnStatNone">全不选</button>
+          </div>
+        </div>
+        <div class="term-picks" id="termPicks"></div>
+      </div>
+
+      <div class="stats" id="statSummary"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">合计</div>
+            <div class="card-sub" id="statSub">选了 0 个学期</div>
+          </div>
+          <button class="btn ghost sm" id="btnStatPdf">导出 PDF</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr id="statHead">
+              <th class="sortable" data-k="name">球员</th>
+              <th class="sortable num" data-k="count">出勤</th>
+              <th class="sortable num" data-k="owed">应付</th>
+              <th class="sortable num" data-k="paid">已付</th>
+              <th class="sortable num" data-k="balance">未付</th>
+              <th class="sortable" data-k="status">状态</th>
+            </tr></thead>
+            <tbody id="statBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="statEmpty">勾选上面的学期看合计</div>
+      </div>
     </section>
   </main>
 </div>
@@ -717,6 +778,15 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
             `<span class="tag-opt${f.value===o?' on':''}" data-v="${esc(o)}">${esc(o)}</span>`).join('')}
         </div></div>`;
     }
+    if (f.type === 'check') {
+      return `<label class="check-row">
+        <input type="checkbox" data-chk="${esc(f.key)}" ${f.value?'checked':''} />
+        <span>
+          <b>${esc(f.label)}</b>
+          ${f.hint?`<span class="check-hint">${f.hint}</span>`:''}
+        </span>
+      </label>`;
+    }
     if (f.type === 'colors') {
       return `<div class="field"><label>${esc(f.label)}</label>
         <div class="color-pick" data-colorpick="${esc(f.key)}">
@@ -763,6 +833,9 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
       $('emFields').querySelectorAll('[data-colorpick]').forEach(b => {
         const on = b.querySelector('.color-dot.on');
         v[b.dataset.colorpick] = on ? on.dataset.c : '';
+      });
+      $('emFields').querySelectorAll('[data-chk]').forEach(c => {
+        v[c.dataset.chk] = c.checked;
       });
       return v;
     };
@@ -943,8 +1016,12 @@ function render(){
   $('sUnpaid').textContent = '$' + Math.round(s.totalUnpaid);
 
   updateCostHint();
+  // 统计页默认勾当前学期
+  statPick = new Set([...statPick].filter(id => D.terms.some(t=>t.id===id)));
+  if(!statPick.size && curTermId) statPick.add(curTermId);
+
   renderSessions(); renderFees(); renderPayments();
-  renderCodes(); renderTerms(); renderTags();
+  renderCodes(); renderTerms(); renderTags(); renderStats();
 }
 
 function renderTerms(){
@@ -1037,8 +1114,15 @@ function renderTerms(){
   });
 }
 
-/** 某人累计出勤次数（跨所有学期） */
+/** 当前学期的出勤次数（每个新学期从 0 开始） */
 function attCount(name){
+  const t = T();
+  if(!t) return 0;
+  const p = t.people.find(x=>x.name===name);
+  return p ? p.count : 0;
+}
+/** 全部学期累计出勤（删人时用来提示） */
+function attCountAll(name){
   let n = 0;
   (D.terms||[]).forEach(t=>{
     const p = t.people.find(x=>x.name===name);
@@ -1115,7 +1199,7 @@ function renderCodes(){
   body.querySelectorAll('[data-delplayer]').forEach(b=>{
     b.onclick = ()=>{
       const name = b.dataset.delplayer;
-      const n = attCount(name);
+      const n = attCountAll(name);
       openEdit({
         title: `删除「${name}」？`,
         sub: n
@@ -1143,7 +1227,7 @@ function renderCodes(){
     b.onclick = ()=>{
       const name = b.dataset.code;
       const cur = (D.codes.find(c=>c.name===name)||{}).code || '';
-      const n = attCount(name);
+      const n = attCountAll(name);
       openEdit({
         title: '编辑球员',
         sub: n ? `已有 <b>${n}</b> 次出勤记录，改名字会一起改掉，不会丢数据`
@@ -1173,6 +1257,116 @@ function renderCodes(){
 }
 
 /* ---- 收款标签管理 ---- */
+/* ===================== 跨学期统计 ===================== */
+/** 把几个学期的人合并起来 */
+function aggregate(terms){
+  const map = new Map();
+  terms.forEach(t=>{
+    t.people.forEach(p=>{
+      if(!map.has(p.name))
+        map.set(p.name,{name:p.name,count:0,owed:0,paid:0,balance:0,terms:[]});
+      const a = map.get(p.name);
+      a.count += p.count; a.owed += p.owed; a.paid += p.paid; a.balance += p.balance;
+      a.terms.push(t.name);
+    });
+  });
+  const people = [...map.values()].map(a=>({
+    ...a,
+    owed: Math.round(a.owed*100)/100,
+    paid: Math.round(a.paid*100)/100,
+    balance: Math.round(a.balance*100)/100,
+  }));
+  const sum = k => Math.round(terms.reduce((n,t)=>n+t.summary[k],0)*100)/100;
+  return {
+    people,
+    summary:{
+      termCount: terms.length,
+      sessionCount: terms.reduce((n,t)=>n+t.summary.sessionCount,0),
+      trainCount:   terms.reduce((n,t)=>n+t.summary.trainCount,0),
+      matchCount:   terms.reduce((n,t)=>n+t.summary.matchCount,0),
+      peopleCount:  people.length,
+      trainCost: sum('trainCost'), trainHead: terms.reduce((n,t)=>n+t.summary.trainHead,0),
+      matchCost: sum('matchCost'), matchHead: terms.reduce((n,t)=>n+t.summary.matchHead,0),
+      totalCost: sum('totalCost'),
+      totalHeadcount: terms.reduce((n,t)=>n+t.summary.totalHeadcount,0),
+      unitPrice: 0,   // 跨学期没有统一单价
+      totalOwed: sum('totalOwed'),
+      totalPaid: sum('totalPaid'),
+      totalUnpaid: sum('totalUnpaid'),
+    }
+  };
+}
+
+function renderStats(){
+  const picks = $('termPicks');
+  if(!picks) return;
+
+  // 学期勾选
+  picks.innerHTML = D.terms.map(t=>`
+    <div class="term-pick ${statPick.has(t.id)?'on':''}" data-tp="${t.id}">
+      <input type="checkbox" ${statPick.has(t.id)?'checked':''} tabindex="-1" />
+      <div>
+        <div class="term-pick-name">${esc(t.name)}</div>
+        <div class="term-pick-meta">${t.summary.sessionCount} 场 · ${money(t.summary.totalCost)}</div>
+      </div>
+    </div>`).join('') || '<div class="empty">还没有学期</div>';
+
+  picks.querySelectorAll('[data-tp]').forEach(el=>{
+    el.onclick = ()=>{
+      const id = Number(el.dataset.tp);
+      statPick.has(id) ? statPick.delete(id) : statPick.add(id);
+      renderStats();
+    };
+  });
+
+  const sel = D.terms.filter(t=>statPick.has(t.id));
+  const body = $('statBody'), empty = $('statEmpty');
+  $('statSub').textContent = sel.length
+    ? `${sel.length} 个学期：${sel.map(t=>t.name).join(' + ')}`
+    : '选了 0 个学期';
+
+  if(!sel.length){
+    $('statSummary').innerHTML = '';
+    body.innerHTML = ''; empty.style.display = 'block';
+    return;
+  }
+
+  const agg = aggregate(sel);
+  const s = agg.summary;
+  $('statSummary').innerHTML = `
+    <div class="stat"><div class="stat-num">${s.sessionCount}</div><div class="stat-lbl">场次</div></div>
+    <div class="stat"><div class="stat-num">${s.peopleCount}</div><div class="stat-lbl">参与人数</div></div>
+    <div class="stat"><div class="stat-num">${Math.round(s.totalCost)}</div><div class="stat-lbl">总费用 $</div></div>
+    <div class="stat"><div class="stat-num ok">${Math.round(s.totalPaid)}</div><div class="stat-lbl">已收 $</div></div>
+    <div class="stat"><div class="stat-num warn">${Math.round(s.totalUnpaid)}</div><div class="stat-lbl">待收 $</div></div>`;
+
+  if(!agg.people.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  const rank = f => f.balance<=0.005 ? 0 : (f.paid>0 ? 1 : 2);
+  const val = (f,k)=> k==='status' ? rank(f) : f[k];
+  const people = [...agg.people].sort((a,b)=>
+    cmp(val(a,sortStat.k), val(b,sortStat.k), sortStat.dir) || a.name.localeCompare(b.name,'zh'));
+  paintSort('statHead', sortStat);
+
+  body.innerHTML = people.map(f=>{
+    let pill = '<span class="pill owe">未付</span>';
+    if(f.balance <= 0.005) pill = '<span class="pill ok">已结清</span>';
+    else if(f.paid > 0) pill = '<span class="pill part">部分</span>';
+    return `<tr>
+      <td>
+        ${playerNum(f.name)?`<span class="jersey sm" style="margin-right:8px">${esc(playerNum(f.name))}</span>`:''}
+        <b>${esc(f.name)}</b>
+      </td>
+      <td class="num"><span class="cnt-badge">${f.count}</span></td>
+      <td class="num money">${money(f.owed)}</td>
+      <td class="num money clear">${f.paid?money(f.paid):'—'}</td>
+      <td class="num money ${f.balance>0.005?'owe':'clear'}">${money(f.balance)}</td>
+      <td>${pill}</td>
+    </tr>`;
+  }).join('');
+}
+
 function renderTags(){ renderTagKind('payment', 'tagList'); renderTagKind('player', 'ptagList'); }
 
 function renderTagKind(kind, boxId){
@@ -1329,6 +1523,8 @@ let picked = new Set();
 // 默认：名册按号码升序（没号的排后面）；费用按未付降序
 let sortCode = { k:'number', dir:1 };
 let sortFee  = { k:'balance', dir:-1 };
+let sortStat = { k:'balance', dir:-1 };
+let statPick = new Set();   // 跨学期统计选中的学期 id
 
 /** 通用比较：数字比大小，文字按中文拼音，空值永远排最后 */
 function cmp(a, b, dir){
@@ -1557,13 +1753,16 @@ function newTerm(){
        hint:'知道这学期一共花多少就填；留空的话就把每场训练的费用加起来'},
       {key:'startDate', label:'开始日期（可留空）', type:'date', value:''},
       {key:'endDate', label:'结束日期（可留空）', type:'date', value:''},
+      {key:'resetNumbers', label:'清空所有球衣号', type:'check', value:false,
+       hint:'新赛季换球衣的话勾上。出勤和费用本来就是按学期分开算的，不受影响。'},
     ],
     okText: '创建',
     onSubmit: async v=>{
       if(!v.name) throw new Error('学期名称不能为空');
       const r = await api('/terms',{method:'POST',body:JSON.stringify({
         name:v.name, totalCost: v.totalCost===''?0:Number(v.totalCost),
-        startDate:v.startDate, endDate:v.endDate, setActive:true })});
+        startDate:v.startDate, endDate:v.endDate, setActive:true,
+        resetNumbers: !!v.resetNumbers })});
       curTermId = r.id;
       await reload();
       toast(`已创建「${v.name}」并设为当前学期`);
@@ -1578,6 +1777,29 @@ $('btnNewPTag').onclick = ()=> newTagOf('player');
 /* 表头排序 */
 bindSort('codeHead', sortCode, renderCodes);
 bindSort('feeHead',  sortFee,  renderFees);
+bindSort('statHead', sortStat, renderStats);
+
+/* ---------- 跨学期统计 ---------- */
+$('btnStatAll').onclick  = ()=>{ statPick = new Set(D.terms.map(t=>t.id)); renderStats(); };
+$('btnStatNone').onclick = ()=>{ statPick = new Set(); renderStats(); };
+
+$('btnStatPdf').onclick = ()=>{
+  const sel = D.terms.filter(t=>statPick.has(t.id));
+  if(!sel.length) return toast('先选学期', true);
+  const agg = aggregate(sel);
+  if(!agg.people.length) return toast('没有数据', true);
+  $('pdfTitle').textContent = '跨学期合计';
+  const f = $('pdfFrame');
+  f.srcdoc = buildReport({
+    name: sel.map(t=>t.name).join(' + '),
+    people: agg.people,
+    summary: agg.summary,
+  });
+  $('pdfModal').classList.add('on');
+  f.onload = ()=>{
+    try{ f.style.height = Math.max(600, f.contentDocument.body.scrollHeight + 60) + 'px'; }catch(e){}
+  };
+};
 
 /* 训练 / 比赛 切换 */
 function setKind(k){
@@ -1817,7 +2039,7 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
 
 <div class="box">
   <div><span>总费用</span><b>${money(s.totalCost)}</b></div>
-  <div><span>训练单价／次</span><b>${money(s.unitPrice)}</b></div>
+  ${s.unitPrice?`<div><span>训练单价／次</span><b>${money(s.unitPrice)}</b></div>`:''}
   ${s.matchCount?`<div><span>比赛费用</span><b>${money(s.matchCost)}</b></div>`:''}
   <div><span>已收</span><b>${money(s.totalPaid)}</b></div>
   <div><span>待收</span><b style="color:#b04646">${money(s.totalUnpaid)}</b></div>
@@ -1839,7 +2061,9 @@ tfoot td{border-top:1.5px solid #0a0e1a;border-bottom:none;font-weight:800;paddi
 </table>
 
 <div class="ft">
-  <span>训练单价 = ${money(s.trainCost)} ÷ ${s.trainHead} 人次 = ${money(s.unitPrice)}${s.matchCount?`　｜　比赛费用各场按参赛人数分摊`:''}</span>
+  <span>${s.unitPrice
+    ? `训练单价 = ${money(s.trainCost)} ÷ ${s.trainHead} 人次 = ${money(s.unitPrice)}${s.matchCount?`　｜　比赛费用各场按参赛人数分摊`:''}`
+    : `跨学期合计，各学期单价不同`}</span>
   <span>${unpaid.length ? `${unpaid.length} 人未结清` : '全部结清'}</span>
 </div>
 </body></html>`;
