@@ -227,12 +227,11 @@
       </div>
       <div class="qfield">
         <label>你的查询码</label>
-        <input type="password" id="qCode" autocomplete="off" />
+        <input type="password" id="qCode" autocomplete="new-password" />
       </div>
       <button class="qbtn" type="submit" id="qBtn">查询</button>
       <div class="qerr" id="qErr"></div>
     </form>
-    <div class="qhint">查询码问队长。</div>
   </div>
 </div>
 
@@ -270,9 +269,11 @@ const CHEV = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentC
   stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <path d="M6 9l6 6 6-6"/></svg>`;
 
-/* 记住查询码，省得每次输 */
-const CODE_KEY = 'do_query_code';
-try{ const saved = localStorage.getItem(CODE_KEY); if(saved) $('qCode').value = saved; }catch(e){}
+/* 两个框每次打开都是空的，不记住任何东西 */
+try{ localStorage.removeItem('do_query_code'); }catch(e){}   // 清掉旧版本存的
+$('qform').reset();
+$('qName').value = '';
+$('qCode').value = '';
 
 $('qform').onsubmit = async e => {
   e.preventDefault();
@@ -295,8 +296,6 @@ $('qform').onsubmit = async e => {
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error || '查询失败');
 
-    try{ localStorage.setItem(CODE_KEY, code); }catch(e){}
-
     if(!d.found){ showState('你还没有出勤记录'); return; }
     showResult(d);
   }catch(err){
@@ -312,6 +311,8 @@ function showForm(){
   $('qbox').style.display = '';
   $('result').classList.remove('on');
   $('qName').value = '';
+  $('qCode').value = '';
+  $('qErr').textContent = '';
   $('qName').focus();
   window.scrollTo({top:0,behavior:'smooth'});
 }
