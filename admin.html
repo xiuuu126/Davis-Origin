@@ -583,7 +583,7 @@
     <div class="login-sub">Davis Origin · Admin</div>
     <form id="loginForm">
       <div class="field">
-        <label>管理密码</label>
+        <label for="loginPass">管理密码</label>
         <input type="password" id="loginPass" autocomplete="current-password" />
       </div>
       <button class="btn full" type="submit" id="loginBtn">登录</button>
@@ -665,16 +665,16 @@
         </div>
 
         <div class="row3">
-          <div class="field"><label>日期</label><input type="date" id="fDate" /></div>
+          <div class="field"><label for="fDate">日期</label><input type="date" id="fDate" /></div>
           <div class="field">
             <label id="fCostLabel">本次费用</label>
             <input type="number" id="fCost" step="0.01" min="0" placeholder="0" />
             <div class="hint" id="fCostHint" style="display:none"></div>
           </div>
-          <div class="field"><label>备注</label><input type="text" id="fNote" placeholder="可选" /></div>
+          <div class="field"><label for="fNote">备注</label><input type="text" id="fNote" placeholder="可选" /></div>
         </div>
         <div class="field">
-          <label>出勤名单</label>
+          <label for="fNames">出勤名单</label>
           <textarea id="fNames" rows="9"></textarea>
         </div>
         <div id="matchBox" style="display:none">
@@ -912,13 +912,13 @@
       <span class="modal-hd-tag">收款</span>
     </div>
     <div class="sub" id="paySubInfo"></div>
-    <div class="field"><label>金额</label><input type="number" id="payAmt" step="0.01" /></div>
-    <div class="field"><label>收款日期</label><input type="date" id="payDate" /></div>
+    <div class="field"><label for="payAmt">金额</label><input type="number" id="payAmt" step="0.01" /></div>
+    <div class="field"><label for="payDate">收款日期</label><input type="date" id="payDate" /></div>
     <div class="field">
       <label>付款方式</label>
       <div class="tag-pick" id="payTags"></div>
     </div>
-    <div class="field"><label>备注</label><input type="text" id="payNote" placeholder="可选" /></div>
+    <div class="field"><label for="payNote">备注</label><input type="text" id="payNote" placeholder="可选" /></div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button class="btn ok" id="payConfirm" style="flex:1">确认收款</button>
       <button class="btn ghost" id="payCancel">取消</button>
@@ -930,11 +930,21 @@
 
 <script>
 /* ===================== 配置 ===================== */
-// Worker 的直连地址（路由没配好时用这个兜底）
-const API_DIRECT = 'https://davisorigin-api.xiaoerliu93.workers.dev';
-let API = API_DIRECT;
 
-/** 启动时探一次：能走同域 /api 就走，不行就用 workers.dev */
+/* 绝不允许在 http 下输密码：明文过网线谁都能截。
+   服务端的 Always Use HTTPS 才是正解，这里只是兜底，
+   在任何脚本跑起来之前就把页面跳走。 */
+if(location.protocol === 'http:' &&
+   !['localhost','127.0.0.1'].includes(location.hostname)){
+  location.replace('https://' + location.host + location.pathname + location.search + location.hash);
+}
+
+// Worker 的直连地址（同域路由挂了才用）。为空表示没有可用的兜底。
+const API_DIRECT = 'https://davisorigin-api.xiaoerliu93.workers.dev';
+let API = '/api';
+let apiReady = false;
+
+/** 启动时探一次：能走同域 /api 就走，不行再看兜底通不通 */
 async function resolveApi(){
   if(location.protocol === 'file:' || location.hostname === 'localhost'){
     API = API_DIRECT; return;
@@ -943,10 +953,18 @@ async function resolveApi(){
     const r = await fetch('/api/health', { cache:'no-store' });
     if(r.ok){
       const d = await r.json();
-      if(d && d.ok){ API = '/api'; return; }
+      if(d && d.ok){ API = '/api'; apiReady = true; return; }
     }
   }catch(e){}
-  API = API_DIRECT;
+  // 同域不通，试试兜底地址是不是活的（workers.dev 子域可能是关的）
+  try{
+    const r = await fetch(API_DIRECT + '/health', { cache:'no-store' });
+    if(r.ok){
+      const d = await r.json();
+      if(d && d.ok){ API = API_DIRECT; apiReady = true; return; }
+    }
+  }catch(e){}
+  API = '/api';   // 都不通就还用同域，让错误如实报出来
 }
 
 const TK = 'do_admin_token';
@@ -1059,9 +1077,11 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
                    style="background:${c}"></span>`).join('')}
         </div></div>`;
     }
+    // label 要跟输入框绑定，不然读屏和密码管理器认不出来
+    const fid = 'emf-' + String(f.key).replace(/[^\w-]/g, '_');
     return `<div class="field">
-      <label>${esc(f.label)}</label>
-      <input type="${f.type||'text'}" data-k="${esc(f.key)}"
+      <label for="${fid}">${esc(f.label)}</label>
+      <input id="${fid}" type="${f.type||'text'}" data-k="${esc(f.key)}"
              value="${esc(f.value ?? '')}" placeholder="${esc(f.placeholder||'')}" />
       ${f.hint?`<div class="hint" style="margin-top:6px">${f.hint}</div>`:''}
     </div>`;

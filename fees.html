@@ -222,11 +222,11 @@
   <div class="qcard">
     <form id="qform">
       <div class="qfield">
-        <label>你的名字</label>
+        <label for="qName">你的名字</label>
         <input type="text" id="qName" autocomplete="off" spellcheck="false" />
       </div>
       <div class="qfield">
-        <label>你的查询码</label>
+        <label for="qCode">你的查询码</label>
         <input type="password" id="qCode" autocomplete="new-password" />
       </div>
       <button class="qbtn" type="submit" id="qBtn">查询</button>
@@ -245,9 +245,15 @@
 </footer>
 
 <script>
-/* Worker 直连地址（同域路由没配好时兜底） */
+/* 查询码也是凭据，不走明文 http */
+if(location.protocol === 'http:' &&
+   !['localhost','127.0.0.1'].includes(location.hostname)){
+  location.replace('https://' + location.host + location.pathname + location.search + location.hash);
+}
+
+/* Worker 直连地址（同域路由挂了才用） */
 const API_DIRECT = 'https://davisorigin-api.xiaoerliu93.workers.dev';
-let API = API_DIRECT;
+let API = '/api';
 
 async function resolveApi(){
   if(location.protocol === 'file:' || location.hostname === 'localhost'){
@@ -257,7 +263,11 @@ async function resolveApi(){
     const r = await fetch('/api/health', { cache:'no-store' });
     if(r.ok){ const d = await r.json(); if(d && d.ok){ API = '/api'; return; } }
   }catch(e){}
-  API = API_DIRECT;
+  try{
+    const r = await fetch(API_DIRECT + '/health', { cache:'no-store' });
+    if(r.ok){ const d = await r.json(); if(d && d.ok){ API = API_DIRECT; return; } }
+  }catch(e){}
+  API = '/api';
 }
 resolveApi();
 
