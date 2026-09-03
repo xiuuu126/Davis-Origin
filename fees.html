@@ -10,193 +10,176 @@
     --bg:#f7f5f0; --bg-soft:#fafaf7; --ink:#0a0e1a; --ink-soft:#3d4151;
     --muted:#8a8a92; --line:#e6e2d8; --accent:#1e3a8a; --accent-deep:#0f1d4d;
     --accent-soft:#eaf0fb; --card:#fff;
-    --ok:#17795e; --ok-soft:#e6f4ef; --danger:#b04646; --danger-soft:#fbeded;
+    --ok:#17795e; --ok-soft:#e6f4ef;
+    --warn:#b0762a; --warn-soft:#fbf2e3;
+    --danger:#b04646; --danger-soft:#fbeded;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
-    font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+    font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}
   button,input{font-family:inherit;font-size:inherit}
   ::selection{background:var(--accent);color:#fff}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;
+    background:rgba(0,0,0,.05);padding:1px 5px;border-radius:4px}
 
-  .topbar{position:sticky;top:0;z-index:50;background:rgba(247,245,240,.88);
+  /* ---------- 站点外壳（跟其他公开页一致） ---------- */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(247,245,240,.9);
     backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
     border-bottom:1px solid var(--line)}
-  .topbar-inner{max-width:1400px;margin:0 auto;padding:18px 40px;display:flex;
+  .topbar-inner{max-width:860px;margin:0 auto;padding:14px 32px;display:flex;
     align-items:center;justify-content:space-between;gap:16px}
-  .brand{display:flex;align-items:center;gap:12px;font-weight:600}
-  .brand-mark{width:40px;height:40px;object-fit:contain;transition:transform .4s cubic-bezier(.4,0,.2,1)}
-  .brand:hover .brand-mark{transform:rotate(-10deg) scale(1.08)}
-  .brand-name{font-size:16px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:600}
+  .brand-mark{width:34px;height:34px;object-fit:contain}
+  .brand-name{font-size:15px}
   .brand-sub{color:var(--muted);font-size:12px;margin-left:6px;font-weight:400}
-  .back-link{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;
-    border:1px solid var(--line);border-radius:999px;font-size:13px;color:var(--ink-soft);
-    background:var(--bg-soft);transition:all .3s ease}
-  .back-link:hover{border-color:var(--accent);color:var(--accent);
-    background:var(--accent-soft);transform:translateX(-3px)}
+  .back-link{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;
+    border:1px solid var(--line);border-radius:8px;font-size:12.5px;color:var(--ink-soft);
+    background:transparent;transition:background .2s,color .2s,border-color .2s}
+  .back-link:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 
-  .page-hero{max-width:760px;margin:0 auto;padding:88px 40px 8px;text-align:center}
-  .page-eyebrow{font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:20px;animation:fadeUp .8s ease both}
-  .page-title{font-size:clamp(40px,7vw,68px);font-weight:900;letter-spacing:-.04em;
-    line-height:.98;margin-bottom:18px;animation:fadeUp .9s ease .08s both}
-  .page-lede{font-size:17px;color:var(--ink-soft);max-width:460px;margin:0 auto;
-    animation:fadeUp .9s ease .16s both}
+  main.wrap{max-width:860px;margin:0 auto;padding:44px 32px 72px}
 
-  /* 查询表单 */
-  .qbox{max-width:440px;margin:44px auto 0;padding:0 40px;animation:fadeUp .9s ease .24s both}
-  .qcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 30px;
-    box-shadow:0 20px 50px rgba(13,18,36,.06)}
-  .qfield{margin-bottom:16px;text-align:left}
-  .qfield label{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-  .qfield input{width:100%;padding:14px 18px;border:1.5px solid var(--line);border-radius:12px;
-    background:var(--bg-soft);color:var(--ink);font-size:16px;
-    transition:border-color .25s,box-shadow .25s,background .25s}
-  .qfield input:focus{outline:none;border-color:var(--accent);
-    box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
-  .qfield input::placeholder{color:var(--muted)}
-  .qbtn{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;
-    border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    transition:background .25s,transform .25s,box-shadow .25s}
-  .qbtn:hover{background:var(--accent-deep);transform:translateY(-2px);
-    box-shadow:0 12px 26px rgba(30,58,138,.28)}
-  .qbtn:active{transform:translateY(0)}
-  .qbtn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
-  .qerr{color:var(--danger);font-size:13.5px;margin-top:14px;min-height:20px;text-align:center}
-  .qhint{font-size:12.5px;color:var(--muted);text-align:center;margin-top:18px;
-    padding-top:16px;border-top:1px solid var(--line);line-height:1.8}
-  .qhint b{color:var(--ink-soft)}
-  .qhint code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
-    background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:5px}
+  .page-eyebrow{font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:12px}
+  .page-title{font-size:30px;font-weight:800;letter-spacing:-.025em;line-height:1.15;
+    margin-bottom:8px}
+  .page-lede{font-size:14.5px;color:var(--ink-soft);margin-bottom:30px}
 
-  main.page{max-width:760px;margin:0 auto;padding:36px 40px 96px}
-  .result{display:none}
-  .result.on{display:block;animation:fadeUp .5s ease both}
+  /* ---------- 通用件（跟后台同一套） ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:28px 30px;margin-bottom:18px;box-shadow:0 1px 2px rgba(13,18,36,.03)}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
+    margin-bottom:22px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .card-title{font-size:16px;font-weight:700;letter-spacing:.01em}
+  .card-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
 
-  .r-head{text-align:center;padding:32px 0 30px;border-bottom:1px solid var(--line);margin-bottom:32px}
-  .r-name{font-size:clamp(32px,6vw,46px);font-weight:900;letter-spacing:-.03em;line-height:1.05}
-  .r-tag{display:inline-block;margin-top:12px;font-size:11px;letter-spacing:.2em;
-    text-transform:uppercase;color:var(--accent);background:var(--accent-soft);
-    padding:5px 13px;border-radius:999px;font-weight:700}
+  .field{text-align:left;margin-bottom:14px}
+  .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .field input{width:100%;height:42px;padding:0 14px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-soft);color:var(--ink);font-size:15px;
+    transition:border-color .2s,box-shadow .2s,background .2s}
+  .field input:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+  .field input::placeholder{color:var(--muted)}
 
-  .r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:34px}
-  .r-stat{background:var(--card);border:1px solid var(--line);border-radius:18px;
-    padding:26px 18px;text-align:center;transition:transform .3s,box-shadow .3s,border-color .25s}
-  .r-stat:hover{transform:translateY(-3px);border-color:var(--accent);
-    box-shadow:0 16px 36px rgba(13,18,36,.07)}
-  .r-stat-num{font-size:36px;font-weight:900;letter-spacing:-.035em;line-height:1;
-    font-variant-numeric:tabular-nums;
-    background:linear-gradient(135deg,var(--accent) 0%,var(--accent-deep) 100%);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    color:var(--accent);display:inline-block}
-  .r-stat-num.owe{background:linear-gradient(135deg,#c25555,#8f3535);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .r-stat-num.clear{background:linear-gradient(135deg,#1f8f6f,#12604a);
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .r-stat-lbl{font-size:10.5px;color:var(--muted);margin-top:9px;letter-spacing:.16em;
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;
+    border:1px solid var(--accent);border-radius:10px;background:var(--accent);color:#fff;
+    font-weight:600;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s}
+  .btn:hover{background:var(--accent-deep);transform:translateY(-1px);
+    box-shadow:0 8px 18px rgba(30,58,138,.22)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.full{width:100%}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--accent-soft);color:var(--accent);
+    border-color:var(--accent);box-shadow:none}
+  .btn.sm{padding:7px 13px;font-size:12.5px;border-radius:8px}
+
+  .money{font-weight:700;font-variant-numeric:tabular-nums}
+  .money.owe{color:var(--danger)}
+  .money.clear{color:var(--ok)}
+
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;
+    font-weight:700;letter-spacing:.04em}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.owe{background:var(--danger-soft);color:var(--danger)}
+  .pill.part{background:var(--warn-soft);color:var(--warn)}
+  .pill.now{background:var(--accent-soft);color:var(--accent)}
+
+  .callout{background:var(--ok-soft);border:1px solid rgba(23,121,94,.25);border-radius:12px;
+    padding:13px 18px;font-size:13px;color:#0f5a45;line-height:1.7;margin-bottom:20px}
+  .callout.err{background:var(--danger-soft);border-color:rgba(176,70,70,.28);color:#8a3535}
+
+  .hint{font-size:12.5px;color:var(--muted);line-height:1.7}
+  .err-line{color:var(--danger);font-size:13px;margin-top:12px;min-height:19px}
+  .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
+  .empty-title{font-size:16px;color:var(--ink-soft);font-weight:600;margin-bottom:6px}
+
+  /* ---------- 顶部统计 ---------- */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;transition:transform .25s,border-color .25s,box-shadow .25s}
+  .stat:hover{transform:translateY(-2px);border-color:var(--accent);
+    box-shadow:0 8px 20px rgba(13,18,36,.06)}
+  .stat-num{font-size:27px;font-weight:800;letter-spacing:-.03em;color:var(--accent);
+    font-variant-numeric:tabular-nums;line-height:1.05}
+  .stat-num.ok{color:var(--ok)}
+  .stat-num.owe{color:var(--danger)}
+  .stat-lbl{font-size:10px;color:var(--muted);margin-top:7px;letter-spacing:.16em;
     text-transform:uppercase;font-weight:700}
 
-  .r-formula{background:var(--accent-soft);border-radius:14px;padding:18px 22px;
-    font-size:14px;color:var(--accent-deep);margin-bottom:34px;text-align:center;line-height:1.8}
-  .r-formula b{font-weight:800}
+  /* ---------- 结果头 ---------- */
+  .r-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+    flex-wrap:wrap;margin-bottom:20px}
+  .r-name{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+  .r-name-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
 
-  .paid-banner{border-radius:14px;padding:16px 22px;margin-bottom:30px;
-    font-size:14.5px;font-weight:600;text-align:center}
-  .paid-banner.ok{background:var(--ok-soft);color:var(--ok);border:1px solid rgba(23,121,94,.25)}
-  .paid-banner.owe{background:var(--danger-soft);color:var(--danger);border:1px solid rgba(176,70,70,.25)}
+  /* ---------- 学期块 ---------- */
+  .term-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+    flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .term-name{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .term-range{font-size:12.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
 
-  .r-sec-title{font-size:11px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;
-    color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:12px}
-  .r-sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
+  .term-calc{font-size:13.5px;color:var(--ink-soft);line-height:1.9;margin-bottom:16px}
+  .term-calc b{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  .term-calc .op{color:var(--muted)}
 
-  /* 学期分块 */
-  .term-block{background:var(--card);border:1px solid var(--line);border-radius:18px;
-    padding:26px 26px 22px;margin-bottom:16px}
-  .term-head{display:flex;justify-content:space-between;align-items:flex-start;
-    gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
-  .term-name{font-size:20px;font-weight:800;letter-spacing:-.015em;
-    display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-  .term-now{font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-    background:var(--accent-soft);color:var(--accent);padding:3px 9px;
-    border-radius:999px;font-weight:700}
-  .term-range{font-size:12.5px;color:var(--muted);margin-top:4px;
-    font-variant-numeric:tabular-nums}
-  .term-bal{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;
-    white-space:nowrap}
-  .term-bal.owe{color:var(--danger)}
-  .term-bal.clear{color:var(--ok);font-size:15px}
-  .term-formula{background:var(--accent-soft);border-radius:12px;padding:15px 18px;
-    font-size:14px;color:var(--accent-deep);line-height:1.85;text-align:center}
-  .term-formula b{font-weight:800}
-  /* 每学期的 应付 / 已付 / 未付 */
   .term-money{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-    background:var(--line);border:1px solid var(--line);border-radius:12px;
-    overflow:hidden;margin-top:14px}
+    background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .term-money div{background:var(--card);padding:14px 12px;text-align:center}
-  .term-money span{display:block;font-size:10px;color:var(--muted);
-    letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  .term-money span{display:block;font-size:10px;color:var(--muted);letter-spacing:.16em;
+    text-transform:uppercase;font-weight:700;margin-bottom:6px}
   .term-money b{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;
     letter-spacing:-.02em;color:var(--ink)}
   .term-money b.paid{color:var(--ok)}
   .term-money b.owe{color:var(--danger)}
   .term-money b.clear{color:var(--ok)}
 
-  .term-detail{margin-top:14px}
-  .term-detail summary{font-size:12.5px;color:var(--muted);cursor:pointer;
-    padding:6px 0;list-style:none;user-select:none;transition:color .2s}
-  .term-detail summary::-webkit-details-marker{display:none}
-  .term-detail summary::before{content:'▸ ';font-size:11px}
-  .term-detail[open] summary::before{content:'▾ '}
-  .term-detail summary:hover{color:var(--accent)}
+  /* ---------- 出勤明细（跟后台训练记录同款卡片） ---------- */
+  .detail{margin-top:16px}
+  .detail summary{font-size:12.5px;color:var(--muted);cursor:pointer;padding:6px 0;
+    list-style:none;user-select:none;transition:color .2s}
+  .detail summary::-webkit-details-marker{display:none}
+  .detail summary::before{content:'▸ ';font-size:11px}
+  .detail[open] summary::before{content:'▾ '}
+  .detail summary:hover{color:var(--accent)}
 
-  .r-list{display:flex;flex-direction:column;gap:8px}
-  .r-row{display:flex;justify-content:space-between;align-items:center;gap:16px;
-    padding:15px 20px;background:var(--card);border:1px solid var(--line);border-radius:12px;
-    transition:border-color .25s,transform .25s}
-  .r-row:hover{border-color:var(--accent);transform:translateX(3px)}
-  .r-row-date{font-weight:700;font-variant-numeric:tabular-nums;font-size:14.5px}
-  .r-row-note{font-size:12.5px;color:var(--muted);margin-top:2px}
-  .r-row-cost{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;font-size:15px}
+  .sess{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;
+    padding:14px 18px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;
+    background:var(--card);transition:border-color .2s,box-shadow .2s}
+  .sess:hover{border-color:var(--accent);box-shadow:0 8px 20px rgba(13,18,36,.05)}
+  .sess-title{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+  .sess-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
   .kind-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;
     font-weight:700;letter-spacing:.06em;margin-left:8px;vertical-align:middle;
-    background:#fbf2e3;color:#b0762a;border:1px solid #e0c99a}
+    background:var(--warn-soft);color:var(--warn);border:1px solid rgba(176,118,42,.3)}
 
-  .state{text-align:center;padding:56px 24px;color:var(--muted)}
-  .state-icon{font-size:42px;margin-bottom:14px;opacity:.35}
-  .state-title{font-size:17px;color:var(--ink-soft);font-weight:600;margin-bottom:6px}
-  .state-desc{font-size:14px}
+  .updated{text-align:center;font-size:12px;color:var(--muted);margin-top:28px;letter-spacing:.04em}
+  .actions{display:flex;justify-content:center;margin-top:26px}
 
-  .again{display:block;margin:36px auto 0;padding:11px 24px;background:transparent;
-    border:1px solid var(--line);border-radius:999px;color:var(--ink-soft);font-size:13.5px;
-    cursor:pointer;transition:all .25s}
-  .again:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-
-  .updated{text-align:center;font-size:12px;color:var(--muted);margin-top:36px;letter-spacing:.05em}
-
-  footer{padding:48px 40px;text-align:center;background:var(--ink);
+  footer{padding:44px 32px;text-align:center;background:var(--ink);
     color:rgba(255,255,255,.6);font-size:13px}
-  footer .footer-slogan{font-size:17px;color:#fff;margin-bottom:12px;
+  footer .footer-slogan{font-size:16px;color:#fff;margin-bottom:10px;
     letter-spacing:.15em;font-weight:500}
 
-  .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .result{display:none}
+  .result.on{display:block;animation:fade .35s ease}
 
   @media(max-width:720px){
-    .topbar-inner{padding:14px 20px}
-    .back-link{padding:8px 12px;font-size:12px}
-    .page-hero{padding:52px 22px 8px}
-    .page-lede{font-size:15px}
-    .qbox{padding:0 22px;margin-top:30px}
-    .qcard{padding:26px 22px}
-    main.page{padding:28px 22px 64px}
-    .r-stats{grid-template-columns:1fr;gap:12px}
-    .r-stat{padding:22px 18px}
-    footer{padding:36px 22px}
+    .topbar-inner{padding:12px 18px}
+    main.wrap{padding:30px 18px 56px}
+    .card{padding:22px 20px}
+    .page-title{font-size:25px}
+    .stats{grid-template-columns:1fr}
+    .sess{grid-template-columns:1fr;gap:8px}
+    footer{padding:34px 18px}
   }
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
@@ -209,41 +192,38 @@
   <div class="topbar-inner">
     <a class="brand" href="index.html">
       <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
-      <div><div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div></div>
+      <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
     </a>
     <a class="back-link" href="index.html">← 返回主页</a>
   </div>
 </header>
 
-<section class="page-hero">
+<main class="wrap">
   <div class="page-eyebrow">Attendance · 训练查询</div>
   <h1 class="page-title">查你自己的</h1>
   <p class="page-lede">输入名字和查询码，看看你来了几次、要交多少钱。</p>
-</section>
 
-<div class="qbox" id="qbox">
-  <div class="qcard">
-    <form id="qform">
-      <div class="qfield">
-        <label>你的名字</label>
-        <input type="text" id="qName" placeholder="例：何嘉伦" autocomplete="off" spellcheck="false" />
+  <div id="qbox">
+    <div class="card">
+      <form id="qform">
+        <div class="field">
+          <label>你的名字</label>
+          <input type="text" id="qName" placeholder="例：何嘉伦" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field">
+          <label>你的查询码</label>
+          <input type="password" id="qCode" placeholder="你名字的全拼" autocomplete="off" />
+        </div>
+        <button class="btn full" type="submit" id="qBtn">查询</button>
+        <div class="err-line" id="qErr"></div>
+      </form>
+      <div class="hint" style="padding-top:14px;border-top:1px solid var(--line)">
+        查询码 = 你名字的全拼（姓在前），比如 刘效尔 → <code>liuxiaoer</code>、何嘉伦 → <code>hejialun</code>。<br />
+        每人只能查自己，忘了问队长。
       </div>
-      <div class="qfield">
-        <label>你的查询码</label>
-        <input type="password" id="qCode" placeholder="你名字的全拼" autocomplete="off" />
-      </div>
-      <button class="qbtn" type="submit" id="qBtn">查询</button>
-      <div class="qerr" id="qErr"></div>
-    </form>
-    <div class="qhint">
-      查询码 = <b>你名字的全拼</b>（姓在前），比如<br />
-      刘效尔 → <code>liuxiaoer</code>　　何嘉伦 → <code>hejialun</code><br /><br />
-      每人只能查自己。忘了问队长。
     </div>
   </div>
-</div>
 
-<main class="page">
   <div class="result" id="result"></div>
 </main>
 
@@ -253,7 +233,7 @@
 </footer>
 
 <script>
-// Worker 直连地址（路由没配好时用这个兜底）
+/* Worker 直连地址（同域路由没配好时兜底） */
 const API_DIRECT = 'https://davisorigin-api.xiaoerliu93.workers.dev';
 let API = API_DIRECT;
 
@@ -263,10 +243,7 @@ async function resolveApi(){
   }
   try{
     const r = await fetch('/api/health', { cache:'no-store' });
-    if(r.ok){
-      const d = await r.json();
-      if(d && d.ok){ API = '/api'; return; }
-    }
+    if(r.ok){ const d = await r.json(); if(d && d.ok){ API = '/api'; return; } }
   }catch(e){}
   API = API_DIRECT;
 }
@@ -276,18 +253,17 @@ const $ = id => document.getElementById(id);
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// 记住查询码，省得每次输
+/* 记住查询码，省得每次输 */
 const CODE_KEY = 'do_query_code';
-const saved = localStorage.getItem(CODE_KEY);
-if (saved) $('qCode').value = saved;
+try{ const saved = localStorage.getItem(CODE_KEY); if(saved) $('qCode').value = saved; }catch(e){}
 
 $('qform').onsubmit = async e => {
   e.preventDefault();
   const name = $('qName').value.trim();
   const code = $('qCode').value;
   const btn = $('qBtn'), errEl = $('qErr');
-  if(!name) { errEl.textContent = '请输入你的名字'; return; }
-  if(!code) { errEl.textContent = '请输入查询码'; return; }
+  if(!name){ errEl.textContent = '请输入你的名字'; return; }
+  if(!code){ errEl.textContent = '请输入查询码'; return; }
 
   errEl.textContent = '';
   btn.disabled = true;
@@ -302,10 +278,10 @@ $('qform').onsubmit = async e => {
     const d = await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(d.error || '查询失败');
 
-    localStorage.setItem(CODE_KEY, code);
+    try{ localStorage.setItem(CODE_KEY, code); }catch(e){}
 
     if(!d.found){
-      showState('🔍', d.message || '没找到',
+      showEmpty(d.message || '没找到',
         d.inRoster ? '你在名册里，但还没有出勤记录' : '确认名字有没有打错');
       return;
     }
@@ -318,9 +294,7 @@ $('qform').onsubmit = async e => {
   }
 };
 
-function hideForm(){
-  $('qbox').style.display = 'none';
-}
+function hideForm(){ $('qbox').style.display = 'none'; }
 function showForm(){
   $('qbox').style.display = '';
   $('result').classList.remove('on');
@@ -329,17 +303,25 @@ function showForm(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function showState(icon, title, desc){
+function showEmpty(title, desc){
+  hideForm();
   $('result').classList.add('on');
   $('result').innerHTML = `
-    <div class="state">
-      <div class="state-icon">${icon}</div>
-      <div class="state-title">${esc(title)}</div>
-      <div class="state-desc">${esc(desc)}</div>
+    <div class="card">
+      <div class="empty">
+        <div class="empty-title">${esc(title)}</div>
+        <div>${esc(desc)}</div>
+      </div>
     </div>
-    <button class="again" id="againBtn">重新查询</button>`;
+    <div class="actions"><button class="btn ghost" id="againBtn">重新查询</button></div>`;
   $('againBtn').onclick = showForm;
-  hideForm();
+}
+
+/* 结清状态 → 药丸 */
+function statusPill(owed, paid, balance){
+  if(balance <= 0.005) return '<span class="pill ok">已结清</span>';
+  if(paid > 0)         return '<span class="pill part">部分已付</span>';
+  return '<span class="pill owe">未付</span>';
 }
 
 function showResult(d){
@@ -351,78 +333,93 @@ function showResult(d){
   $('result').classList.add('on');
   $('result').innerHTML = `
     <div class="r-head">
-      <div class="r-name">${esc(d.name)}</div>
-      <div class="r-tag">Davis Origin</div>
+      <div>
+        <div class="r-name">${esc(d.name)}</div>
+        <div class="r-name-sub">Davis Origin · 共 ${d.terms.length} 个学期</div>
+      </div>
+      <div>${statusPill(tot.owed, tot.paid, tot.balance)}</div>
     </div>
 
-    <div class="r-stats">
-      <div class="r-stat">
-        <div class="r-stat-num">${tot.count}</div>
-        <div class="r-stat-lbl">${multi?'累计出勤':'出勤次数'}</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">${tot.count}</div>
+        <div class="stat-lbl">${multi ? '累计出勤' : '出勤次数'}</div>
       </div>
-      <div class="r-stat">
-        <div class="r-stat-num">${money(tot.owed).replace('$','')}</div>
-        <div class="r-stat-lbl">${multi?'累计应付':'应付'} (USD)</div>
+      <div class="stat">
+        <div class="stat-num">${money(tot.owed).replace('$','')}</div>
+        <div class="stat-lbl">${multi ? '累计应付' : '应付'} · USD</div>
       </div>
-      <div class="r-stat">
-        <div class="r-stat-num ${cleared?'clear':'owe'}">${money(tot.balance).replace('$','')}</div>
-        <div class="r-stat-lbl">${cleared?'已结清':'待付 (USD)'}</div>
+      <div class="stat">
+        <div class="stat-num ${cleared ? 'ok' : 'owe'}">${money(tot.balance).replace('$','')}</div>
+        <div class="stat-lbl">${cleared ? '已结清' : '未付 · USD'}</div>
       </div>
     </div>
 
-    <div class="paid-banner ${cleared?'ok':'owe'}">
+    <div class="callout ${cleared ? '' : 'err'}">
       ${cleared
-        ? `✓ 已结清，谢谢！${tot.paid>0?`（累计已付 ${money(tot.paid)}）`:''}`
-        : `还需支付 <b>${money(tot.balance)}</b>${tot.paid>0?`（已付 ${money(tot.paid)} / 共 ${money(tot.owed)}）`:''}`}
+        ? `已结清，谢谢${tot.paid > 0 ? `　·　累计已付 ${money(tot.paid)}` : ''}`
+        : `还需支付 <b>${money(tot.balance)}</b>${tot.paid > 0 ? `　·　已付 ${money(tot.paid)} / 共 ${money(tot.owed)}` : ''}`}
     </div>
 
-    ${d.terms.map(t=>{
-      const tc = t.balance <= 0.005;
-      return `
-      <div class="term-block">
-        <div class="term-head">
-          <div>
-            <div class="term-name">${esc(t.termName)}${t.isActive?'<span class="term-now">进行中</span>':''}</div>
-            ${t.startDate||t.endDate?`<div class="term-range">${esc(t.startDate||'?')} → ${esc(t.endDate||'?')}</div>`:''}
-          </div>
-          <div class="term-bal ${tc?'clear':'owe'}">${tc?'已结清':money(t.balance)}</div>
-        </div>
+    ${d.terms.map(termCard).join('')}
 
-        <div class="term-formula">
-          ${t.trainCount ? `训练 <b>${t.trainCount}</b> 次 × ${money(t.unitPrice)} = <b>${money(t.trainOwed)}</b><br />` : ''}
-          ${t.matchCount ? `比赛 <b>${t.matchCount}</b> 场 = <b>${money(t.matchOwed)}</b><br />` : ''}
-        </div>
-
-        <div class="term-money">
-          <div><span>应付</span><b>${money(t.owed)}</b></div>
-          <div><span>已付</span><b class="paid">${money(t.paid)}</b></div>
-          <div><span>未付</span><b class="${tc?'clear':'owe'}">${money(t.balance)}</b></div>
-        </div>
-
-        <details class="term-detail">
-          <summary>出勤明细（${t.dates.length} 次）</summary>
-          <div class="r-list" style="margin-top:12px">
-            ${t.dates.map(r=>`
-              <div class="r-row">
-                <div>
-                  <div class="r-row-date">
-                    ${esc(r.date||'—')}
-                    ${r.kind==='match'?'<span class="kind-badge">比赛</span>':''}
-                  </div>
-                  ${r.note?`<div class="r-row-note">${esc(r.note)}</div>`:''}
-                </div>
-                <div class="r-row-cost">${money(r.cost)}</div>
-              </div>`).join('')}
-          </div>
-        </details>
-      </div>`;
-    }).join('')}
-
-    <button class="again" id="againBtn">重新查询</button>
-    ${d.updatedAt?`<div class="updated">数据更新于 ${new Date(d.updatedAt).toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'})}</div>`:''}
+    <div class="actions"><button class="btn ghost" id="againBtn">重新查询</button></div>
+    ${d.updatedAt ? `<div class="updated">数据更新于 ${new Date(d.updatedAt).toLocaleString('zh-CN',{dateStyle:'medium',timeStyle:'short'})}</div>` : ''}
   `;
   $('againBtn').onclick = showForm;
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function termCard(t){
+  const tc = t.balance <= 0.005;
+  const lines = [];
+  if(t.trainCount){
+    lines.push(`训练 <b>${t.trainCount}</b> 次 <span class="op">×</span> 单价 <b>${money(t.unitPrice)}</b> <span class="op">=</span> <b>${money(t.trainOwed)}</b>`);
+  }
+  if(t.matchCount){
+    lines.push(`比赛 <b>${t.matchCount}</b> 场 <span class="op">·</span> 按各场参赛人数分摊 <span class="op">=</span> <b>${money(t.matchOwed)}</b>`);
+  }
+
+  return `
+    <div class="card">
+      <div class="term-head">
+        <div>
+          <div class="term-name">
+            ${esc(t.termName)}
+            ${t.isActive ? '<span class="pill now">进行中</span>' : ''}
+          </div>
+          ${t.startDate || t.endDate
+            ? `<div class="term-range">${esc(t.startDate || '?')} → ${esc(t.endDate || '?')}</div>` : ''}
+        </div>
+        <div>${statusPill(t.owed, t.paid, t.balance)}</div>
+      </div>
+
+      ${lines.length ? `<div class="term-calc">${lines.join('<br />')}</div>` : ''}
+
+      <div class="term-money">
+        <div><span>应付</span><b>${money(t.owed)}</b></div>
+        <div><span>已付</span><b class="paid">${money(t.paid)}</b></div>
+        <div><span>未付</span><b class="${tc ? 'clear' : 'owe'}">${money(t.balance)}</b></div>
+      </div>
+
+      ${t.dates && t.dates.length ? `
+      <details class="detail">
+        <summary>出勤明细 ${t.dates.length} 次</summary>
+        <div style="margin-top:12px">
+          ${t.dates.map(r=>`
+            <div class="sess">
+              <div>
+                <div class="sess-title">
+                  ${esc(r.date || '—')}
+                  ${r.kind === 'match' ? '<span class="kind-badge">比赛</span>' : ''}
+                </div>
+                ${r.note ? `<div class="sess-sub">${esc(r.note)}</div>` : ''}
+              </div>
+              <div class="money">${money(r.cost)}</div>
+            </div>`).join('')}
+        </div>
+      </details>` : ''}
+    </div>`;
 }
 </script>
 
