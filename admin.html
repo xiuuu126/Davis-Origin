@@ -763,8 +763,6 @@
             <div class="card-sub" id="playerSub">共 0 人</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button class="btn ghost sm" id="btnCopyCodes">导出查询码</button>
-            <button class="btn danger sm" id="btnRotateCodes">全部重置</button>
             <div class="mini-search">
               <input type="search" id="qPlayer" placeholder="搜名字 / 号码 / 分组 / 查询码" autocomplete="off" />
             </div>
@@ -2631,71 +2629,6 @@ $('btnAddPlayers').onclick = async (e)=>{
     toast(`已添加 ${names.length} 人`);
   }catch(e){ toast(e.message,true); }
   finally{ btn.disabled = false; btn.textContent = old; }
-};
-
-/* ---------- 查询码：导出 / 全部重置 ---------- */
-
-/** 等宽字体里中日韩字符占两格，按显示宽度算才对得齐 */
-function dispWidth(s){
-  let n = 0;
-  for(const ch of String(s)) n += /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹯＀-｠￠-￦]/.test(ch) ? 2 : 1;
-  return n;
-}
-
-/** 名字和码排成两列，方便直接贴到微信 */
-function codeListText(pairs){
-  const w = Math.max(...pairs.map(p=>dispWidth(p.name)), 4);
-  return pairs.map(p=>
-    `${p.name}${' '.repeat(Math.max(0, w - dispWidth(p.name)))}  ${p.code}`
-  ).join('\n');
-}
-
-$('btnCopyCodes').onclick = async (e)=>{
-  const btn = e.currentTarget;
-  const pairs = (D?.codes || []).filter(c=>c.code).map(c=>({name:c.name, code:c.code}));
-  if(!pairs.length) return toast('还没有人设查询码', true);
-  const text = codeListText(pairs);
-  try{
-    await navigator.clipboard.writeText(text);
-    toast(`已复制 ${pairs.length} 个查询码`);
-  }catch(err){
-    // 剪贴板被拦（http 或没授权）就弹出来让用户自己选
-    await openEdit({
-      title: `查询码 · ${pairs.length} 人`,
-      sub: '手动复制下面的内容',
-      fields: [{key:'txt', label:'名字 → 查询码', type:'textarea', value:text}],
-      okText: '关闭',
-      onSubmit: async ()=>{}
-    });
-  }
-};
-
-$('btnRotateCodes').onclick = ()=>{
-  const n = (D?.codes || []).length;
-  if(!n) return toast('名册是空的', true);
-  openEdit({
-    title: `重置全部 ${n} 人的查询码？`,
-    sub: `所有人现在的码会<b>立刻失效</b>，需要重新发给每个人。<br>
-          确认请输入 <b>确认重置</b>`,
-    fields: [{key:'confirm', label:'确认文字', value:'', placeholder:'确认重置'}],
-    okText: '全部重置',
-    danger: true,
-    onSubmit: async v=>{
-      if(String(v.confirm).trim() !== '确认重置') throw new Error('输入不对，没有重置');
-      const r = await api('/codes/rotate',{method:'POST',body:JSON.stringify({})});
-      await reload();
-      const text = codeListText(r.pairs);
-      // 立刻把新码摊开给队长，关掉就只能再重置一次了
-      await openEdit({
-        title: `已重置 ${r.count} 人`,
-        sub: '把对应的码发给本人。<b>关掉这个窗口就看不到了</b>，之后只能重新生成。',
-        fields: [{key:'txt', label:'名字 → 新查询码', type:'textarea', value:text}],
-        okText: '我已保存',
-        onSubmit: async ()=>{}
-      });
-      toast(`已重置 ${r.count} 人的查询码`);
-    }
-  });
 };
 
 /* 收款弹窗 */
