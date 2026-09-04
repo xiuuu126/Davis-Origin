@@ -2534,6 +2534,8 @@ function resetForm(){
   editingId = null;
   $('fNames').value=''; $('fCost').value=''; $('fNote').value='';
   $('matchBox').style.display='none';
+  $('matchChips').innerHTML='';        // 别留上一次的识别结果在 DOM 里
+  $('matchCount').innerHTML='';
   $('editFlag').innerHTML='';
   $('btnCancelEdit').style.display='none';
   pendingMatch=null; excluded=new Set(); approved=new Set();
