@@ -762,8 +762,12 @@
             <div class="card-title">球员名册</div>
             <div class="card-sub" id="playerSub">共 0 人</div>
           </div>
-          <div class="mini-search">
-            <input type="search" id="qPlayer" placeholder="搜名字 / 号码 / 分组" autocomplete="off" />
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn ghost sm" id="btnCopyCodes">导出查询码</button>
+            <button class="btn danger sm" id="btnRotateCodes">全部重置</button>
+            <div class="mini-search">
+              <input type="search" id="qPlayer" placeholder="搜名字 / 号码 / 分组 / 查询码" autocomplete="off" />
+            </div>
           </div>
         </div>
 
@@ -1079,6 +1083,15 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
     }
     // label 要跟输入框绑定，不然读屏和密码管理器认不出来
     const fid = 'emf-' + String(f.key).replace(/[^\w-]/g, '_');
+    if (f.type === 'textarea') {
+      return `<div class="field">
+        <label for="${fid}">${esc(f.label)}</label>
+        <textarea id="${fid}" data-k="${esc(f.key)}" rows="${f.rows || 12}"
+          readonly style="height:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+          font-size:12.5px;line-height:1.8;white-space:pre">${esc(f.value ?? '')}</textarea>
+        ${f.hint?`<div class="hint" style="margin-top:6px">${f.hint}</div>`:''}
+      </div>`;
+    }
     return `<div class="field">
       <label for="${fid}">${esc(f.label)}</label>
       <input id="${fid}" type="${f.type||'text'}" data-k="${esc(f.key)}"
@@ -1530,35 +1543,30 @@ function renderTerms(){
   });
 }
 
-/* ---------- 拼音（按需从 CDN 加载） ---------- */
-function loadScript(src){
-  return new Promise((ok, fail)=>{
-    if(document.querySelector(`script[src="${src}"]`)) return ok();
-    const s = document.createElement('script');
-    s.src = src; s.onload = ok; s.onerror = ()=>fail(new Error('拼音库加载失败'));
-    document.head.appendChild(s);
-  });
+/* ---------- 查询码：随机生成 ----------
+ * 以前是姓名全拼。名册在 roster.html 上是公开的，
+ * 所以任何人抄个名字就能推出查询码，等于没有密码。
+ * 现在改成随机码，队长生成后私发给本人。
+ *
+ * 去掉了容易混淆的字符（0/O/o、1/l/I），队员照着微信抄不会抄错。
+ */
+const CODE_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
+const CODE_LEN = 8;   // 32^8 ≈ 1.1 万亿种，配合后端限流足够了
+
+/** 生成一个随机查询码。用 crypto，不用 Math.random */
+function makeCode(){
+  const buf = new Uint32Array(CODE_LEN);
+  crypto.getRandomValues(buf);
+  let s = '';
+  for(let i = 0; i < CODE_LEN; i++) s += CODE_ALPHABET[buf[i] % CODE_ALPHABET.length];
+  return s;
 }
 
-/** 中文名 → 姓+名全拼小写，例 刘效尔 → liuxiaoer */
-async function toPinyin(name){
-  const raw = String(name||'').trim();
-  if(!raw) return '';
-  // 本来就是英文名，直接用
-  if(!/[一-龥]/.test(raw)) return raw.toLowerCase().replace(/[^a-z0-9]/g,'');
-
-  await loadScript('https://cdn.jsdelivr.net/npm/pinyin-pro@3.19.3/dist/index.js');
-  const lib = window.pinyinPro;
-  if(!lib) throw new Error('拼音库加载失败');
-  return lib.pinyin(raw, { toneType:'none', type:'array', surname:'head' })
-    .join('').toLowerCase().replace(/[^a-z0-9]/g,'');
-}
-
-/** 一批名字转查询码；拼音库挂了就返回空串，不挡着建人 */
-async function toPinyinAll(names){
-  try{
-    return await Promise.all(names.map(n=>toPinyin(n).catch(()=>'')));
-  }catch(e){ return names.map(()=>''); }
+/** 一次要 n 个互不重复的码 */
+function makeCodes(n){
+  const out = new Set();
+  while(out.size < n) out.add(makeCode());
+  return [...out];
 }
 
 /** 训练记录里勾了几场，反映到「导出 PDF」按钮上 */
@@ -1701,20 +1709,10 @@ function renderCodes(){
              const codeInput = $('emFields').querySelector('[data-k="code"]');
              const who = (nameInput?.value || name).trim();
              if(!who) return;
-
-             const old = btn.textContent;
-             btn.disabled = true; btn.textContent = '生成中…';
-             try{
-               const py = await toPinyin(who);
-               if(!py) throw new Error('重置失败');
-               btn.disabled = false; btn.textContent = old;
-               if(!await confirmMini(`确认重置「${who}」的查询码？`, '确认重置')) return;
-               codeInput.value = py;
-               $('emErr').textContent = '';
-               codeInput.focus();
-             }catch(e){
-               $('emErr').textContent = e.message;
-             }finally{ btn.disabled = false; btn.textContent = old; }
+             if(!await confirmMini(`确认重置「${who}」的查询码？旧的会立刻失效。`, '确认重置')) return;
+             codeInput.value = makeCode();
+             $('emErr').textContent = '记得把新码发给本人';
+             codeInput.focus();
            }},
         ],
         onSubmit: async v=>{
@@ -2596,7 +2594,7 @@ $('btnSaveSess').onclick = async ()=>{
     // 确认过的生面孔：这时候才真正入库，顺手把查询码（全拼）建好
     const fresh = finalNames.filter(n => approved.has(n));
     if(fresh.length){
-      const codes = await toPinyinAll(fresh);
+      const codes = makeCodes(fresh.length);
       await api('/players',{method:'POST',body:JSON.stringify({names:fresh, codes})});
     }
     const payload = JSON.stringify({
@@ -2625,7 +2623,7 @@ $('btnAddPlayers').onclick = async (e)=>{
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = '添加中…';
   try{
-    const codes = await toPinyinAll(names);   // 查询码 = 姓名全拼
+    const codes = makeCodes(names.length);   // 每人一个随机查询码
     await api('/players',{method:'POST',body:JSON.stringify({names, codes})});
     $('fNewPlayers').value='';
     names.forEach(n=>newPlayers.add(n));
@@ -2633,6 +2631,71 @@ $('btnAddPlayers').onclick = async (e)=>{
     toast(`已添加 ${names.length} 人`);
   }catch(e){ toast(e.message,true); }
   finally{ btn.disabled = false; btn.textContent = old; }
+};
+
+/* ---------- 查询码：导出 / 全部重置 ---------- */
+
+/** 等宽字体里中日韩字符占两格，按显示宽度算才对得齐 */
+function dispWidth(s){
+  let n = 0;
+  for(const ch of String(s)) n += /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹯＀-｠￠-￦]/.test(ch) ? 2 : 1;
+  return n;
+}
+
+/** 名字和码排成两列，方便直接贴到微信 */
+function codeListText(pairs){
+  const w = Math.max(...pairs.map(p=>dispWidth(p.name)), 4);
+  return pairs.map(p=>
+    `${p.name}${' '.repeat(Math.max(0, w - dispWidth(p.name)))}  ${p.code}`
+  ).join('\n');
+}
+
+$('btnCopyCodes').onclick = async (e)=>{
+  const btn = e.currentTarget;
+  const pairs = (D?.codes || []).filter(c=>c.code).map(c=>({name:c.name, code:c.code}));
+  if(!pairs.length) return toast('还没有人设查询码', true);
+  const text = codeListText(pairs);
+  try{
+    await navigator.clipboard.writeText(text);
+    toast(`已复制 ${pairs.length} 个查询码`);
+  }catch(err){
+    // 剪贴板被拦（http 或没授权）就弹出来让用户自己选
+    await openEdit({
+      title: `查询码 · ${pairs.length} 人`,
+      sub: '手动复制下面的内容',
+      fields: [{key:'txt', label:'名字 → 查询码', type:'textarea', value:text}],
+      okText: '关闭',
+      onSubmit: async ()=>{}
+    });
+  }
+};
+
+$('btnRotateCodes').onclick = ()=>{
+  const n = (D?.codes || []).length;
+  if(!n) return toast('名册是空的', true);
+  openEdit({
+    title: `重置全部 ${n} 人的查询码？`,
+    sub: `所有人现在的码会<b>立刻失效</b>，需要重新发给每个人。<br>
+          确认请输入 <b>确认重置</b>`,
+    fields: [{key:'confirm', label:'确认文字', value:'', placeholder:'确认重置'}],
+    okText: '全部重置',
+    danger: true,
+    onSubmit: async v=>{
+      if(String(v.confirm).trim() !== '确认重置') throw new Error('输入不对，没有重置');
+      const r = await api('/codes/rotate',{method:'POST',body:JSON.stringify({})});
+      await reload();
+      const text = codeListText(r.pairs);
+      // 立刻把新码摊开给队长，关掉就只能再重置一次了
+      await openEdit({
+        title: `已重置 ${r.count} 人`,
+        sub: '把对应的码发给本人。<b>关掉这个窗口就看不到了</b>，之后只能重新生成。',
+        fields: [{key:'txt', label:'名字 → 新查询码', type:'textarea', value:text}],
+        okText: '我已保存',
+        onSubmit: async ()=>{}
+      });
+      toast(`已重置 ${r.count} 人的查询码`);
+    }
+  });
 };
 
 /* 收款弹窗 */
