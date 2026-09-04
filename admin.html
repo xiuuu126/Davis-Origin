@@ -883,7 +883,7 @@
 
 <!-- 小确认框 -->
 <div class="mini-bg" id="miniModal">
-  <div class="mini">
+  <div class="mini" role="alertdialog" aria-modal="true" aria-labelledby="miniText">
     <p id="miniText"></p>
     <div class="mini-actions">
       <button class="btn" id="miniOk" style="flex:1">确认</button>
@@ -894,7 +894,7 @@
 
 <!-- 通用编辑弹窗 -->
 <div class="modal-bg" id="editModal">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="emTitle">
     <h3 id="emTitle">编辑</h3>
     <div class="sub" id="emSub"></div>
     <div id="emFields"></div>
@@ -1155,7 +1155,11 @@ function openEdit({ title, sub = '', fields = [], okText = '保存', danger = fa
     };
     const onKey = e => {
       if (e.key === 'Escape') close(null);
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); submit(); }
+      // 按钮禁用时说明正在提交，Enter 也要挡住，不然会重复提交
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+        e.preventDefault();
+        if (!$('emOk').disabled) submit();
+      }
     };
     $('emOk').onclick = submit;
     $('emCancel').onclick = () => close(null);
@@ -1405,8 +1409,14 @@ function renderTermBar(){
   $('termDdMenu').querySelectorAll('[data-tid]').forEach(el=>{
     el.onclick = e=>{
       e.stopPropagation();
-      curTermId = Number(el.dataset.tid);
+      const next = Number(el.dataset.tid);
       $('termDd').classList.remove('open');
+      if(next === curTermId) return;
+      // 正在编辑别的学期的场次时切走，保存会把记录搬到新学期，所以先退出编辑
+      if(editingId){ resetForm(); toast('已退出编辑'); }
+      picked = new Set();          // 勾选的人属于旧学期，别带过去
+      pickedSess = new Set();
+      curTermId = next;
       render();
     };
   });
@@ -1990,6 +2000,8 @@ function renderSessions(){
     b.onclick = ()=>{
       const s = (T()?.sessions || []).find(x=>String(x.id)===b.dataset.edit);
       if(!s) return;
+      // 上一份草稿里排除过 / 确认过的人不能带到这一场来
+      excluded = new Set(); approved = new Set(); pendingMatch = null;
       editingId = s.id;
       const dEl = $('fDate'); setDate(dEl, s.date || today()); dEl.dataset.auto='0';
       $('fCost').value = s.cost||'';
@@ -2118,7 +2130,16 @@ function makeDatePicker(input, opts = {}){
     wrap.classList.add('open');
   };
 
-  btn.onclick = e=>{ e.stopPropagation(); wrap.classList.contains('open') ? close() : open(); };
+  const toggle = ()=> wrap.classList.contains('open') ? close() : open();
+  btn.onclick = e=>{ e.stopPropagation(); toggle(); };
+  // 键盘也要能开合：回车/空格开，Esc 关
+  btn.onkeydown = e=>{
+    if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+      e.preventDefault(); e.stopPropagation(); toggle();
+    } else if(e.key === 'Escape' && wrap.classList.contains('open')){
+      e.stopPropagation(); close();
+    }
+  };
   input.addEventListener('change', paintBtn);
   paintBtn();
   return { refresh: paintBtn };
@@ -2185,7 +2206,10 @@ function playerNum(name){
 }
 function tagStyle(tagName, kind){
   const t = (D.tags||[]).find(x=>x.name===tagName && (!kind || x.kind===kind));
-  const c = (t && t.color) || '#8a8a92';
+  let c = (t && t.color) || '';
+  // 颜色是拼进 style 属性的，只放行 #rgb / #rrggbb，其余一律用默认色，
+  // 免得带引号的值从属性里逃出去
+  if(!/^#[0-9a-f]{3}$|^#[0-9a-f]{6}$/i.test(c)) c = '#8a8a92';
   return `color:${c};border-color:${c}44;background:${c}14`;
 }
 
@@ -2466,8 +2490,10 @@ function newTerm(){
     okText: '创建',
     onSubmit: async v=>{
       if(!v.name) throw new Error('学期名称不能为空');
+      const tc = v.totalCost === '' ? 0 : Number(v.totalCost);
+      if(!Number.isFinite(tc) || tc < 0) throw new Error('总费用不对');
       const r = await api('/terms',{method:'POST',body:JSON.stringify({
-        name:v.name, totalCost: v.totalCost===''?0:Number(v.totalCost),
+        name:v.name, totalCost: tc,
         startDate:v.startDate, endDate:v.endDate, setActive:true,
         resetNumbers: !!v.resetNumbers })});
       curTermId = r.id;
@@ -2546,7 +2572,9 @@ $('btnCancelEdit').onclick = resetForm;
 
 $('btnSaveSess').onclick = async ()=>{
   const date = $('fDate').value;
-  const cost = parseFloat($('fCost').value) || 0;
+  const rawCost = $('fCost').value.trim();
+  const cost = rawCost === '' ? 0 : Number(rawCost);
+  if(!Number.isFinite(cost) || cost < 0) return toast('费用要填一个不小于 0 的数', true);
   const note = $('fNote').value.trim();
   if(!date) return toast('请填写训练日期', true);
   if(!pendingMatch) doMatch(false);
@@ -2667,9 +2695,13 @@ function openPay(name){
 }
 $('payCancel').onclick = ()=> $('payModal').classList.remove('on');
 $('payModal').onclick = e=>{ if(e.target===$('payModal')) $('payModal').classList.remove('on'); };
-$('payConfirm').onclick = async ()=>{
+$('payConfirm').onclick = async (e)=>{
+  const btn = e.currentTarget;
+  if(btn.disabled) return;                 // 防手快连点
   const amount = parseFloat($('payAmt').value);
   if(!Number.isFinite(amount) || amount <= 0) return toast('金额要大于 0', true);
+  const old = btn.textContent;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 记录中';
   try{
     const tagOn = $('payTags').querySelector('.tag-opt.on');
     await api('/payments',{method:'POST',body:JSON.stringify({
@@ -2682,7 +2714,8 @@ $('payConfirm').onclick = async ()=>{
     await reload();
     toast(`已记录 ${who} ${money(amount)}`);
     flashRow(`[data-row="${cssEsc(who)}"]`);
-  }catch(e){ toast(e.message,true); }
+  }catch(err){ toast(err.message,true); }
+  finally{ btn.disabled = false; btn.textContent = old; }
 };
 
 /* ---------- 全选 / 批量收款 ---------- */
@@ -2742,7 +2775,7 @@ function buildReport(t, peopleIn){
 
   const rows = people.map((f,i)=>`
     <tr>
-      <td class="n">${playerNum(f.name)||''}</td>
+      <td class="n">${esc(playerNum(f.name)||'')}</td>
       <td><b>${esc(f.name)}</b>${playerTag(f.name)?` <span class="pt">${esc(playerTag(f.name))}</span>`:''}</td>
       <td class="n">${f.count}</td>
       <td class="n">${money(f.owed)}</td>

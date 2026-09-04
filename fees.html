@@ -269,7 +269,8 @@ async function resolveApi(){
   }catch(e){}
   API = '/api';
 }
-resolveApi();
+// 记住这个 Promise：查询前要等它完成，否则可能用还没定好的地址去请求
+const apiReady = resolveApi();
 
 const $ = id => document.getElementById(id);
 const money = n => '$' + (Math.round((Number(n)||0)*100)/100).toFixed(2);
@@ -298,6 +299,7 @@ $('qform').onsubmit = async e => {
   btn.innerHTML = '<span class="spinner"></span> 查询中';
 
   try{
+    await apiReady;                    // 地址探测完再发请求
     const r = await fetch(API + '/query', {
       method:'POST',
       headers:{'content-type':'application/json'},
