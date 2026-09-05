@@ -406,43 +406,7 @@
     margin-bottom: 32px;
   }
 
-  /* ===== Seasons brief ===== */
-  .season-tabs {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-  .season-tab {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 10px 22px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    cursor: pointer;
-    font-family: inherit;
-    transition: all .25s ease;
-  }
-  .season-tab:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    transform: translateY(-1px);
-  }
-  .season-tab.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-    box-shadow: 0 8px 20px rgba(30, 58, 138, 0.22);
-  }
-  .season-tab .tag {
-    margin-left: 8px;
-    font-size: 10px;
-    opacity: .8;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
+  /* ===== Season brief (只显示当前赛季) ===== */
   .season-panel {
     background: var(--card);
     border: 1px solid var(--line);
@@ -499,16 +463,10 @@
     background: var(--gold);
   }
   .season-panel-links { display: flex; gap: 12px; flex-wrap: wrap; }
-  .season-panel.placeholder {
-    text-align: center;
+  .season-note {
+    font-size: 14px;
     color: var(--muted);
-    padding: 52px 30px;
-  }
-  .season-panel.placeholder .placeholder-title {
-    font-size: 16px;
-    color: var(--ink-soft);
-    font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 22px;
   }
 
   /* ===== Honors brief ===== */
@@ -957,15 +915,15 @@
 <main class="layout">
   <div class="layout-main">
 
-    <!-- Seasons brief -->
-    <section class="brief" id="seasons-brief">
+    <!-- Season brief（只显示当前赛季，往届赛季在"过往经历"里） -->
+    <section class="brief" id="season-brief">
       <div class="brief-header">
-        <div class="brief-eyebrow">Seasons · 赛季</div>
+        <div class="brief-eyebrow">Season · 本赛季</div>
+        <a class="brief-link" href="history.html">历史赛季 <span>→</span></a>
       </div>
-      <h2 class="brief-title">一路走来的每个赛季</h2>
-      <p class="brief-lede">点一个赛季，看那一年的名单、比赛和高光时刻。</p>
+      <h2 class="brief-title" id="seasonTitle">本赛季</h2>
+      <p class="brief-lede" id="seasonLede"></p>
 
-      <div class="season-tabs" id="seasonTabs" role="tablist"></div>
       <div class="season-panel" id="seasonPanel"></div>
     </section>
 
@@ -1318,67 +1276,71 @@
   window.addEventListener('resize', updateParallax, { passive: true });
   updateParallax();
 
-  /* Seasons brief — 从 seasons.js 里的 SEASON_DATA 渲染 */
+  /* Season brief — 只显示当前赛季，数据来自 seasons.js */
   (function() {
-    const tabsEl = document.getElementById('seasonTabs');
     const panelEl = document.getElementById('seasonPanel');
-    if (!tabsEl || !panelEl || !window.SEASON_DATA) return;
+    const titleEl = document.getElementById('seasonTitle');
+    const ledeEl = document.getElementById('seasonLede');
+    if (!panelEl || !window.SEASON_DATA) return;
     const seasons = window.SEASON_DATA.seasons;
     if (!seasons || !seasons.length) return;
-    let activeId = (seasons.find(s => s.current) || seasons[0]).id;
+    const s = seasons.find(x => x.current) || seasons[0];
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, c => ({
         '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
       }[c]));
     }
-
-    function render() {
-      const s = seasons.find(x => x.id === activeId) || seasons[0];
-
-      tabsEl.innerHTML = seasons.map(sn => `
-        <button type="button" class="season-tab${sn.id === activeId ? ' active' : ''}" data-season="${escapeHtml(sn.id)}">
-          ${escapeHtml(sn.label)}${sn.current ? '<span class="tag">现役</span>' : ''}
-        </button>
-      `).join('');
-
-      if (s.placeholder) {
-        panelEl.innerHTML = `
-          <div class="season-panel placeholder">
-            <div class="placeholder-title">${escapeHtml(s.label)} · 内容整理中</div>
-            <p>这个赛季的名单和比赛还在整理，敬请期待。</p>
-          </div>`;
-        return;
-      }
-
-      const total = Object.values(s.roster || {}).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
-      const record = s.record || { w: 0, d: 0, l: 0 };
-      panelEl.innerHTML = `
-        <div class="season-panel">
-          <div class="season-stat-row">
-            <div class="season-stat"><span class="num">${record.w}</span><span class="lbl">胜 W</span></div>
-            <div class="season-stat"><span class="num">${record.d}</span><span class="lbl">平 D</span></div>
-            <div class="season-stat"><span class="num">${record.l}</span><span class="lbl">负 L</span></div>
-            <div class="season-stat"><span class="num">${total}</span><span class="lbl">球员</span></div>
-          </div>
-          <ul class="season-highlights">
-            ${(s.highlights || []).map(h => `<li>${escapeHtml(h)}</li>`).join('')}
-          </ul>
-          <div class="season-panel-links">
-            <a class="brief-link" href="roster.html?season=${encodeURIComponent(s.id)}">查看完整名单 <span>→</span></a>
-            <a class="brief-link" href="matches.html?season=${encodeURIComponent(s.id)}">查看完整赛程 <span>→</span></a>
-          </div>
-        </div>`;
+    function computeRecord(season) {
+      const rec = { w: 0, d: 0, l: 0 };
+      ['league', 'cup', 'friendly'].forEach(key => {
+        const cat = (season.matches || {})[key];
+        (cat && cat.matches || []).forEach(m => {
+          if (m.result === 'win') rec.w++;
+          else if (m.result === 'draw') rec.d++;
+          else if (m.result === 'loss') rec.l++;
+        });
+      });
+      return rec;
+    }
+    function rosterTotal(season) {
+      const r = season.roster || {};
+      return ['gk', 'def', 'mid', 'fwd'].reduce((sum, p) => sum + ((r[p] || []).length), 0);
     }
 
-    tabsEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('.season-tab');
-      if (!btn) return;
-      activeId = btn.dataset.season;
-      render();
-    });
+    titleEl.textContent = s.label;
+    ledeEl.textContent = s.lede || '';
 
-    render();
+    const rec = computeRecord(s);
+    const played = rec.w + rec.d + rec.l;
+    const total = rosterTotal(s);
+
+    const statsHtml = `
+      <div class="season-stat-row">
+        <div class="season-stat"><span class="num">${played > 0 ? rec.w : '–'}</span><span class="lbl">胜 W</span></div>
+        <div class="season-stat"><span class="num">${played > 0 ? rec.d : '–'}</span><span class="lbl">平 D</span></div>
+        <div class="season-stat"><span class="num">${played > 0 ? rec.l : '–'}</span><span class="lbl">负 L</span></div>
+        <div class="season-stat"><span class="num">${total}</span><span class="lbl">球员</span></div>
+      </div>`;
+
+    const highlightsHtml = (s.highlights && s.highlights.length)
+      ? `<ul class="season-highlights">${s.highlights.map(h => `<li>${escapeHtml(h)}</li>`).join('')}</ul>`
+      : '';
+
+    const noteHtml = s.placeholder
+      ? `<p class="season-note">完整名单和比赛安排还在整理，敬请期待。</p>`
+      : '';
+
+    panelEl.innerHTML = `
+      <div class="season-panel">
+        ${statsHtml}
+        ${highlightsHtml}
+        ${noteHtml}
+        <div class="season-panel-links">
+          <a class="brief-link" href="roster.html">查看球员名单 <span>→</span></a>
+          <a class="brief-link" href="matches.html">查看比赛安排 <span>→</span></a>
+        </div>
+      </div>`;
   })();
 </script>
 

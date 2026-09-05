@@ -111,6 +111,15 @@
     animation: fadeInUp .8s ease .3s both;
   }
 
+  .history-link {
+    display: inline-block;
+    margin-bottom: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .history-link:hover { text-decoration: underline; }
+
   /* Position stats */
   .position-stats {
     display: grid;
@@ -143,43 +152,6 @@
     margin-top: 4px;
     display: block;
     letter-spacing: 0.05em;
-  }
-
-  /* Season tabs */
-  .season-tabs {
-    max-width: 1280px;
-    margin: 28px auto 0;
-    padding: 0 32px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .season-tab {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    cursor: pointer;
-    font-family: inherit;
-    transition: all .25s ease;
-  }
-  .season-tab:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
-  .season-tab.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.2);
-  }
-  .season-tab .tag {
-    margin-left: 6px;
-    font-size: 10px;
-    opacity: .8;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
   }
 
   /* Filter bar */
@@ -370,8 +342,6 @@
     .position-stats { max-width: 100%; }
     .stat-num { font-size: 24px; }
     .stat-lbl { font-size: 10px; }
-    .season-tabs { padding: 0 20px; gap: 6px; margin-top: 20px; }
-    .season-tab { padding: 7px 14px; font-size: 12px; }
     .filter-bar { padding: 0 20px; gap: 6px; }
     .filter-btn { padding: 7px 14px; font-size: 12px; }
     main.roster-page { padding: 8px 20px 60px; }
@@ -412,10 +382,9 @@
   <p class="page-lede" id="pageLede">
     Davis Origin · 戴维斯原点足球俱乐部
   </p>
+  <a class="history-link" href="history.html">→ 想看往届赛季的名单？去"过往经历"</a>
   <div class="position-stats" id="positionStats"></div>
 </section>
-
-<div class="season-tabs" id="seasonTabs" role="tablist"></div>
 
 <div class="filter-bar" id="filterBar"></div>
 
@@ -443,7 +412,6 @@
   }
 
   (function() {
-    var seasonTabsEl = document.getElementById('seasonTabs');
     var filterBarEl = document.getElementById('filterBar');
     var mainEl = document.getElementById('rosterMain');
     var statsEl = document.getElementById('positionStats');
@@ -453,31 +421,12 @@
       return; // seasons.js 没加载成功就什么都不做，页面保持空白而不是报错
     }
     var seasons = window.SEASON_DATA.seasons;
-
-    function seasonFromUrl() {
-      var params = new URLSearchParams(window.location.search);
-      var id = params.get('season');
-      if (id && seasons.some(function(s) { return s.id === id; })) return id;
-      var current = seasons.find(function(s) { return s.current; });
-      return current ? current.id : seasons[0].id;
-    }
-
-    var activeId = seasonFromUrl();
     var activeFilter = 'all';
 
-    function renderTabs() {
-      seasonTabsEl.innerHTML = seasons.map(function(sn) {
-        return '<button type="button" class="season-tab' + (sn.id === activeId ? ' active' : '') + '" data-season="' +
-          escapeHtml(sn.id) + '">' + escapeHtml(sn.label) +
-          (sn.current ? '<span class="tag">现役</span>' : '') + '</button>';
-      }).join('');
-    }
-
     function renderAll() {
-      var s = seasons.find(function(x) { return x.id === activeId; }) || seasons[0];
-      renderTabs();
+      var s = seasons.find(function(x) { return x.current; }) || seasons[0];
 
-      if (s.placeholder) {
+      if (s.placeholder && !(s.roster && ['gk','def','mid','fwd'].some(function(p){ return (s.roster[p]||[]).length; }))) {
         ledeEl.textContent = 'Davis Origin · 戴维斯原点足球俱乐部 · ' + s.label + ' 名单整理中';
         statsEl.style.display = 'none';
         filterBarEl.innerHTML = '';
@@ -524,15 +473,6 @@
         '</section>';
       }).join('');
     }
-
-    seasonTabsEl.addEventListener('click', function(e) {
-      var btn = e.target.closest('.season-tab');
-      if (!btn) return;
-      activeId = btn.dataset.season;
-      activeFilter = 'all';
-      history.replaceState(null, '', '?season=' + encodeURIComponent(activeId));
-      renderAll();
-    });
 
     filterBarEl.addEventListener('click', function(e) {
       var btn = e.target.closest('.filter-btn');
