@@ -99,74 +99,60 @@
     margin: 0 auto;
     padding: 32px 40px 96px;
   }
-  /* ===== 赛季切换条：‹ 箭头 + 玻璃药丸 + 箭头 › ===== */
-  .season-switcher {
-    display: flex; align-items: center; justify-content: center;
-    gap: 18px; margin-bottom: 32px; user-select: none;
+  /* ===== 赛季切换：竖直滚轮（上赛季 / 当前赛季 / 下赛季） ===== */
+  .season-wheel-wrap { position: relative; max-width: 320px; margin: 0 auto 32px; }
+  .season-wheel {
+    border-radius: 24px; overflow: hidden; position: relative; user-select: none;
+    background: rgba(255,255,255,.5); border: 1px solid var(--line);
+    box-shadow: 0 12px 34px rgba(15,29,77,.10);
   }
-  .season-arrow {
-    flex: none; width: 44px; height: 44px; border-radius: 50%;
-    border: 1px solid var(--line); background: var(--card);
-    display: grid; place-items: center; cursor: pointer; position: relative; overflow: hidden;
-    color: var(--ink-soft); font-family: inherit;
-    transition: border-color .25s ease, color .25s ease, transform .15s ease, box-shadow .25s ease;
+  .wheel-mask { height: 174px; overflow: hidden; position: relative; }
+  .wheel-track { position: absolute; left: 0; right: 0; top: 0; }
+  .wheel-item {
+    height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; cursor: pointer;
   }
-  .season-arrow:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 6px 16px rgba(30,58,138,0.12); }
-  .season-arrow:active { transform: scale(.92); }
-  .season-arrow[disabled] { opacity: .3; cursor: default; pointer-events: none; }
-  .season-arrow::after {
-    content: ''; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
-    background: linear-gradient(120deg, transparent 30%, rgba(30,58,138,.4) 50%, transparent 70%);
-    background-size: 260% 100%; background-position: 150% 0; opacity: 0;
+  .wheel-item--empty, .wheel-spacer { visibility: hidden; pointer-events: none; cursor: default; }
+  .wheel-prev, .wheel-next { color: var(--muted); transition: color .2s ease; }
+  .wheel-prev:hover, .wheel-next:hover { color: var(--accent); }
+  .wheel-item-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: inherit; opacity: .8;
   }
-  .season-arrow.pulse::after { animation: arrowSweep .55s ease; }
-  @keyframes arrowSweep {
-    0%   { opacity: 1; background-position: 150% 0; }
-    100% { opacity: 0; background-position: -60% 0; }
+  .wheel-item-label { font-size: 14px; font-weight: 700; color: inherit; }
+  .wheel-current { cursor: default; }
+  .wheel-pill {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 11px 30px; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    color: #fff; box-shadow: 0 12px 28px rgba(30,58,138,.35);
+    font-size: 16px; font-weight: 800;
+    transition: transform .15s ease, box-shadow .25s ease;
+  }
+  .wheel-pill:hover { box-shadow: 0 14px 32px rgba(30,58,138,.42); }
+  .wheel-pill:active { transform: scale(.97); }
+  .wheel-pill-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    background: rgba(255,255,255,.28); padding: 2px 9px; border-radius: 999px;
   }
 
-  .season-pill-wrap { position: relative; }
-  .season-pill {
-    min-width: 176px; padding: 13px 30px; border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.55);
-    background: rgba(255,255,255,.55);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    box-shadow: 0 8px 26px rgba(15,29,77,.12), inset 0 1px 0 rgba(255,255,255,.65);
-    font-family: inherit; font-size: 15px; font-weight: 800; color: var(--ink);
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: box-shadow .25s ease, transform .15s ease;
-  }
-  .season-pill:hover { box-shadow: 0 10px 30px rgba(15,29,77,.18), inset 0 1px 0 rgba(255,255,255,.75); }
-  .season-pill:active { transform: scale(.98); }
-  .season-pill .tag {
-    font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-    color: #fff; background: var(--accent); padding: 3px 9px; border-radius: 999px;
-  }
-  .season-pill-label { display: inline-block; }
-  .season-pill-label.slide-in-next { animation: slideInFromRight .32s ease both; }
-  .season-pill-label.slide-in-prev { animation: slideInFromLeft .32s ease both; }
-  .season-pill-label.slide-in-jump { animation: fadeUp .32s ease both; }
-  @keyframes slideInFromRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes slideInFromLeft  { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
-
-  .season-dropdown {
+  .season-wheel-dropdown {
     position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
     background: var(--card); border: 1px solid var(--line); border-radius: 16px;
     box-shadow: 0 18px 44px rgba(15,29,77,.18); padding: 8px; z-index: 30;
     display: flex; flex-direction: column; gap: 2px; min-width: 190px;
     animation: fadeUp .2s ease both;
   }
-  .season-dropdown[hidden] { display: none; }
-  .season-dropdown-item {
+  .season-wheel-dropdown[hidden] { display: none; }
+  .season-wheel-dropdown-item {
     padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;
     color: var(--ink-soft); cursor: pointer; text-align: center;
     display: flex; align-items: center; justify-content: center; gap: 8px;
     transition: background .2s ease, color .2s ease;
   }
-  .season-dropdown-item:hover { background: var(--accent-soft); color: var(--accent); }
-  .season-dropdown-item.active { background: var(--accent-deep); color: #fff; }
-  .season-dropdown-item .tag { font-size: 9px; opacity: .85; }
+  .season-wheel-dropdown-item:hover { background: var(--accent-soft); color: var(--accent); }
+  .season-wheel-dropdown-item.active { background: var(--accent-deep); color: #fff; }
+  .season-wheel-dropdown-item .tag { font-size: 9px; opacity: .85; }
 
   @keyframes panelEnter {
     from { opacity: 0; transform: translateY(14px); }
@@ -180,19 +166,25 @@
     content: ''; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
   }
 
-  /* ===== 一队 / 预备队 切换 ===== */
+  /* ===== 一队 / 预备队 切换（和赛季滚轮同一套视觉语言） ===== */
   .team-tabs {
-    display: flex; gap: 8px; margin: 0 0 24px;
-    background: var(--bg-soft); border: 1px solid var(--line);
-    border-radius: 999px; padding: 5px; width: fit-content;
+    display: flex; gap: 6px; margin: 0 auto 28px; width: fit-content;
+    background: rgba(255,255,255,.5); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px;
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    box-shadow: 0 8px 24px rgba(15,29,77,.08);
   }
   .team-tab {
     background: transparent; border: none; border-radius: 999px;
-    padding: 9px 22px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft);
+    padding: 13px 34px; font-size: 15px; font-weight: 800; color: var(--ink-soft);
     cursor: pointer; font-family: inherit; transition: all .25s ease;
   }
   .team-tab:hover { color: var(--accent); }
-  .team-tab.active { background: var(--accent-deep); color: #fff; box-shadow: 0 4px 12px rgba(15, 29, 77, 0.25); }
+  .team-tab.active {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    color: #fff; box-shadow: 0 10px 26px rgba(30,58,138,.32);
+  }
   .team-note {
     font-size: 14px; color: var(--ink-soft); background: var(--accent-soft);
     border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;
@@ -214,37 +206,24 @@
     font-size: 14px; color: var(--ink-soft); line-height: 1.8; background: var(--card);
     border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
   }
-  .match-item { border-radius: 12px; overflow: hidden; }
+  .match-item + .match-item { margin-top: 10px; }
   .match-row {
-    display: grid; grid-template-columns: 130px 1fr auto 20px; gap: 24px;
-    padding: 18px; margin: 0 -18px 4px; border-radius: 12px;
-    align-items: center; transition: background .2s ease;
+    display: grid; grid-template-columns: minmax(96px, 1fr) 2fr; gap: 20px;
+    padding: 16px; border-radius: 14px; background: var(--bg-soft);
+    align-items: start;
   }
-  .match-row:hover { background: var(--bg-soft); }
-  .match-row.has-lineup { cursor: pointer; }
-  .match-caret {
-    color: var(--muted); font-size: 18px; font-weight: 700;
-    transition: transform .25s ease; justify-self: end;
+  .match-lineup-col { display: flex; flex-direction: column; gap: 6px; }
+  .lineup-pill {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; text-align: center; font-size: 12px; color: var(--ink-soft);
   }
-  .match-row.expanded .match-caret { transform: rotate(90deg); color: var(--accent); }
-  .match-lineup {
-    padding: 2px 18px 20px; margin: -8px -18px 4px;
-    animation: fadeUp .3s ease both;
-  }
-  .match-lineup-label {
-    font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 10px;
-  }
-  .match-lineup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 7px; }
-  .lineup-chip {
-    background: var(--bg-soft); border: 1px solid var(--line); border-radius: 7px;
-    padding: 7px 10px; text-align: center; font-size: 12.5px; color: var(--ink-soft);
-  }
+  .lineup-empty { font-size: 12.5px; color: var(--muted); font-style: italic; padding: 8px 2px; }
+  .match-info-col { display: grid; grid-template-columns: 84px 1fr auto; gap: 16px; align-items: center; }
   .match-date-col { font-variant-numeric: tabular-nums; }
   .match-date-day { font-size: 14px; font-weight: 700; color: var(--ink); }
   .match-date-time { font-size: 12px; color: var(--muted); margin-top: 3px; }
-  .match-teams { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .match-team { font-size: 16px; font-weight: 500; color: var(--ink-soft); }
+  .match-teams { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .match-team { font-size: 15px; font-weight: 500; color: var(--ink-soft); }
   .match-team.davis { color: var(--ink); font-weight: 600; }
   .match-team.winner { color: var(--accent); font-weight: 800; }
   .match-score {
@@ -288,14 +267,14 @@
     .page-hero { padding: 56px 22px 24px; }
     .page-lede { font-size: 15px; }
     .season-archive { padding: 24px 22px 64px; }
-    .season-switcher { gap: 10px; }
-    .season-arrow { width: 38px; height: 38px; }
-    .season-pill { min-width: 0; padding: 11px 18px; font-size: 13.5px; }
-    .match-row { grid-template-columns: 90px 1fr auto 16px; gap: 14px; padding: 14px 12px; margin: 0 -12px 4px; }
-    .match-team { font-size: 14px; }
-    .match-score { font-size: 14px; padding: 4px 10px; }
-    .match-result { width: 28px; height: 28px; font-size: 11px; }
-    .match-lineup { padding: 2px 12px 16px; margin: -8px -12px 4px; }
+    .season-wheel-wrap { max-width: 100%; }
+    .wheel-pill { padding: 9px 22px; font-size: 14px; }
+    .team-tab { padding: 11px 22px; font-size: 13.5px; }
+    .match-row { grid-template-columns: 1fr; gap: 12px; padding: 14px; }
+    .match-info-col { grid-template-columns: 70px 1fr auto; gap: 10px; }
+    .match-team { font-size: 13.5px; }
+    .match-score { font-size: 13px; padding: 4px 9px; }
+    .match-result { width: 26px; height: 26px; font-size: 10px; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -326,7 +305,12 @@
 </section>
 
 <section class="season-archive">
-  <div class="season-switcher" id="seasonSwitcher" role="group" aria-label="选择赛季"></div>
+  <div class="season-wheel-wrap" id="seasonWheelWrap">
+    <div class="season-wheel" id="seasonWheel" role="group" aria-label="选择赛季">
+      <div class="wheel-mask"><div class="wheel-track" id="wheelTrack"></div></div>
+    </div>
+    <div class="season-wheel-dropdown" id="seasonWheelDropdown" hidden></div>
+  </div>
   <div class="season-archive-body" id="seasonArchiveBody"></div>
 </section>
 
@@ -338,9 +322,11 @@
 <script src="seasons.js"></script>
 <script>
   (function() {
-    var switcherEl = document.getElementById('seasonSwitcher');
+    var wheelEl = document.getElementById('seasonWheel');
+    var track = document.getElementById('wheelTrack');
+    var wheelDropdown = document.getElementById('seasonWheelDropdown');
     var bodyEl = document.getElementById('seasonArchiveBody');
-    if (!switcherEl || !bodyEl || !window.SEASON_DATA) return;
+    if (!wheelEl || !track || !wheelDropdown || !bodyEl || !window.SEASON_DATA) return;
     var seasons = (window.SEASON_DATA.seasons || []).slice().reverse(); // 按时间从早到晚显示
     if (!seasons.length) return;
 
@@ -364,32 +350,29 @@
       var cls = 'match-team' + (team.davis ? ' davis' : '') + (team.winner ? ' winner' : '');
       return '<span class="' + cls + '">' + escapeHtml(team.name) + '</span>';
     }
-    function lineupHtml(m) {
-      if (!m.lineup || !m.lineup.length) return '';
-      return '<div class="match-lineup" hidden>' +
-        '<div class="match-lineup-label">当场出场名单</div>' +
-        '<div class="match-lineup-grid">' +
-          m.lineup.map(function(name) { return '<div class="lineup-chip">' + escapeHtml(name) + '</div>'; }).join('') +
-        '</div>' +
-      '</div>';
-    }
     function matchRowHtml(m) {
       var resultCls = 'match-result' + (m.result !== 'win' ? ' ' + m.result : '');
-      var hasLineup = m.lineup && m.lineup.length;
-      var row = '<div class="match-row' + (hasLineup ? ' has-lineup' : '') + '">' +
-        '<div class="match-date-col">' +
-          '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
-          '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
+      var lineup = m.lineup || [];
+      var lineupInner = lineup.length
+        ? lineup.map(function(name) { return '<div class="lineup-pill">' + escapeHtml(name) + '</div>'; }).join('')
+        : '<div class="lineup-empty">出场名单整理中</div>';
+      return '<div class="match-item">' +
+        '<div class="match-row">' +
+          '<div class="match-lineup-col">' + lineupInner + '</div>' +
+          '<div class="match-info-col">' +
+            '<div class="match-date-col">' +
+              '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
+              '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
+            '</div>' +
+            '<div class="match-teams">' +
+              teamSpan(m.team1) +
+              '<span class="match-score">' + escapeHtml(m.score) + '</span>' +
+              teamSpan(m.team2) +
+            '</div>' +
+            '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
+          '</div>' +
         '</div>' +
-        '<div class="match-teams">' +
-          teamSpan(m.team1) +
-          '<span class="match-score">' + escapeHtml(m.score) + '</span>' +
-          teamSpan(m.team2) +
-        '</div>' +
-        '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
-        (hasLineup ? '<div class="match-caret">›</div>' : '<div></div>') +
       '</div>';
-      return '<div class="match-item">' + row + lineupHtml(m) + '</div>';
     }
     function categorySectionHtml(cat) {
       if (!cat) return '';
@@ -471,54 +454,78 @@
     if (currentIndex < 0) currentIndex = 0;
     var activeTeam = 'first';
 
-    var ARROW_LEFT_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
-    var ARROW_RIGHT_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+    function seasonAt(idx) { return (idx >= 0 && idx < seasons.length) ? seasons[idx] : null; }
 
-    switcherEl.innerHTML =
-      '<button type="button" class="season-arrow" id="seasonPrevBtn" aria-label="上一个赛季">' + ARROW_LEFT_SVG + '</button>' +
-      '<div class="season-pill-wrap">' +
-        '<button type="button" class="season-pill" id="seasonPillBtn">' +
-          '<span class="season-pill-label" id="seasonPillLabel"></span>' +
-          '<span class="tag" id="seasonPillTag" hidden>现役</span>' +
-        '</button>' +
-        '<div class="season-dropdown" id="seasonDropdown" hidden></div>' +
-      '</div>' +
-      '<button type="button" class="season-arrow" id="seasonNextBtn" aria-label="下一个赛季">' + ARROW_RIGHT_SVG + '</button>';
+    function wheelRowHtml(role, season) {
+      if (role === 'spacer') return '<div class="wheel-item wheel-spacer"></div>';
+      if (!season) return '<div class="wheel-item wheel-' + role + ' wheel-item--empty" data-role="' + role + '"></div>';
+      if (role === 'current') {
+        return '<div class="wheel-item wheel-current" data-role="current">' +
+          '<span class="wheel-pill">' +
+            '<span class="wheel-pill-label">' + escapeHtml(season.label) + '</span>' +
+            (season.current ? '<span class="wheel-pill-tag">现役</span>' : '') +
+          '</span>' +
+        '</div>';
+      }
+      var tag = role === 'prev' ? '‹ 上赛季' : '下赛季 ›';
+      return '<div class="wheel-item wheel-' + role + '" data-role="' + role + '">' +
+        '<span class="wheel-item-tag">' + tag + '</span>' +
+        '<span class="wheel-item-label">' + escapeHtml(season.label) + (season.current ? ' · 现役' : '') + '</span>' +
+      '</div>';
+    }
 
-    var prevBtn = document.getElementById('seasonPrevBtn');
-    var nextBtn = document.getElementById('seasonNextBtn');
-    var pillBtn = document.getElementById('seasonPillBtn');
-    var pillLabel = document.getElementById('seasonPillLabel');
-    var pillTag = document.getElementById('seasonPillTag');
-    var dropdown = document.getElementById('seasonDropdown');
+    function buildTrackHtml() {
+      return (
+        wheelRowHtml('spacer', null) +
+        wheelRowHtml('prev', seasonAt(currentIndex - 1)) +
+        wheelRowHtml('current', seasonAt(currentIndex)) +
+        wheelRowHtml('next', seasonAt(currentIndex + 1)) +
+        wheelRowHtml('spacer', null)
+      );
+    }
 
-    dropdown.innerHTML = seasons.map(function(sn, i) {
-      return '<div class="season-dropdown-item" data-index="' + i + '">' +
+    wheelDropdown.innerHTML = seasons.map(function(sn, i) {
+      return '<div class="season-wheel-dropdown-item' + (i === currentIndex ? ' active' : '') + '" data-index="' + i + '">' +
         escapeHtml(sn.label) + (sn.current ? '<span class="tag">现役</span>' : '') +
       '</div>';
     }).join('');
 
-    function updateSwitcher(direction) {
-      var s = seasons[currentIndex];
-      prevBtn.disabled = currentIndex <= 0;
-      nextBtn.disabled = currentIndex >= seasons.length - 1;
+    track.innerHTML = buildTrackHtml();
+    var wheelRowH = track.children[1].getBoundingClientRect().height || 58;
+    track.style.transform = 'translateY(-' + wheelRowH + 'px)';
 
-      pillLabel.textContent = s.label;
-      pillLabel.classList.remove('slide-in-next', 'slide-in-prev', 'slide-in-jump');
-      void pillLabel.offsetWidth; // 强制重排，让动画能重新播放
-      pillLabel.classList.add(direction === 'next' ? 'slide-in-next' : direction === 'prev' ? 'slide-in-prev' : 'slide-in-jump');
-      pillTag.hidden = !s.current;
-
-      Array.prototype.forEach.call(dropdown.querySelectorAll('.season-dropdown-item'), function(el) {
+    function refreshDropdownActive() {
+      Array.prototype.forEach.call(wheelDropdown.querySelectorAll('.season-wheel-dropdown-item'), function(el) {
         el.classList.toggle('active', Number(el.dataset.index) === currentIndex);
       });
+    }
 
-      if (direction === 'next' || direction === 'prev') {
-        var arrowBtn = direction === 'next' ? nextBtn : prevBtn;
-        arrowBtn.classList.remove('pulse');
-        void arrowBtn.offsetWidth;
-        arrowBtn.classList.add('pulse');
-      }
+    function slideWheel(dir) {
+      wheelRowH = track.children[1].getBoundingClientRect().height || wheelRowH;
+      track.style.transition = 'transform .34s cubic-bezier(.4,0,.2,1)';
+      var target = dir === 'prev' ? 0 : -(2 * wheelRowH);
+      requestAnimationFrame(function() { track.style.transform = 'translateY(' + target + 'px)'; });
+      track.addEventListener('transitionend', function onEnd() {
+        track.removeEventListener('transitionend', onEnd);
+        track.style.transition = 'none';
+        track.innerHTML = buildTrackHtml();
+        track.style.transform = 'translateY(-' + wheelRowH + 'px)';
+        void track.offsetWidth;
+        track.style.transition = '';
+      }, { once: true });
+    }
+
+    function fadeWheel() {
+      track.style.transition = 'opacity .18s ease';
+      track.style.opacity = '0';
+      track.addEventListener('transitionend', function onEnd() {
+        track.removeEventListener('transitionend', onEnd);
+        track.innerHTML = buildTrackHtml();
+        track.style.transform = 'translateY(-' + wheelRowH + 'px)';
+        void track.offsetWidth;
+        track.style.transition = 'opacity .22s ease';
+        track.style.opacity = '1';
+      }, { once: true });
     }
 
     function renderBody() {
@@ -533,27 +540,34 @@
       if (idx === currentIndex || idx < 0 || idx >= seasons.length) return;
       currentIndex = idx;
       activeTeam = 'first';
-      updateSwitcher(direction);
+      refreshDropdownActive();
+      if (direction === 'prev' || direction === 'next') { slideWheel(direction); }
+      else { fadeWheel(); }
       renderBody();
     }
 
-    prevBtn.addEventListener('click', function() { goTo(currentIndex - 1, 'prev'); });
-    nextBtn.addEventListener('click', function() { goTo(currentIndex + 1, 'next'); });
-
-    pillBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      dropdown.hidden = !dropdown.hidden;
+    wheelEl.addEventListener('click', function(e) {
+      var row = e.target.closest('.wheel-item');
+      if (!row) return;
+      var role = row.dataset.role;
+      if (role === 'prev') { goTo(currentIndex - 1, 'prev'); }
+      else if (role === 'next') { goTo(currentIndex + 1, 'next'); }
+      else if (role === 'current') {
+        e.stopPropagation();
+        wheelDropdown.hidden = !wheelDropdown.hidden;
+      }
     });
-    dropdown.addEventListener('click', function(e) {
-      var item = e.target.closest('.season-dropdown-item');
+    wheelDropdown.addEventListener('click', function(e) {
+      var item = e.target.closest('.season-wheel-dropdown-item');
       if (!item) return;
       var idx = Number(item.dataset.index);
-      dropdown.hidden = true;
-      goTo(idx, idx > currentIndex ? 'next' : 'prev');
+      wheelDropdown.hidden = true;
+      var dir = idx === currentIndex - 1 ? 'prev' : idx === currentIndex + 1 ? 'next' : 'jump';
+      goTo(idx, dir);
     });
     document.addEventListener('click', function(e) {
-      if (!dropdown.hidden && !e.target.closest('.season-pill-wrap')) {
-        dropdown.hidden = true;
+      if (!wheelDropdown.hidden && !e.target.closest('#seasonWheelWrap')) {
+        wheelDropdown.hidden = true;
       }
     });
 
@@ -562,17 +576,9 @@
       if (teamBtn) {
         activeTeam = teamBtn.dataset.team;
         renderBody();
-        return;
-      }
-      var matchRow = e.target.closest('.match-row.has-lineup');
-      if (matchRow) {
-        matchRow.classList.toggle('expanded');
-        var lineupEl = matchRow.parentElement.querySelector('.match-lineup');
-        if (lineupEl) lineupEl.hidden = !lineupEl.hidden;
       }
     });
 
-    updateSwitcher('jump');
     renderBody();
   })();
 </script>
