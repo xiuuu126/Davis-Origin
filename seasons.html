@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>赛季 · Davis Origin</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-soft: #fafaf7;
+    --ink: #0a0e1a;
+    --ink-soft: #3d4151;
+    --muted: #8a8a92;
+    --line: #e6e2d8;
+    --accent: #1e3a8a;
+    --accent-deep: #0f1d4d;
+    --accent-soft: #eaf0fb;
+    --gold: #c89134;
+    --card: #ffffff;
+    --pos-gk: #d49a2a;
+    --pos-def: #1e3a8a;
+    --pos-mid: #1f7a5e;
+    --pos-fwd: #b04646;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  /* Topbar */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247, 245, 240, 0.88);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1400px; margin: 0 auto;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .brand-mark {
+    width: 40px; height: 40px; object-fit: contain;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+  }
+  .brand:hover .brand-mark { transform: rotate(-10deg) scale(1.08); }
+  .brand-name { font-size: 16px; }
+  .brand-sub { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border: 1px solid var(--line);
+    border-radius: 999px; font-size: 13px;
+    color: var(--ink-soft); background: var(--bg-soft);
+    transition: all .3s ease;
+  }
+  .back-link:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft); transform: translateX(-3px);
+  }
+
+  /* Hero */
+  .page-hero {
+    max-width: 1080px; margin: 0 auto;
+    padding: 96px 40px 40px;
+  }
+  .page-eyebrow {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp .8s ease both;
+  }
+  .page-eyebrow::before {
+    content: ''; width: 36px; height: 1.5px; background: var(--accent);
+  }
+  .page-title {
+    font-size: clamp(56px, 9vw, 112px);
+    font-weight: 900; letter-spacing: -0.04em;
+    line-height: 0.95; margin-bottom: 24px;
+    animation: fadeUp .9s ease .1s both;
+  }
+  .page-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+  .page-lede {
+    font-size: 18px; color: var(--ink-soft);
+    max-width: 600px;
+    animation: fadeUp .9s ease .2s both;
+  }
+  .history-link {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .history-link:hover { text-decoration: underline; }
+
+  /* ===== Season archive ===== */
+  .season-archive {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 40px 96px;
+  }
+  .season-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+  .season-tab {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 9px 20px; font-size: 13px; font-weight: 600; color: var(--ink-soft);
+    cursor: pointer; font-family: inherit; transition: all .25s ease;
+  }
+  .season-tab:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .season-tab.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.2);
+  }
+  .season-tab .tag { margin-left: 6px; font-size: 10px; opacity: .8; letter-spacing: .05em; text-transform: uppercase; }
+
+  .season-highlights { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .season-highlights li { position: relative; padding-left: 22px; font-size: 15px; color: var(--ink); line-height: 1.6; }
+  .season-highlights li::before {
+    content: ''; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+  }
+
+  .archive-block-title {
+    font-size: 12.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); margin: 32px 0 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .archive-block-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .archive-position-group { margin-bottom: 20px; }
+  .archive-position-group:last-child { margin-bottom: 0; }
+  .archive-position-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+  .archive-position-head .pos-cn { font-size: 15px; font-weight: 700; color: var(--pos, var(--accent)); }
+  .archive-position-head .pos-count { font-size: 12px; color: var(--muted); }
+  .archive-player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .archive-player-chip {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 9px 12px; text-align: center; font-size: 13.5px; color: var(--ink);
+  }
+
+  .archive-empty-note {
+    font-size: 14px; color: var(--muted); background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+  }
+
+  /* 比赛板块 */
+  .matches-section + .matches-section { margin-top: 28px; }
+  .matches-section-title {
+    font-size: 12.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .matches-section-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .matches-section-note {
+    font-size: 14px; color: var(--ink-soft); line-height: 1.8; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+  }
+  .match-row {
+    display: grid; grid-template-columns: 130px 1fr auto; gap: 24px;
+    padding: 18px; margin: 0 -18px 4px; border-radius: 12px;
+    align-items: center; transition: background .2s ease;
+  }
+  .match-row:hover { background: var(--bg-soft); }
+  .match-date-col { font-variant-numeric: tabular-nums; }
+  .match-date-day { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .match-date-time { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .match-teams { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .match-team { font-size: 16px; font-weight: 500; color: var(--ink-soft); }
+  .match-team.davis { color: var(--ink); font-weight: 600; }
+  .match-team.winner { color: var(--accent); font-weight: 800; }
+  .match-score {
+    display: inline-flex; align-items: center; padding: 5px 12px;
+    background: var(--accent-soft); color: var(--accent); border-radius: 7px;
+    font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums;
+  }
+  .match-result {
+    font-size: 12px; font-weight: 800; color: var(--accent);
+    width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft);
+    display: grid; place-items: center;
+  }
+  .match-result.draw { background: rgba(140,140,148,0.12); color: var(--ink-soft); }
+  .match-result.loss { background: rgba(176, 70, 70, 0.12); color: #b04646; }
+
+  /* Footer */
+  footer {
+    padding: 40px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  footer .slogan-cn {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .topbar-inner { padding: 14px 20px; }
+    .back-link { padding: 8px 12px; font-size: 12px; }
+    .page-hero { padding: 56px 22px 24px; }
+    .page-lede { font-size: 15px; }
+    .season-archive { padding: 24px 22px 64px; }
+    .match-row { grid-template-columns: 90px 1fr auto; gap: 14px; padding: 14px 12px; margin: 0 -12px 4px; }
+    .match-team { font-size: 14px; }
+    .match-score { font-size: 14px; padding: 4px 10px; }
+    .match-result { width: 28px; height: 28px; font-size: 11px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-mark" src="assets/logo.png" alt="Davis Origin Logo" />
+      <div>
+        <div class="brand-name">Davis Origin<span class="brand-sub">戴维斯原点</span></div>
+      </div>
+    </a>
+    <a class="back-link" href="index.html">← 返回主页</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-eyebrow">Seasons · 赛季</div>
+  <h1 class="page-title">Seasons<em>.</em></h1>
+  <p class="page-lede">选一个赛季，看那一年的球员名单，和北加联 / 杯赛 / 友谊赛三大板块的具体比赛。</p>
+  <a class="history-link" href="history.html">→ 想看我们完整的发展历程？去"过往经历"</a>
+</section>
+
+<section class="season-archive">
+  <div class="season-tabs" id="seasonTabs" role="tablist"></div>
+  <div class="season-archive-body" id="seasonArchiveBody"></div>
+</section>
+
+<footer>
+  <div class="slogan-cn">岂曰无衣？与子同袍。</div>
+  © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
+</footer>
+
+<script src="seasons.js"></script>
+<script>
+  (function() {
+    var tabsEl = document.getElementById('seasonTabs');
+    var bodyEl = document.getElementById('seasonArchiveBody');
+    if (!tabsEl || !bodyEl || !window.SEASON_DATA) return;
+    var seasons = (window.SEASON_DATA.seasons || []).slice().reverse(); // 按时间从早到晚显示
+    if (!seasons.length) return;
+
+    var POSITION_ORDER = ['gk', 'def', 'mid', 'fwd'];
+    var POSITION_META = {
+      gk:  { cn: '门将' },
+      def: { cn: '后场' },
+      mid: { cn: '中场' },
+      fwd: { cn: '前场' }
+    };
+    var CATEGORY_ORDER = ['league', 'cup', 'friendly'];
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function(c) {
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+      });
+    }
+    function resultLabel(result) {
+      if (result === 'win') return 'W';
+      if (result === 'draw') return 'D';
+      if (result === 'loss') return 'L';
+      return '–';
+    }
+    function teamSpan(team) {
+      var cls = 'match-team' + (team.davis ? ' davis' : '') + (team.winner ? ' winner' : '');
+      return '<span class="' + cls + '">' + escapeHtml(team.name) + '</span>';
+    }
+    function matchRowHtml(m) {
+      var resultCls = 'match-result' + (m.result !== 'win' ? ' ' + m.result : '');
+      return '<div class="match-row">' +
+        '<div class="match-date-col">' +
+          '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
+          '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
+        '</div>' +
+        '<div class="match-teams">' +
+          teamSpan(m.team1) +
+          '<span class="match-score">' + escapeHtml(m.score) + '</span>' +
+          teamSpan(m.team2) +
+        '</div>' +
+        '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
+      '</div>';
+    }
+    function categorySectionHtml(cat) {
+      if (!cat) return '';
+      var hasMatches = cat.matches && cat.matches.length;
+      if (!hasMatches && !cat.note) return '';
+      var body = hasMatches
+        ? cat.matches.map(matchRowHtml).join('')
+        : '<div class="matches-section-note">' + escapeHtml(cat.note) + '</div>';
+      return '<div class="matches-section">' +
+        '<div class="matches-section-title">' + escapeHtml(cat.label) + '</div>' +
+        body +
+      '</div>';
+    }
+
+    function hasRealContent(s) {
+      var roster = s.roster || {};
+      var rosterTotal = POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
+      var matchesTotal = CATEGORY_ORDER.reduce(function(sum, k) {
+        return sum + (((s.matches || {})[k] || {}).matches || []).length;
+      }, 0);
+      return rosterTotal > 0 || matchesTotal > 0;
+    }
+
+    function renderSeasonPanel(s) {
+      var html = '';
+      if (s.highlights && s.highlights.length) {
+        html += '<ul class="season-highlights">' +
+          s.highlights.map(function(h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') +
+        '</ul>';
+      }
+
+      html += '<div class="archive-block-title">球员名单</div>';
+      var roster = s.roster || {};
+      var total = POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
+      if (total > 0) {
+        html += POSITION_ORDER.filter(function(p) { return (roster[p] || []).length > 0; }).map(function(p) {
+          var players = roster[p] || [];
+          return '<div class="archive-position-group" style="--pos: var(--pos-' + p + ')">' +
+            '<div class="archive-position-head"><span class="pos-cn">' + POSITION_META[p].cn + '</span>' +
+            '<span class="pos-count">' + players.length + ' 人</span></div>' +
+            '<div class="archive-player-grid">' +
+              players.map(function(name) { return '<div class="archive-player-chip">' + escapeHtml(name) + '</div>'; }).join('') +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } else {
+        html += '<div class="archive-empty-note">这个赛季完整名单还没整理，敬请期待。</div>';
+      }
+
+      html += '<div class="archive-block-title">比赛</div>';
+      var sections = CATEGORY_ORDER.map(function(key) {
+        return categorySectionHtml((s.matches || {})[key]);
+      }).filter(Boolean);
+      html += sections.length ? sections.join('') : '<div class="archive-empty-note">这个赛季还没有比赛记录。</div>';
+
+      return html;
+    }
+
+    var defaultSeason = seasons.find(hasRealContent) || seasons.find(function(s) { return s.current; }) || seasons[0];
+    var activeId = defaultSeason.id;
+
+    function render() {
+      var s = seasons.find(function(x) { return x.id === activeId; }) || seasons[0];
+      tabsEl.innerHTML = seasons.map(function(sn) {
+        return '<button type="button" class="season-tab' + (sn.id === activeId ? ' active' : '') + '" data-season="' +
+          escapeHtml(sn.id) + '">' + escapeHtml(sn.label) +
+          (sn.current ? '<span class="tag">现役</span>' : '') + '</button>';
+      }).join('');
+      bodyEl.innerHTML = renderSeasonPanel(s);
+    }
+
+    tabsEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.season-tab');
+      if (!btn) return;
+      activeId = btn.dataset.season;
+      render();
+    });
+
+    render();
+  })();
+</script>
+
+</body>
+</html>
