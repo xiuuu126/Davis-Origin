@@ -113,11 +113,47 @@
     max-width: 600px;
     animation: fadeUp .9s ease .2s both;
   }
+
+  /* Season tabs */
+  .season-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    animation: fadeUp .9s ease .25s both;
+  }
+  .season-tab {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .25s ease;
+  }
+  .season-tab:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .season-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.2);
+  }
+  .season-tab .tag {
+    margin-left: 6px;
+    font-size: 10px;
+    opacity: .8;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
   .season-summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 0;
-    margin-top: 48px;
+    margin-top: 32px;
     padding-top: 32px;
     border-top: 1px solid var(--line);
     animation: fadeUp .9s ease .3s both;
@@ -261,6 +297,24 @@
   .match-result.loss { background: rgba(176, 70, 70, 0.12); color: #b04646; }
   .match-result.upcoming { background: transparent; border: 1px dashed var(--line); color: var(--muted); font-size: 16px; }
 
+  /* Empty season state */
+  .matches-empty {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 56px 30px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+  }
+  .matches-empty-title {
+    font-size: 17px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
   /* Footer */
   footer {
     padding: 40px;
@@ -288,7 +342,9 @@
     .back-link { padding: 8px 12px; font-size: 12px; }
     .page-hero { padding: 56px 22px 32px; }
     .page-lede { font-size: 15px; }
-    .season-summary { grid-template-columns: repeat(4, 1fr); margin-top: 32px; padding-top: 22px; }
+    .season-tabs { margin-top: 20px; gap: 6px; }
+    .season-tab { padding: 7px 14px; font-size: 12px; }
+    .season-summary { grid-template-columns: repeat(4, 1fr); margin-top: 24px; padding-top: 22px; }
     .summary-num { font-size: 24px; }
     .summary-label { font-size: 9px; letter-spacing: 0.1em; }
     main.matches-page { padding: 32px 22px 64px; }
@@ -303,6 +359,7 @@
     .match-result { width: 30px; height: 30px; font-size: 11px; }
     .match-date-day { font-size: 13px; }
     .match-date-tag { font-size: 9px; padding: 2px 6px; }
+    .matches-empty { margin: 0 22px; padding: 40px 22px; }
   }
 </style>
 </head>
@@ -323,127 +380,139 @@
 <section class="page-hero">
   <div class="page-eyebrow">Matches · 比赛</div>
   <h1 class="page-title">Schedule<em>.</em></h1>
-  <p class="page-lede">2026 五月 · 北加联赛季正在进行中。Fight on.</p>
+  <p class="page-lede" id="pageLede">Davis Origin · 戴维斯原点足球俱乐部</p>
 
-  <div class="season-summary">
-    <div class="summary-cell"><div class="summary-num w">1</div><div class="summary-label">胜 · W</div></div>
-    <div class="summary-cell"><div class="summary-num d">2</div><div class="summary-label">平 · D</div></div>
-    <div class="summary-cell"><div class="summary-num l">4</div><div class="summary-label">负 · L</div></div>
-    <div class="summary-cell"><div class="summary-num upcoming">0</div><div class="summary-label">未开赛</div></div>
-  </div>
+  <div class="season-tabs" id="seasonTabs" role="tablist"></div>
+
+  <div class="season-summary" id="seasonSummary"></div>
 </section>
 
-<main class="matches-page">
-
-  <div class="matches-section">
-    <div class="matches-section-title">May 2026 · 北加联</div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 10</div>
-        <div class="match-date-time">19:45</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis">Davis Origin Reverse</span>
-        <span class="match-score">1 : 1</span>
-        <span class="match-team">Jinyue</span>
-      </div>
-      <div class="match-result draw">D</div>
-    </div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 16</div>
-        <div class="match-date-time">10:00</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis">Davis Origin</span>
-        <span class="match-score">0 : 2</span>
-        <span class="match-team winner">HeHe FC</span>
-      </div>
-      <div class="match-result loss">L</div>
-    </div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 16</div>
-        <div class="match-date-time">18:45</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis">Davis Origin Reverse</span>
-        <span class="match-score">2 : 2</span>
-        <span class="match-team">Flying Horse</span>
-      </div>
-      <div class="match-result draw">D</div>
-    </div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 17</div>
-        <div class="match-date-time">11:35</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis">Davis Origin</span>
-        <span class="match-score">1 : 6</span>
-        <span class="match-team winner">SF United</span>
-      </div>
-      <div class="match-result loss">L</div>
-    </div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 17</div>
-        <div class="match-date-time">18:35</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis">Davis Origin Reverse</span>
-        <span class="match-score">0 : 3</span>
-        <span class="match-team winner">Z4</span>
-      </div>
-      <div class="match-result loss">L</div>
-    </div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 23</div>
-        <div class="match-date-time">14:30</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis winner">Davis Origin</span>
-        <span class="match-score">3 : 1</span>
-        <span class="match-team">EBU Rangers</span>
-      </div>
-      <div class="match-result">W</div>
-    </div>
-
-    <div class="match-row">
-      <div class="match-date-col">
-        <div class="match-date-day">May 24</div>
-        <div class="match-date-time">13:20</div>
-        <div class="match-date-tag">北加联</div>
-      </div>
-      <div class="match-teams">
-        <span class="match-team davis">Davis Origin</span>
-        <span class="match-score">1 : 2</span>
-        <span class="match-team winner">GSF</span>
-      </div>
-      <div class="match-result loss">L</div>
-    </div>
-
-  </div>
-
-</main>
+<main class="matches-page" id="matchesMain"></main>
 
 <footer>
   <div class="slogan-cn">岂曰无衣？与子同袍。</div>
   © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
 </footer>
+
+<script src="seasons.js"></script>
+<script>
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function(c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function resultLabel(result) {
+    if (result === 'win') return 'W';
+    if (result === 'draw') return 'D';
+    if (result === 'loss') return 'L';
+    return '–';
+  }
+
+  function teamSpan(team) {
+    var cls = 'match-team' + (team.davis ? ' davis' : '') + (team.winner ? ' winner' : '');
+    return '<span class="' + cls + '">' + escapeHtml(team.name) + '</span>';
+  }
+
+  (function() {
+    var seasonTabsEl = document.getElementById('seasonTabs');
+    var summaryEl = document.getElementById('seasonSummary');
+    var mainEl = document.getElementById('matchesMain');
+    var ledeEl = document.getElementById('pageLede');
+
+    if (!window.SEASON_DATA || !window.SEASON_DATA.seasons || !window.SEASON_DATA.seasons.length) {
+      return; // seasons.js 没加载成功就什么都不做
+    }
+    var seasons = window.SEASON_DATA.seasons;
+
+    function seasonFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('season');
+      if (id && seasons.some(function(s) { return s.id === id; })) return id;
+      var current = seasons.find(function(s) { return s.current; });
+      return current ? current.id : seasons[0].id;
+    }
+
+    var activeId = seasonFromUrl();
+
+    function renderTabs() {
+      seasonTabsEl.innerHTML = seasons.map(function(sn) {
+        return '<button type="button" class="season-tab' + (sn.id === activeId ? ' active' : '') + '" data-season="' +
+          escapeHtml(sn.id) + '">' + escapeHtml(sn.label) +
+          (sn.current ? '<span class="tag">现役</span>' : '') + '</button>';
+      }).join('');
+    }
+
+    function renderAll() {
+      var s = seasons.find(function(x) { return x.id === activeId; }) || seasons[0];
+      renderTabs();
+
+      if (s.placeholder) {
+        ledeEl.textContent = s.lede || (s.label + ' · 内容整理中');
+        summaryEl.style.display = 'none';
+        mainEl.innerHTML =
+          '<div class="matches-empty">' +
+            '<div class="matches-empty-title">' + escapeHtml(s.label) + ' 的比赛记录还在整理</div>' +
+            '<p>整理好之后会显示在这里，敬请期待。</p>' +
+          '</div>';
+        return;
+      }
+
+      summaryEl.style.display = '';
+      ledeEl.textContent = s.lede || s.label;
+      var r = s.record || { w: 0, d: 0, l: 0, upcoming: 0 };
+      summaryEl.innerHTML =
+        '<div class="summary-cell"><div class="summary-num w">' + r.w + '</div><div class="summary-label">胜 · W</div></div>' +
+        '<div class="summary-cell"><div class="summary-num d">' + r.d + '</div><div class="summary-label">平 · D</div></div>' +
+        '<div class="summary-cell"><div class="summary-num l">' + r.l + '</div><div class="summary-label">负 · L</div></div>' +
+        '<div class="summary-cell"><div class="summary-num upcoming">' + (r.upcoming || 0) + '</div><div class="summary-label">未开赛</div></div>';
+
+      var groups = s.matchGroups || [];
+      if (!groups.length) {
+        mainEl.innerHTML =
+          '<div class="matches-empty">' +
+            '<div class="matches-empty-title">' + escapeHtml(s.label) + ' 还没有比赛记录</div>' +
+            '<p>比赛安排好之后会显示在这里。</p>' +
+          '</div>';
+        return;
+      }
+
+      mainEl.innerHTML = groups.map(function(group) {
+        var rows = (group.matches || []).map(function(m) {
+          var resultCls = 'match-result' + (m.result !== 'win' ? ' ' + m.result : '');
+          var scoreCls = 'match-score' + (m.result === 'upcoming' ? ' upcoming' : '');
+          return '<div class="match-row">' +
+            '<div class="match-date-col">' +
+              '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
+              '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
+              '<div class="match-date-tag">' + escapeHtml(m.tag || '') + '</div>' +
+            '</div>' +
+            '<div class="match-teams">' +
+              teamSpan(m.team1) +
+              '<span class="' + scoreCls + '">' + escapeHtml(m.score) + '</span>' +
+              teamSpan(m.team2) +
+            '</div>' +
+            '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
+          '</div>';
+        }).join('');
+        return '<div class="matches-section">' +
+          '<div class="matches-section-title">' + escapeHtml(group.title) + '</div>' +
+          rows +
+        '</div>';
+      }).join('');
+    }
+
+    seasonTabsEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.season-tab');
+      if (!btn) return;
+      activeId = btn.dataset.season;
+      history.replaceState(null, '', '?season=' + encodeURIComponent(activeId));
+      renderAll();
+    });
+
+    renderAll();
+  })();
+</script>
 
 </body>
 </html>

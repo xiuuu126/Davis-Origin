@@ -145,6 +145,43 @@
     letter-spacing: 0.05em;
   }
 
+  /* Season tabs */
+  .season-tabs {
+    max-width: 1280px;
+    margin: 28px auto 0;
+    padding: 0 32px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .season-tab {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .25s ease;
+  }
+  .season-tab:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .season-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.2);
+  }
+  .season-tab .tag {
+    margin-left: 6px;
+    font-size: 10px;
+    opacity: .8;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
   /* Filter bar */
   .filter-bar {
     max-width: 1280px;
@@ -287,6 +324,24 @@
   /* Filtered out */
   .position-group.hidden { display: none; }
 
+  /* Empty season state */
+  .roster-empty {
+    max-width: 640px;
+    margin: 40px auto;
+    padding: 56px 30px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+  }
+  .roster-empty-title {
+    font-size: 17px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
   /* Footer */
   footer {
     padding: 32px;
@@ -315,6 +370,8 @@
     .position-stats { max-width: 100%; }
     .stat-num { font-size: 24px; }
     .stat-lbl { font-size: 10px; }
+    .season-tabs { padding: 0 20px; gap: 6px; margin-top: 20px; }
+    .season-tab { padding: 7px 14px; font-size: 12px; }
     .filter-bar { padding: 0 20px; gap: 6px; }
     .filter-btn { padding: 7px 14px; font-size: 12px; }
     main.roster-page { padding: 8px 20px 60px; }
@@ -324,6 +381,7 @@
     .pos-cn { font-size: 20px; }
     .player-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
     .player-card { font-size: 14px; padding: 12px 12px; }
+    .roster-empty { margin: 24px 20px; padding: 40px 22px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -351,148 +409,141 @@
 <section class="page-hero">
   <div class="page-eyebrow">Roster · 球员大名单</div>
   <h1 class="page-title">全员阵容</h1>
-  <p class="page-lede">
-    Davis Origin · 戴维斯原点足球俱乐部 · 共 55 名学生与校友球员，按位置分组、字母排序。
+  <p class="page-lede" id="pageLede">
+    Davis Origin · 戴维斯原点足球俱乐部
   </p>
-  <div class="position-stats">
-    <div class="stat"><span class="stat-num" style="color: var(--pos-gk);">3</span><span class="stat-lbl">门将 GK</span></div>
-    <div class="stat"><span class="stat-num" style="color: var(--pos-def);">24</span><span class="stat-lbl">后场 DEF</span></div>
-    <div class="stat"><span class="stat-num" style="color: var(--pos-mid);">17</span><span class="stat-lbl">中场 MID</span></div>
-    <div class="stat"><span class="stat-num" style="color: var(--pos-fwd);">11</span><span class="stat-lbl">前场 FWD</span></div>
-  </div>
+  <div class="position-stats" id="positionStats"></div>
 </section>
 
-<div class="filter-bar" id="filterBar">
-  <button class="filter-btn active" data-filter="all">全部 <span class="count">55</span></button>
-  <button class="filter-btn" data-filter="gk">门将 <span class="count">3</span></button>
-  <button class="filter-btn" data-filter="def">后场 <span class="count">24</span></button>
-  <button class="filter-btn" data-filter="mid">中场 <span class="count">17</span></button>
-  <button class="filter-btn" data-filter="fwd">前场 <span class="count">11</span></button>
-</div>
+<div class="season-tabs" id="seasonTabs" role="tablist"></div>
 
-<main class="roster-page">
+<div class="filter-bar" id="filterBar"></div>
 
-  <!-- 门将 GOALKEEPERS -->
-  <section class="position-group" data-position="gk">
-    <h2 class="position-title">
-      <span class="pos-en">Goalkeepers</span>
-      <span class="pos-cn">门将</span>
-      <span class="pos-count">3 人</span>
-    </h2>
-    <div class="player-grid">
-      <div class="player-card">冯楚明</div>
-      <div class="player-card">相铮</div>
-      <div class="player-card">熊翰川</div>
-    </div>
-  </section>
-
-  <!-- 后场 DEFENDERS -->
-  <section class="position-group" data-position="def">
-    <h2 class="position-title">
-      <span class="pos-en">Defenders</span>
-      <span class="pos-cn">后场</span>
-      <span class="pos-count">24 人</span>
-    </h2>
-    <div class="player-grid">
-      <div class="player-card">蔡毅诚</div>
-      <div class="player-card">柴泓旭</div>
-      <div class="player-card">葛孟宇</div>
-      <div class="player-card">何嘉伦</div>
-      <div class="player-card">吉芸莹</div>
-      <div class="player-card">李静诚</div>
-      <div class="player-card">李金宇</div>
-      <div class="player-card">李明达</div>
-      <div class="player-card">李润泽</div>
-      <div class="player-card">黎元其</div>
-      <div class="player-card">刘富行</div>
-      <div class="player-card">刘效尔</div>
-      <div class="player-card">刘彦君</div>
-      <div class="player-card">刘籽珅</div>
-      <div class="player-card">马俊宇</div>
-      <div class="player-card">马雨辰</div>
-      <div class="player-card">潘颢文</div>
-      <div class="player-card">王钧</div>
-      <div class="player-card">王彦沛</div>
-      <div class="player-card">夏梓宸</div>
-      <div class="player-card">杨乐成</div>
-      <div class="player-card">叶奕承</div>
-      <div class="player-card">张宏毅</div>
-      <div class="player-card">赵天钰</div>
-    </div>
-  </section>
-
-  <!-- 中场 MIDFIELDERS -->
-  <section class="position-group" data-position="mid">
-    <h2 class="position-title">
-      <span class="pos-en">Midfielders</span>
-      <span class="pos-cn">中场</span>
-      <span class="pos-count">17 人</span>
-    </h2>
-    <div class="player-grid">
-      <div class="player-card">Attila</div>
-      <div class="player-card">曹震旦</div>
-      <div class="player-card">Frank Zhu</div>
-      <div class="player-card">黄溆子</div>
-      <div class="player-card">金圣博</div>
-      <div class="player-card">刘铠泽</div>
-      <div class="player-card">刘明硕</div>
-      <div class="player-card">卢嘉玉</div>
-      <div class="player-card">陆子涵</div>
-      <div class="player-card">罗宇航</div>
-      <div class="player-card">欧阳川</div>
-      <div class="player-card">盛天成</div>
-      <div class="player-card">史皓元</div>
-      <div class="player-card">孙楚越</div>
-      <div class="player-card">张铭源</div>
-      <div class="player-card">赵乐涵</div>
-      <div class="player-card">Zoli</div>
-    </div>
-  </section>
-
-  <!-- 前场 FORWARDS -->
-  <section class="position-group" data-position="fwd">
-    <h2 class="position-title">
-      <span class="pos-en">Forwards</span>
-      <span class="pos-cn">前场</span>
-      <span class="pos-count">11 人</span>
-    </h2>
-    <div class="player-grid">
-      <div class="player-card">杜康松</div>
-      <div class="player-card">刘奕</div>
-      <div class="player-card">刘子云</div>
-      <div class="player-card">史佳驰</div>
-      <div class="player-card">王俊皓</div>
-      <div class="player-card">王亚珩</div>
-      <div class="player-card">温子铭</div>
-      <div class="player-card">尹鸣赫</div>
-      <div class="player-card">于霆访</div>
-      <div class="player-card">周元中</div>
-      <div class="player-card">朱超凡</div>
-    </div>
-  </section>
-
-</main>
+<main class="roster-page" id="rosterMain"></main>
 
 <footer>
   <div class="slogan-cn">岂曰无衣？与子同袍。</div>
   © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
 </footer>
 
+<script src="seasons.js"></script>
 <script>
-  /* 位置筛选 */
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const groups = document.querySelectorAll('.position-group');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const f = btn.dataset.filter;
-      groups.forEach(g => {
-        g.classList.toggle('hidden', !(f === 'all' || g.dataset.position === f));
-      });
-      window.scrollTo({ top: document.querySelector('main.roster-page').offsetTop - 80, behavior: 'smooth' });
+  var POSITION_ORDER = ['gk', 'def', 'mid', 'fwd'];
+  var POSITION_META = {
+    gk:  { en: 'Goalkeepers', cn: '门将', filterLabel: '门将', statLabel: '门将 GK' },
+    def: { en: 'Defenders',   cn: '后场', filterLabel: '后场', statLabel: '后场 DEF' },
+    mid: { en: 'Midfielders', cn: '中场', filterLabel: '中场', statLabel: '中场 MID' },
+    fwd: { en: 'Forwards',    cn: '前场', filterLabel: '前场', statLabel: '前场 FWD' }
+  };
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function(c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
     });
-  });
+  }
+
+  (function() {
+    var seasonTabsEl = document.getElementById('seasonTabs');
+    var filterBarEl = document.getElementById('filterBar');
+    var mainEl = document.getElementById('rosterMain');
+    var statsEl = document.getElementById('positionStats');
+    var ledeEl = document.getElementById('pageLede');
+
+    if (!window.SEASON_DATA || !window.SEASON_DATA.seasons || !window.SEASON_DATA.seasons.length) {
+      return; // seasons.js 没加载成功就什么都不做，页面保持空白而不是报错
+    }
+    var seasons = window.SEASON_DATA.seasons;
+
+    function seasonFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('season');
+      if (id && seasons.some(function(s) { return s.id === id; })) return id;
+      var current = seasons.find(function(s) { return s.current; });
+      return current ? current.id : seasons[0].id;
+    }
+
+    var activeId = seasonFromUrl();
+    var activeFilter = 'all';
+
+    function renderTabs() {
+      seasonTabsEl.innerHTML = seasons.map(function(sn) {
+        return '<button type="button" class="season-tab' + (sn.id === activeId ? ' active' : '') + '" data-season="' +
+          escapeHtml(sn.id) + '">' + escapeHtml(sn.label) +
+          (sn.current ? '<span class="tag">现役</span>' : '') + '</button>';
+      }).join('');
+    }
+
+    function renderAll() {
+      var s = seasons.find(function(x) { return x.id === activeId; }) || seasons[0];
+      renderTabs();
+
+      if (s.placeholder) {
+        ledeEl.textContent = 'Davis Origin · 戴维斯原点足球俱乐部 · ' + s.label + ' 名单整理中';
+        statsEl.style.display = 'none';
+        filterBarEl.innerHTML = '';
+        mainEl.innerHTML =
+          '<div class="roster-empty">' +
+            '<div class="roster-empty-title">' + escapeHtml(s.label) + ' 的名单还在整理</div>' +
+            '<p>整理好之后会显示在这里，敬请期待。</p>' +
+          '</div>';
+        return;
+      }
+
+      statsEl.style.display = '';
+      var roster = s.roster || {};
+      var total = POSITION_ORDER.reduce(function(sum, p) { return sum + ((roster[p] || []).length); }, 0);
+
+      ledeEl.textContent = 'Davis Origin · 戴维斯原点足球俱乐部 · ' + s.label + ' 共 ' + total + ' 名学生与校友球员，按位置分组、字母排序。';
+
+      statsEl.innerHTML = POSITION_ORDER.map(function(p) {
+        return '<div class="stat"><span class="stat-num" style="color: var(--pos-' + p + ');">' +
+          (roster[p] || []).length + '</span><span class="stat-lbl">' + POSITION_META[p].statLabel + '</span></div>';
+      }).join('');
+
+      filterBarEl.innerHTML = '<button type="button" class="filter-btn' + (activeFilter === 'all' ? ' active' : '') +
+        '" data-filter="all">全部 <span class="count">' + total + '</span></button>' +
+        POSITION_ORDER.map(function(p) {
+          return '<button type="button" class="filter-btn' + (activeFilter === p ? ' active' : '') + '" data-filter="' + p + '">' +
+            POSITION_META[p].filterLabel + ' <span class="count">' + (roster[p] || []).length + '</span></button>';
+        }).join('');
+
+      mainEl.innerHTML = POSITION_ORDER.filter(function(p) {
+        return (roster[p] || []).length > 0;
+      }).map(function(p) {
+        var players = roster[p] || [];
+        var hidden = !(activeFilter === 'all' || activeFilter === p);
+        return '<section class="position-group' + (hidden ? ' hidden' : '') + '" data-position="' + p + '">' +
+          '<h2 class="position-title">' +
+            '<span class="pos-en">' + POSITION_META[p].en + '</span>' +
+            '<span class="pos-cn">' + POSITION_META[p].cn + '</span>' +
+            '<span class="pos-count">' + players.length + ' 人</span>' +
+          '</h2>' +
+          '<div class="player-grid">' +
+            players.map(function(name) { return '<div class="player-card">' + escapeHtml(name) + '</div>'; }).join('') +
+          '</div>' +
+        '</section>';
+      }).join('');
+    }
+
+    seasonTabsEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.season-tab');
+      if (!btn) return;
+      activeId = btn.dataset.season;
+      activeFilter = 'all';
+      history.replaceState(null, '', '?season=' + encodeURIComponent(activeId));
+      renderAll();
+    });
+
+    filterBarEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      activeFilter = btn.dataset.filter;
+      renderAll();
+      window.scrollTo({ top: mainEl.offsetTop - 80, behavior: 'smooth' });
+    });
+
+    renderAll();
+  })();
 </script>
 
 </body>
