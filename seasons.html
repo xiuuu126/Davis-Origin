@@ -121,10 +121,28 @@
   }
   .season-tab .tag { margin-left: 6px; font-size: 10px; opacity: .8; letter-spacing: .05em; text-transform: uppercase; }
 
-  .season-highlights { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .season-highlights { list-style: none; margin: 0 0 32px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .season-highlights li { position: relative; padding-left: 22px; font-size: 15px; color: var(--ink); line-height: 1.6; }
   .season-highlights li::before {
     content: ''; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+  }
+
+  /* ===== 一队 / 预备队 切换 ===== */
+  .team-tabs {
+    display: flex; gap: 8px; margin: 0 0 24px;
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px; width: fit-content;
+  }
+  .team-tab {
+    background: transparent; border: none; border-radius: 999px;
+    padding: 9px 22px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft);
+    cursor: pointer; font-family: inherit; transition: all .25s ease;
+  }
+  .team-tab:hover { color: var(--accent); }
+  .team-tab.active { background: var(--accent-deep); color: #fff; box-shadow: 0 4px 12px rgba(15, 29, 77, 0.25); }
+  .team-note {
+    font-size: 14px; color: var(--ink-soft); background: var(--accent-soft);
+    border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;
   }
 
   .archive-block-title {
@@ -244,7 +262,7 @@
 <section class="page-hero">
   <div class="page-eyebrow">Seasons · 赛季</div>
   <h1 class="page-title">Seasons<em>.</em></h1>
-  <p class="page-lede">选一个赛季，看那一年的球员名单，和北加联 / 杯赛 / 友谊赛三大板块的具体比赛。</p>
+  <p class="page-lede">选一个赛季，看那一年的简介，再分一队 / 预备队，查北加联 / 华体会 / 贺岁杯三大板块的具体比赛。</p>
   <a class="history-link" href="history.html">→ 想看我们完整的发展历程？去"过往经历"</a>
 </section>
 
@@ -274,7 +292,9 @@
       mid: { cn: '中场' },
       fwd: { cn: '前场' }
     };
-    var CATEGORY_ORDER = ['league', 'cup', 'friendly'];
+    var CATEGORY_ORDER = ['league', 'huati', 'xinnian'];
+    var TEAM_ORDER = ['first', 'reserve'];
+    var TEAM_FALLBACK_LABEL = { first: '一队', reserve: '预备队' };
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, function(c) {
@@ -328,16 +348,32 @@
       return rosterTotal > 0 || matchesTotal > 0;
     }
 
-    function renderSeasonPanel(s) {
+    function teamHasContent(t) {
+      if (!t) return false;
+      var roster = t.roster || {};
+      var rosterTotal = POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
+      var matchesTotal = CATEGORY_ORDER.reduce(function(sum, key) {
+        return sum + (((t.matches || {})[key] || {}).matches || []).length;
+      }, 0);
+      var hasNotes = CATEGORY_ORDER.some(function(key) { return !!(((t.matches || {})[key] || {}).note); });
+      return rosterTotal > 0 || matchesTotal > 0 || hasNotes;
+    }
+
+    function teamPanelHtml(t, teamKey) {
+      if (!t) {
+        return '<div class="archive-empty-note">这支队伍这个赛季还没有数据。</div>';
+      }
       var html = '';
-      if (s.highlights && s.highlights.length) {
-        html += '<ul class="season-highlights">' +
-          s.highlights.map(function(h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') +
-        '</ul>';
+      if (!teamHasContent(t) && t.note) {
+        html += '<div class="archive-empty-note">' + escapeHtml(t.note) + '</div>';
+        return html;
+      }
+      if (t.note) {
+        html += '<div class="team-note">' + escapeHtml(t.note) + '</div>';
       }
 
       html += '<div class="archive-block-title">球员名单</div>';
-      var roster = s.roster || {};
+      var roster = t.roster || {};
       var total = POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
       if (total > 0) {
         html += POSITION_ORDER.filter(function(p) { return (roster[p] || []).length > 0; }).map(function(p) {
@@ -351,20 +387,44 @@
           '</div>';
         }).join('');
       } else {
-        html += '<div class="archive-empty-note">这个赛季完整名单还没整理，敬请期待。</div>';
+        html += '<div class="archive-empty-note">' + escapeHtml(t.label || TEAM_FALLBACK_LABEL[teamKey]) + '完整名单还没整理，敬请期待。</div>';
       }
 
       html += '<div class="archive-block-title">比赛</div>';
       var sections = CATEGORY_ORDER.map(function(key) {
-        return categorySectionHtml((s.matches || {})[key]);
+        return categorySectionHtml((t.matches || {})[key]);
       }).filter(Boolean);
-      html += sections.length ? sections.join('') : '<div class="archive-empty-note">这个赛季还没有比赛记录。</div>';
+      html += sections.length ? sections.join('') : '<div class="archive-empty-note">这支队伍这个赛季还没有比赛记录。</div>';
+
+      return html;
+    }
+
+    function renderSeasonPanel(s) {
+      var html = '';
+      if (s.highlights && s.highlights.length) {
+        html += '<ul class="season-highlights">' +
+          s.highlights.map(function(h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') +
+        '</ul>';
+      }
+
+      var teams = s.teams || {};
+      html += '<div class="team-tabs" id="teamTabs" role="tablist">' +
+        TEAM_ORDER.map(function(key) {
+          var t = teams[key];
+          var label = (t && t.label) || TEAM_FALLBACK_LABEL[key];
+          return '<button type="button" class="team-tab' + (key === activeTeam ? ' active' : '') + '" data-team="' +
+            key + '">' + escapeHtml(label) + '</button>';
+        }).join('') +
+      '</div>';
+
+      html += '<div class="team-panel" id="teamPanel">' + teamPanelHtml(teams[activeTeam], activeTeam) + '</div>';
 
       return html;
     }
 
     var defaultSeason = seasons.find(hasRealContent) || seasons.find(function(s) { return s.current; }) || seasons[0];
     var activeId = defaultSeason.id;
+    var activeTeam = 'first';
 
     function render() {
       var s = seasons.find(function(x) { return x.id === activeId; }) || seasons[0];
@@ -376,11 +436,19 @@
       bodyEl.innerHTML = renderSeasonPanel(s);
     }
 
-    tabsEl.addEventListener('click', function(e) {
-      var btn = e.target.closest('.season-tab');
-      if (!btn) return;
-      activeId = btn.dataset.season;
-      render();
+    document.querySelector('.season-archive').addEventListener('click', function(e) {
+      var seasonBtn = e.target.closest('.season-tab');
+      if (seasonBtn) {
+        activeId = seasonBtn.dataset.season;
+        activeTeam = 'first';
+        render();
+        return;
+      }
+      var teamBtn = e.target.closest('.team-tab');
+      if (teamBtn) {
+        activeTeam = teamBtn.dataset.team;
+        render();
+      }
     });
 
     render();

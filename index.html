@@ -1303,7 +1303,7 @@
     }
     function computeRecord(season) {
       const rec = { w: 0, d: 0, l: 0 };
-      ['league', 'cup', 'friendly'].forEach(key => {
+      ['league', 'huati', 'xinnian'].forEach(key => {
         const cat = (season.matches || {})[key];
         (cat && cat.matches || []).forEach(m => {
           if (m.result === 'win') rec.w++;
