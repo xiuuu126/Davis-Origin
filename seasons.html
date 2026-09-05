@@ -99,60 +99,69 @@
     margin: 0 auto;
     padding: 32px 40px 96px;
   }
-  /* ===== 赛季切换：竖直滚轮（上赛季 / 当前赛季 / 下赛季） ===== */
-  .season-wheel-wrap { position: relative; max-width: 320px; margin: 0 auto 32px; }
-  .season-wheel {
-    border-radius: 24px; overflow: hidden; position: relative; user-select: none;
-    background: rgba(255,255,255,.5); border: 1px solid var(--line);
+  /* ===== 赛季切换：一整条长方形（‹ 箭头 | 当前赛季 | 箭头 ›），左右动画切换 ===== */
+  .season-bar-wrap { position: relative; max-width: 420px; margin: 0 auto 32px; }
+  .season-bar {
+    display: flex; align-items: stretch; user-select: none;
+    background: rgba(255,255,255,.55); border: 1px solid var(--line);
+    border-radius: 20px; overflow: hidden;
     box-shadow: 0 12px 34px rgba(15,29,77,.10);
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
   }
-  .wheel-mask { height: 174px; overflow: hidden; position: relative; }
-  .wheel-track { position: absolute; left: 0; right: 0; top: 0; }
-  .wheel-item {
-    height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px; cursor: pointer;
+  .season-bar-arrow {
+    flex: none; width: 52px; border: none; background: transparent; cursor: pointer;
+    display: grid; place-items: center; color: var(--ink-soft); position: relative; overflow: hidden;
+    font-family: inherit; transition: color .2s ease, background .2s ease;
   }
-  .wheel-item--empty, .wheel-spacer { visibility: hidden; pointer-events: none; cursor: default; }
-  .wheel-prev, .wheel-next { color: var(--muted); transition: color .2s ease; }
-  .wheel-prev:hover, .wheel-next:hover { color: var(--accent); }
-  .wheel-item-tag {
-    font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    color: inherit; opacity: .8;
+  .season-bar-arrow:hover { color: var(--accent); background: rgba(30,58,138,.06); }
+  .season-bar-arrow:active { transform: scale(.94); }
+  .season-bar-arrow[disabled] { opacity: .3; cursor: default; pointer-events: none; }
+  .season-bar-arrow::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(120deg, transparent 30%, rgba(30,58,138,.35) 50%, transparent 70%);
+    background-size: 260% 100%; background-position: 150% 0; opacity: 0;
   }
-  .wheel-item-label { font-size: 14px; font-weight: 700; color: inherit; }
-  .wheel-current { cursor: default; }
-  .wheel-pill {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 11px 30px; border-radius: 999px; cursor: pointer;
+  .season-bar-arrow.pulse::after { animation: arrowSweep .5s ease; }
+  @keyframes arrowSweep {
+    0%   { opacity: 1; background-position: 150% 0; }
+    100% { opacity: 0; background-position: -60% 0; }
+  }
+  .season-bar-center {
+    flex: 1; padding: 15px 12px; cursor: pointer; text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-    color: #fff; box-shadow: 0 12px 28px rgba(30,58,138,.35);
-    font-size: 16px; font-weight: 800;
-    transition: transform .15s ease, box-shadow .25s ease;
+    color: #fff; overflow: hidden;
   }
-  .wheel-pill:hover { box-shadow: 0 14px 32px rgba(30,58,138,.42); }
-  .wheel-pill:active { transform: scale(.97); }
-  .wheel-pill-tag {
+  .season-bar-label { font-size: 16px; font-weight: 800; display: inline-block; }
+  .season-bar-label.slide-in-next { animation: slideInFromRight .3s ease both; }
+  .season-bar-label.slide-in-prev { animation: slideInFromLeft .3s ease both; }
+  @keyframes slideInFromRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideInFromLeft  { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+  .season-bar-tag {
     font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
     background: rgba(255,255,255,.28); padding: 2px 9px; border-radius: 999px;
   }
 
-  .season-wheel-dropdown {
-    position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
-    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  /* 点击中间才展开的滚轮选择器（可上下滑动） */
+  .season-wheel-popup {
+    position: absolute; top: calc(100% + 10px); left: 0; right: 0;
+    max-height: 236px; overflow-y: auto; scroll-snap-type: y proximity;
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
     box-shadow: 0 18px 44px rgba(15,29,77,.18); padding: 8px; z-index: 30;
-    display: flex; flex-direction: column; gap: 2px; min-width: 190px;
     animation: fadeUp .2s ease both;
   }
-  .season-wheel-dropdown[hidden] { display: none; }
-  .season-wheel-dropdown-item {
-    padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  .season-wheel-popup[hidden] { display: none; }
+  .season-wheel-popup-item {
+    scroll-snap-align: center;
+    padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700;
     color: var(--ink-soft); cursor: pointer; text-align: center;
     display: flex; align-items: center; justify-content: center; gap: 8px;
     transition: background .2s ease, color .2s ease;
   }
-  .season-wheel-dropdown-item:hover { background: var(--accent-soft); color: var(--accent); }
-  .season-wheel-dropdown-item.active { background: var(--accent-deep); color: #fff; }
-  .season-wheel-dropdown-item .tag { font-size: 9px; opacity: .85; }
+  .season-wheel-popup-item:hover { background: var(--accent-soft); color: var(--accent); }
+  .season-wheel-popup-item.active { background: var(--accent-deep); color: #fff; }
+  .season-wheel-popup-item .tag { font-size: 9px; opacity: .85; }
 
   @keyframes panelEnter {
     from { opacity: 0; transform: translateY(14px); }
@@ -195,6 +204,24 @@
     border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
   }
 
+  /* 队伍面板：左边球员名单（只列一遍），右边比赛比分 */
+  .team-panel-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 32px; align-items: start; }
+  .roster-col-title {
+    font-size: 12.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .roster-col-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .roster-position-group { margin-bottom: 18px; }
+  .roster-position-group:last-child { margin-bottom: 0; }
+  .roster-position-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .roster-position-head .pos-cn { font-size: 13px; font-weight: 700; color: var(--pos, var(--accent)); }
+  .roster-position-head .pos-count { font-size: 11px; color: var(--muted); }
+  .roster-player-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .roster-player-chip {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 13px; font-size: 12.5px; color: var(--ink);
+  }
+
   /* 比赛板块 */
   .matches-section + .matches-section { margin-top: 28px; }
   .matches-section-title {
@@ -206,19 +233,11 @@
     font-size: 14px; color: var(--ink-soft); line-height: 1.8; background: var(--card);
     border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
   }
-  .match-item + .match-item { margin-top: 10px; }
   .match-row {
-    display: grid; grid-template-columns: minmax(96px, 1fr) 2fr; gap: 20px;
-    padding: 16px; border-radius: 14px; background: var(--bg-soft);
-    align-items: start;
+    display: grid; grid-template-columns: 88px 1fr auto; gap: 16px;
+    padding: 14px 16px; margin-bottom: 6px; border-radius: 12px;
+    align-items: center; background: var(--bg-soft); transition: background .2s ease;
   }
-  .match-lineup-col { display: flex; flex-direction: column; gap: 6px; }
-  .lineup-pill {
-    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
-    padding: 6px 12px; text-align: center; font-size: 12px; color: var(--ink-soft);
-  }
-  .lineup-empty { font-size: 12.5px; color: var(--muted); font-style: italic; padding: 8px 2px; }
-  .match-info-col { display: grid; grid-template-columns: 84px 1fr auto; gap: 16px; align-items: center; }
   .match-date-col { font-variant-numeric: tabular-nums; }
   .match-date-day { font-size: 14px; font-weight: 700; color: var(--ink); }
   .match-date-time { font-size: 12px; color: var(--muted); margin-top: 3px; }
@@ -267,11 +286,12 @@
     .page-hero { padding: 56px 22px 24px; }
     .page-lede { font-size: 15px; }
     .season-archive { padding: 24px 22px 64px; }
-    .season-wheel-wrap { max-width: 100%; }
-    .wheel-pill { padding: 9px 22px; font-size: 14px; }
+    .season-bar-wrap { max-width: 100%; }
+    .season-bar-arrow { width: 42px; }
+    .season-bar-label { font-size: 14px; }
     .team-tab { padding: 11px 22px; font-size: 13.5px; }
-    .match-row { grid-template-columns: 1fr; gap: 12px; padding: 14px; }
-    .match-info-col { grid-template-columns: 70px 1fr auto; gap: 10px; }
+    .team-panel-grid { grid-template-columns: 1fr; gap: 20px; }
+    .match-row { grid-template-columns: 70px 1fr auto; gap: 10px; padding: 12px; }
     .match-team { font-size: 13.5px; }
     .match-score { font-size: 13px; padding: 4px 9px; }
     .match-result { width: 26px; height: 26px; font-size: 10px; }
@@ -305,11 +325,9 @@
 </section>
 
 <section class="season-archive">
-  <div class="season-wheel-wrap" id="seasonWheelWrap">
-    <div class="season-wheel" id="seasonWheel" role="group" aria-label="选择赛季">
-      <div class="wheel-mask"><div class="wheel-track" id="wheelTrack"></div></div>
-    </div>
-    <div class="season-wheel-dropdown" id="seasonWheelDropdown" hidden></div>
+  <div class="season-bar-wrap" id="seasonBarWrap">
+    <div class="season-bar" id="seasonBar" role="group" aria-label="选择赛季"></div>
+    <div class="season-wheel-popup" id="seasonWheelPopup" hidden></div>
   </div>
   <div class="season-archive-body" id="seasonArchiveBody"></div>
 </section>
@@ -322,11 +340,10 @@
 <script src="seasons.js"></script>
 <script>
   (function() {
-    var wheelEl = document.getElementById('seasonWheel');
-    var track = document.getElementById('wheelTrack');
-    var wheelDropdown = document.getElementById('seasonWheelDropdown');
+    var barEl = document.getElementById('seasonBar');
+    var wheelPopup = document.getElementById('seasonWheelPopup');
     var bodyEl = document.getElementById('seasonArchiveBody');
-    if (!wheelEl || !track || !wheelDropdown || !bodyEl || !window.SEASON_DATA) return;
+    if (!barEl || !wheelPopup || !bodyEl || !window.SEASON_DATA) return;
     var seasons = (window.SEASON_DATA.seasons || []).slice().reverse(); // 按时间从早到晚显示
     if (!seasons.length) return;
 
@@ -352,26 +369,17 @@
     }
     function matchRowHtml(m) {
       var resultCls = 'match-result' + (m.result !== 'win' ? ' ' + m.result : '');
-      var lineup = m.lineup || [];
-      var lineupInner = lineup.length
-        ? lineup.map(function(name) { return '<div class="lineup-pill">' + escapeHtml(name) + '</div>'; }).join('')
-        : '<div class="lineup-empty">出场名单整理中</div>';
-      return '<div class="match-item">' +
-        '<div class="match-row">' +
-          '<div class="match-lineup-col">' + lineupInner + '</div>' +
-          '<div class="match-info-col">' +
-            '<div class="match-date-col">' +
-              '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
-              '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
-            '</div>' +
-            '<div class="match-teams">' +
-              teamSpan(m.team1) +
-              '<span class="match-score">' + escapeHtml(m.score) + '</span>' +
-              teamSpan(m.team2) +
-            '</div>' +
-            '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
-          '</div>' +
+      return '<div class="match-row">' +
+        '<div class="match-date-col">' +
+          '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
+          '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
         '</div>' +
+        '<div class="match-teams">' +
+          teamSpan(m.team1) +
+          '<span class="match-score">' + escapeHtml(m.score) + '</span>' +
+          teamSpan(m.team2) +
+        '</div>' +
+        '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
       '</div>';
     }
     function categorySectionHtml(cat) {
@@ -396,33 +404,62 @@
       return rosterTotal > 0 || matchesTotal > 0;
     }
 
+    function rosterTotal(t) {
+      var roster = (t && t.roster) || {};
+      return POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
+    }
+
     function teamHasContent(t) {
       if (!t) return false;
       var matchesTotal = CATEGORY_ORDER.reduce(function(sum, key) {
         return sum + (((t.matches || {})[key] || {}).matches || []).length;
       }, 0);
       var hasNotes = CATEGORY_ORDER.some(function(key) { return !!(((t.matches || {})[key] || {}).note); });
-      return matchesTotal > 0 || hasNotes;
+      return matchesTotal > 0 || hasNotes || rosterTotal(t) > 0;
+    }
+
+    function rosterColumnHtml(t, teamKey) {
+      var roster = (t && t.roster) || {};
+      var html = '<div class="roster-col-title">球员名单</div>';
+      if (rosterTotal(t) === 0) {
+        return html + '<div class="archive-empty-note">' + escapeHtml((t && t.label) || TEAM_FALLBACK_LABEL[teamKey]) + '名单还没整理。</div>';
+      }
+      html += POSITION_ORDER.filter(function(p) { return (roster[p] || []).length > 0; }).map(function(p) {
+        var players = roster[p] || [];
+        var posCn = { gk: '门将', def: '后场', mid: '中场', fwd: '前场' }[p];
+        return '<div class="roster-position-group" style="--pos: var(--pos-' + p + ')">' +
+          '<div class="roster-position-head"><span class="pos-cn">' + posCn + '</span>' +
+          '<span class="pos-count">' + players.length + ' 人</span></div>' +
+          '<div class="roster-player-grid">' +
+            players.map(function(name) { return '<div class="roster-player-chip">' + escapeHtml(name) + '</div>'; }).join('') +
+          '</div>' +
+        '</div>';
+      }).join('');
+      return html;
+    }
+
+    function matchesColumnHtml(t, teamKey) {
+      var sections = CATEGORY_ORDER.map(function(key) {
+        return categorySectionHtml((t.matches || {})[key]);
+      }).filter(Boolean);
+      return sections.length ? sections.join('') : '<div class="archive-empty-note">' + escapeHtml((t && t.label) || TEAM_FALLBACK_LABEL[teamKey]) + '这个赛季还没有比赛记录。</div>';
     }
 
     function teamPanelHtml(t, teamKey) {
       if (!t) {
         return '<div class="archive-empty-note">这支队伍这个赛季还没有数据。</div>';
       }
-      var html = '';
       if (!teamHasContent(t) && t.note) {
-        html += '<div class="archive-empty-note">' + escapeHtml(t.note) + '</div>';
-        return html;
+        return '<div class="archive-empty-note">' + escapeHtml(t.note) + '</div>';
       }
+      var html = '';
       if (t.note) {
         html += '<div class="team-note">' + escapeHtml(t.note) + '</div>';
       }
-
-      var sections = CATEGORY_ORDER.map(function(key) {
-        return categorySectionHtml((t.matches || {})[key]);
-      }).filter(Boolean);
-      html += sections.length ? sections.join('') : '<div class="archive-empty-note">' + escapeHtml(t.label || TEAM_FALLBACK_LABEL[teamKey]) + '这个赛季还没有比赛记录。</div>';
-
+      html += '<div class="team-panel-grid">' +
+        '<div class="team-roster-col">' + rosterColumnHtml(t, teamKey) + '</div>' +
+        '<div class="team-matches-col">' + matchesColumnHtml(t, teamKey) + '</div>' +
+      '</div>';
       return html;
     }
 
@@ -454,78 +491,57 @@
     if (currentIndex < 0) currentIndex = 0;
     var activeTeam = 'first';
 
-    function seasonAt(idx) { return (idx >= 0 && idx < seasons.length) ? seasons[idx] : null; }
+    var ARROW_LEFT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+    var ARROW_RIGHT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
 
-    function wheelRowHtml(role, season) {
-      if (role === 'spacer') return '<div class="wheel-item wheel-spacer"></div>';
-      if (!season) return '<div class="wheel-item wheel-' + role + ' wheel-item--empty" data-role="' + role + '"></div>';
-      if (role === 'current') {
-        return '<div class="wheel-item wheel-current" data-role="current">' +
-          '<span class="wheel-pill">' +
-            '<span class="wheel-pill-label">' + escapeHtml(season.label) + '</span>' +
-            (season.current ? '<span class="wheel-pill-tag">现役</span>' : '') +
-          '</span>' +
-        '</div>';
-      }
-      var tag = role === 'prev' ? '‹ 上赛季' : '下赛季 ›';
-      return '<div class="wheel-item wheel-' + role + '" data-role="' + role + '">' +
-        '<span class="wheel-item-tag">' + tag + '</span>' +
-        '<span class="wheel-item-label">' + escapeHtml(season.label) + (season.current ? ' · 现役' : '') + '</span>' +
-      '</div>';
-    }
+    // 普通情况：一整条长方形，‹ 箭头 | 当前赛季（居中，颜色突出） | 箭头 ›
+    barEl.innerHTML =
+      '<button type="button" class="season-bar-arrow" id="seasonPrevBtn" aria-label="上一个赛季">' + ARROW_LEFT_SVG + '</button>' +
+      '<div class="season-bar-center" id="seasonBarCenter">' +
+        '<span class="season-bar-label" id="seasonBarLabel"></span>' +
+        '<span class="season-bar-tag" id="seasonBarTag" hidden>现役</span>' +
+      '</div>' +
+      '<button type="button" class="season-bar-arrow" id="seasonNextBtn" aria-label="下一个赛季">' + ARROW_RIGHT_SVG + '</button>';
 
-    function buildTrackHtml() {
-      return (
-        wheelRowHtml('spacer', null) +
-        wheelRowHtml('prev', seasonAt(currentIndex - 1)) +
-        wheelRowHtml('current', seasonAt(currentIndex)) +
-        wheelRowHtml('next', seasonAt(currentIndex + 1)) +
-        wheelRowHtml('spacer', null)
-      );
-    }
+    var prevBtn = document.getElementById('seasonPrevBtn');
+    var nextBtn = document.getElementById('seasonNextBtn');
+    var barCenter = document.getElementById('seasonBarCenter');
+    var barLabel = document.getElementById('seasonBarLabel');
+    var barTag = document.getElementById('seasonBarTag');
 
-    wheelDropdown.innerHTML = seasons.map(function(sn, i) {
-      return '<div class="season-wheel-dropdown-item' + (i === currentIndex ? ' active' : '') + '" data-index="' + i + '">' +
+    // 点击中间才会展开的滚轮选择器：一列可以上下滑动的赛季列表
+    wheelPopup.innerHTML = seasons.map(function(sn, i) {
+      return '<div class="season-wheel-popup-item" data-index="' + i + '">' +
         escapeHtml(sn.label) + (sn.current ? '<span class="tag">现役</span>' : '') +
       '</div>';
     }).join('');
 
-    track.innerHTML = buildTrackHtml();
-    var wheelRowH = track.children[1].getBoundingClientRect().height || 58;
-    track.style.transform = 'translateY(-' + wheelRowH + 'px)';
-
-    function refreshDropdownActive() {
-      Array.prototype.forEach.call(wheelDropdown.querySelectorAll('.season-wheel-dropdown-item'), function(el) {
+    function refreshPopupActive() {
+      Array.prototype.forEach.call(wheelPopup.querySelectorAll('.season-wheel-popup-item'), function(el) {
         el.classList.toggle('active', Number(el.dataset.index) === currentIndex);
       });
     }
 
-    function slideWheel(dir) {
-      wheelRowH = track.children[1].getBoundingClientRect().height || wheelRowH;
-      track.style.transition = 'transform .34s cubic-bezier(.4,0,.2,1)';
-      var target = dir === 'prev' ? 0 : -(2 * wheelRowH);
-      requestAnimationFrame(function() { track.style.transform = 'translateY(' + target + 'px)'; });
-      track.addEventListener('transitionend', function onEnd() {
-        track.removeEventListener('transitionend', onEnd);
-        track.style.transition = 'none';
-        track.innerHTML = buildTrackHtml();
-        track.style.transform = 'translateY(-' + wheelRowH + 'px)';
-        void track.offsetWidth;
-        track.style.transition = '';
-      }, { once: true });
-    }
+    function updateBar(direction) {
+      var s = seasons[currentIndex];
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= seasons.length - 1;
 
-    function fadeWheel() {
-      track.style.transition = 'opacity .18s ease';
-      track.style.opacity = '0';
-      track.addEventListener('transitionend', function onEnd() {
-        track.removeEventListener('transitionend', onEnd);
-        track.innerHTML = buildTrackHtml();
-        track.style.transform = 'translateY(-' + wheelRowH + 'px)';
-        void track.offsetWidth;
-        track.style.transition = 'opacity .22s ease';
-        track.style.opacity = '1';
-      }, { once: true });
+      barLabel.textContent = s.label;
+      barLabel.classList.remove('slide-in-next', 'slide-in-prev');
+      void barLabel.offsetWidth; // 强制重排，让滑入动画能重新播放
+      if (direction === 'next') barLabel.classList.add('slide-in-next');
+      else if (direction === 'prev') barLabel.classList.add('slide-in-prev');
+      barTag.hidden = !s.current;
+
+      refreshPopupActive();
+
+      if (direction === 'next' || direction === 'prev') {
+        var arrowBtn = direction === 'next' ? nextBtn : prevBtn;
+        arrowBtn.classList.remove('pulse');
+        void arrowBtn.offsetWidth;
+        arrowBtn.classList.add('pulse');
+      }
     }
 
     function renderBody() {
@@ -540,34 +556,32 @@
       if (idx === currentIndex || idx < 0 || idx >= seasons.length) return;
       currentIndex = idx;
       activeTeam = 'first';
-      refreshDropdownActive();
-      if (direction === 'prev' || direction === 'next') { slideWheel(direction); }
-      else { fadeWheel(); }
+      updateBar(direction);
       renderBody();
     }
 
-    wheelEl.addEventListener('click', function(e) {
-      var row = e.target.closest('.wheel-item');
-      if (!row) return;
-      var role = row.dataset.role;
-      if (role === 'prev') { goTo(currentIndex - 1, 'prev'); }
-      else if (role === 'next') { goTo(currentIndex + 1, 'next'); }
-      else if (role === 'current') {
-        e.stopPropagation();
-        wheelDropdown.hidden = !wheelDropdown.hidden;
+    prevBtn.addEventListener('click', function() { goTo(currentIndex - 1, 'prev'); });
+    nextBtn.addEventListener('click', function() { goTo(currentIndex + 1, 'next'); });
+
+    barCenter.addEventListener('click', function(e) {
+      e.stopPropagation();
+      wheelPopup.hidden = !wheelPopup.hidden;
+      if (!wheelPopup.hidden) {
+        var activeItem = wheelPopup.querySelector('.season-wheel-popup-item.active');
+        if (activeItem) activeItem.scrollIntoView({ block: 'center' });
       }
     });
-    wheelDropdown.addEventListener('click', function(e) {
-      var item = e.target.closest('.season-wheel-dropdown-item');
+    wheelPopup.addEventListener('click', function(e) {
+      var item = e.target.closest('.season-wheel-popup-item');
       if (!item) return;
       var idx = Number(item.dataset.index);
-      wheelDropdown.hidden = true;
-      var dir = idx === currentIndex - 1 ? 'prev' : idx === currentIndex + 1 ? 'next' : 'jump';
+      wheelPopup.hidden = true;
+      var dir = idx === currentIndex - 1 ? 'prev' : idx === currentIndex + 1 ? 'next' : null;
       goTo(idx, dir);
     });
     document.addEventListener('click', function(e) {
-      if (!wheelDropdown.hidden && !e.target.closest('#seasonWheelWrap')) {
-        wheelDropdown.hidden = true;
+      if (!wheelPopup.hidden && !e.target.closest('#seasonBarWrap')) {
+        wheelPopup.hidden = true;
       }
     });
 
@@ -579,6 +593,7 @@
       }
     });
 
+    updateBar(null);
     renderBody();
   })();
 </script>
