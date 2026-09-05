@@ -18,6 +18,9 @@
     --accent-soft: #eaf0fb;
     --gold: #c89134;
     --card: #ffffff;
+    --switch-bg: #ece6d8;
+    --switch-bg-hover: #e2dbc9;
+    --switch-bg-active: #d9d1ba;
     --pos-gk: #d49a2a;
     --pos-def: #1e3a8a;
     --pos-mid: #1f7a5e;
@@ -110,16 +113,16 @@
     -webkit-backdrop-filter: blur(14px) saturate(180%);
   }
   .season-bar-arrow {
-    flex: none; width: 52px; border: none; background: transparent; cursor: pointer;
+    flex: none; width: 52px; border: none; background: var(--switch-bg); cursor: pointer;
     display: grid; place-items: center; color: var(--ink-soft); position: relative; overflow: hidden;
     font-family: inherit; transition: color .2s ease, background .2s ease;
   }
-  .season-bar-arrow:hover { color: var(--accent); background: rgba(30,58,138,.06); }
+  .season-bar-arrow:hover { color: var(--ink); background: var(--switch-bg-hover); }
   .season-bar-arrow:active { transform: scale(.94); }
   .season-bar-arrow[disabled] { opacity: .3; cursor: default; pointer-events: none; }
   .season-bar-arrow::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(120deg, transparent 30%, rgba(30,58,138,.35) 50%, transparent 70%);
+    background: linear-gradient(120deg, transparent 30%, rgba(20,17,10,.16) 50%, transparent 70%);
     background-size: 260% 100%; background-position: 150% 0; opacity: 0;
   }
   .season-bar-arrow.pulse::after { animation: arrowSweep .5s ease; }
@@ -130,17 +133,18 @@
   .season-bar-center {
     flex: 1; padding: 15px 12px; cursor: pointer; text-align: center;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-    color: #fff; overflow: hidden;
+    background: var(--switch-bg); border-left: 1px solid var(--switch-bg-active);
+    border-right: 1px solid var(--switch-bg-active);
+    color: var(--ink); overflow: hidden;
   }
   .season-bar-label { font-size: 16px; font-weight: 800; display: inline-block; }
-  .season-bar-label.slide-in-next { animation: slideInFromRight .3s ease both; }
-  .season-bar-label.slide-in-prev { animation: slideInFromLeft .3s ease both; }
-  @keyframes slideInFromRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes slideInFromLeft  { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+  .season-bar-label.slide-in-next { animation: slideInFromBottom .3s ease both; }
+  .season-bar-label.slide-in-prev { animation: slideInFromTop .3s ease both; }
+  @keyframes slideInFromBottom { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideInFromTop    { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
   .season-bar-tag {
     font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-    background: rgba(255,255,255,.28); padding: 2px 9px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 999px;
   }
 
   /* 点击中间才展开的滚轮选择器（可上下滑动） */
@@ -225,10 +229,13 @@
   /* 比赛板块 */
   .matches-section + .matches-section { margin-top: 28px; }
   .matches-section-title {
-    font-size: 12.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+    font-size: 22px; font-weight: 900; letter-spacing: 0; text-transform: none;
+    color: var(--ink); margin-bottom: 14px; padding-left: 14px; position: relative;
   }
-  .matches-section-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .matches-section-title::before {
+    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 4px;
+    border-radius: 2px; background: var(--accent);
+  }
   .matches-section-note {
     font-size: 14px; color: var(--ink-soft); line-height: 1.8; background: var(--card);
     border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
@@ -291,6 +298,7 @@
     .season-bar-label { font-size: 14px; }
     .team-tab { padding: 11px 22px; font-size: 13.5px; }
     .team-panel-grid { grid-template-columns: 1fr; gap: 20px; }
+    .matches-section-title { font-size: 18px; margin-bottom: 12px; }
     .match-row { grid-template-columns: 70px 1fr auto; gap: 10px; padding: 12px; }
     .match-team { font-size: 13.5px; }
     .match-score { font-size: 13px; padding: 4px 9px; }
