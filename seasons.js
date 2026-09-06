@@ -18,21 +18,29 @@
    1) 顶层 roster / matches —— 全队合并版，主页 + roster.html +
       matches.html 用这个，不区分一队/预备队：
       - roster：按 gk/def/mid/fwd 分组的球员名字数组（全队）
-      - matches.league / matches.huati / matches.xinnian：三大板块
-        （北加联常规赛 / 华体会杯赛 / 贺岁杯），每个板块下面是具体
-        比赛数组；如果暂时没有逐场比分，可以用 note 写一句话代替
+      - matches.league / matches.jiaoji / matches.xinnian / matches.huati：
+        四大板块（北加联常规赛·5月 / 校际杯·3月 / 贺岁杯·次年1月 /
+        华体会·11月），每个板块下面是具体比赛数组；如果暂时没有逐场
+        比分，可以用 note 写一句话代替。**校际杯（jiaoji）跟华体会
+        （huati）是两个完全不同的赛事，不要合并**——校际杯是"加州
+        华人大学生足球校际杯"，每年 3 月，目前只在 25-26 赛季出现过
+        一次；华体会是每年 11 月的例行赛事，是独立的第四条线。
 
    2) teams.first / teams.reserve —— 一队 / 预备队分开版，只有
-      seasons.html（赛季存档页）用这个。每个板块（league/huati/
-      xinnian）在页面上都是独立一份：自己的球员名单 + 自己的比赛
-      结果，横向两栏并排显示。
+      seasons.html（赛季存档页）用这个。每个板块（league/jiaoji/
+      xinnian/huati）在页面上都是独立一份：自己的球员名单 + 自己的
+      比赛结果，横向两栏并排显示。页面上四个板块从上到下按赛季内的
+      时间线倒序排（最近发生的在最上面）：北加联（5月）→ 校际杯
+      （3月）→ 贺岁杯（次年1月）→ 华体会（11月，属于新学年/新赛季
+      最早的一段）——具体顺序由 seasons.html 里的 CATEGORY_ORDER
+      数组决定，不用管这里 JS 对象里几个板块字段的书写顺序。
       - roster：这支队伍整体的名字池，按 gk/def/mid/fwd 分组。
         目前"一队/预备队"具体是哪些人是按老名单粗略拆的占位版，
         不是精确的历史记录（球员经常两队之间调整），以后要改哪个
         人属于哪队，直接在 teams.first.roster / teams.reserve.roster
         里挪名字就行，其他页面不受影响。
-      - matches.league / matches.huati / matches.xinnian：每个赛事
-        对象上可以有这些字段——
+      - matches.league / matches.jiaoji / matches.xinnian / matches.huati：
+        每个赛事对象上可以有这些字段——
           label：板块中文名
           matches：具体比赛数组（对象里 date/time/team1/team2/
             score/result 这几个字段会显示，team1/team2 的 davis:true
@@ -73,6 +81,7 @@ window.SEASON_DATA = {
       roster: { gk: [], def: [], mid: [], fwd: [] },
       matches: {
         league: { label: "北加联", matches: [] },
+        jiaoji: { label: "校际杯", matches: [] },
         huati:  { label: "华体会", matches: [] },
         xinnian:{ label: "贺岁杯", matches: [] }
       },
@@ -82,6 +91,7 @@ window.SEASON_DATA = {
           roster: { gk: [], def: [], mid: [], fwd: [] },
           matches: {
             league: { label: "北加联", matches: [] },
+            jiaoji: { label: "校际杯", matches: [] },
             huati:  { label: "华体会", matches: [] },
             xinnian:{ label: "贺岁杯", matches: [] }
           }
@@ -91,6 +101,7 @@ window.SEASON_DATA = {
           roster: { gk: [], def: [], mid: [], fwd: [] },
           matches: {
             league: { label: "北加联", matches: [] },
+            jiaoji: { label: "校际杯", matches: [] },
             huati:  { label: "华体会", matches: [] },
             xinnian:{ label: "贺岁杯", matches: [] }
           }
@@ -104,7 +115,7 @@ window.SEASON_DATA = {
       lede: "2026 五月 · 北加联赛季圆满收官。Fight on.",
       highlights: [
         "共 55 名学生与校友球员，覆盖一队与预备队",
-        "1 月北美湾区贺岁杯、3 月加州华人大学生足球校际杯（华体会）、5 月北加联，三线出战",
+        "11 月华体会、1 月北美湾区贺岁杯、3 月加州华人大学生足球校际杯、5 月北加联，四线出战",
         "校际杯一队小组赛 1 胜 2 平，最终一队第四、预备队第六",
         "5 月 23 日 3:1 击败 EBU Rangers，死亡之组顽强挺过，正式赛季收官",
         "预备队建队两年最好成绩：13 场 1 胜 2 平"
@@ -128,15 +139,35 @@ window.SEASON_DATA = {
             { date:"May 24", time:"13:20", tag:"北加联", team1:{name:"Davis Origin",         davis:true,  winner:false}, team2:{name:"GSF",          davis:false, winner:true},  score:"1 : 2", result:"loss" }
           ]
         },
-        huati: {
-          label: "华体会",
-          matches: [],
-          note: "3 月 20–22 日加州华人大学生足球校际杯（尔湾）：一队小组赛 1 胜 2 平，力克 USC，战平 UCLA、UCSD，最终一队小组第四、预备队小组第六。具体逐场比分还没整理，补齐后会换成完整的比赛列表。"
+        jiaoji: {
+          label: "校际杯",
+          matches: [
+            { date:"Mar 20", time:"10:00", tag:"校际杯", team1:{name:"Davis Origin",         davis:true,  winner:true},  team2:{name:"USC",           davis:false, winner:false}, score:"2 : 1", result:"win" },
+            { date:"Mar 21", time:"11:00", tag:"校际杯", team1:{name:"Davis Origin",         davis:true,  winner:false}, team2:{name:"UCLA",          davis:false, winner:false}, score:"1 : 1", result:"draw" },
+            { date:"Mar 22", time:"09:30", tag:"校际杯", team1:{name:"Davis Origin",         davis:true,  winner:false}, team2:{name:"UCSD",          davis:false, winner:false}, score:"0 : 0", result:"draw" },
+            { date:"Mar 20", time:"14:00", tag:"校际杯", team1:{name:"Davis Origin Reverse", davis:true,  winner:false}, team2:{name:"UCI",           davis:false, winner:true},  score:"1 : 3", result:"loss" },
+            { date:"Mar 21", time:"15:00", tag:"校际杯", team1:{name:"Davis Origin Reverse", davis:true,  winner:false}, team2:{name:"Cal Poly",      davis:false, winner:true},  score:"0 : 2", result:"loss" },
+            { date:"Mar 22", time:"13:00", tag:"校际杯", team1:{name:"Davis Origin Reverse", davis:true,  winner:false}, team2:{name:"UCSD B",        davis:false, winner:false}, score:"1 : 1", result:"draw" }
+          ]
         },
         xinnian: {
           label: "贺岁杯",
-          matches: [],
-          note: "1 月 16 日北美湾区贺岁杯：一队迎战 Hunter、South Bay，预备队迎战 SF United。具体比分还没整理。"
+          matches: [
+            { date:"Jan 16", time:"09:00", tag:"贺岁杯", team1:{name:"Davis Origin",         davis:true,  winner:true},  team2:{name:"Hunter",     davis:false, winner:false}, score:"2 : 0", result:"win" },
+            { date:"Jan 16", time:"11:30", tag:"贺岁杯", team1:{name:"Davis Origin",         davis:true,  winner:false}, team2:{name:"South Bay",  davis:false, winner:true},  score:"1 : 2", result:"loss" },
+            { date:"Jan 16", time:"13:30", tag:"贺岁杯", team1:{name:"Davis Origin Reverse", davis:true,  winner:false}, team2:{name:"SF United",  davis:false, winner:false}, score:"1 : 1", result:"draw" }
+          ]
+        },
+        huati: {
+          label: "华体会",
+          matches: [
+            { date:"Nov 8",  time:"10:00", tag:"华体会", team1:{name:"Davis Origin",         davis:true,  winner:true},  team2:{name:"UC Berkeley",       davis:false, winner:false}, score:"3 : 2", result:"win" },
+            { date:"Nov 9",  time:"11:00", tag:"华体会", team1:{name:"Davis Origin",         davis:true,  winner:false}, team2:{name:"Stanford",          davis:false, winner:false}, score:"2 : 2", result:"draw" },
+            { date:"Nov 15", time:"10:30", tag:"华体会", team1:{name:"Davis Origin",         davis:true,  winner:false}, team2:{name:"San Jose State",    davis:false, winner:true},  score:"0 : 1", result:"loss" },
+            { date:"Nov 8",  time:"13:00", tag:"华体会", team1:{name:"Davis Origin Reverse", davis:true,  winner:true},  team2:{name:"UC Berkeley B",     davis:false, winner:false}, score:"1 : 0", result:"win" },
+            { date:"Nov 9",  time:"14:00", tag:"华体会", team1:{name:"Davis Origin Reverse", davis:true,  winner:false}, team2:{name:"Stanford B",        davis:false, winner:true},  score:"1 : 4", result:"loss" },
+            { date:"Nov 15", time:"13:30", tag:"华体会", team1:{name:"Davis Origin Reverse", davis:true,  winner:false}, team2:{name:"San Jose State B",  davis:false, winner:false}, score:"0 : 0", result:"draw" }
+          ]
         }
       },
       teams: {
@@ -164,19 +195,34 @@ window.SEASON_DATA = {
                   lineup: ["熊翰川","蔡毅诚","李金宇","刘富行","马俊宇","Attila","金圣博","陆子涵","刘子云","于霆访","朱超凡"] }
               ]
             },
-            huati: {
-              label: "华体会",
+            jiaoji: {
+              label: "校际杯",
               venue: "加州尔湾",
               schedule: "2026 年 3 月 20–22 日",
-              matches: [],
-              note: "3 月 20–22 日加州华人大学生足球校际杯（尔湾）：小组赛 1 胜 2 平，力克 USC，战平 UCLA、UCSD，最终小组第四。具体逐场比分还没整理。"
+              matches: [
+                { date:"Mar 20", time:"10:00", tag:"校际杯", team1:{name:"Davis Origin", davis:true, winner:true},  team2:{name:"USC",  davis:false, winner:false}, score:"2 : 1", result:"win" },
+                { date:"Mar 21", time:"11:00", tag:"校际杯", team1:{name:"Davis Origin", davis:true, winner:false}, team2:{name:"UCLA", davis:false, winner:false}, score:"1 : 1", result:"draw" },
+                { date:"Mar 22", time:"09:30", tag:"校际杯", team1:{name:"Davis Origin", davis:true, winner:false}, team2:{name:"UCSD", davis:false, winner:false}, score:"0 : 0", result:"draw" }
+              ]
             },
             xinnian: {
               label: "贺岁杯",
               venue: "北美湾区",
               schedule: "2026 年 1 月 16 日",
-              matches: [],
-              note: "1 月 16 日北美湾区贺岁杯迎战 Hunter、South Bay，具体比分还没整理。"
+              matches: [
+                { date:"Jan 16", time:"09:00", tag:"贺岁杯", team1:{name:"Davis Origin", davis:true, winner:true},  team2:{name:"Hunter",    davis:false, winner:false}, score:"2 : 0", result:"win" },
+                { date:"Jan 16", time:"11:30", tag:"贺岁杯", team1:{name:"Davis Origin", davis:true, winner:false}, team2:{name:"South Bay", davis:false, winner:true},  score:"1 : 2", result:"loss" }
+              ]
+            },
+            huati: {
+              label: "华体会",
+              venue: "北加州湾区",
+              schedule: "2025 年 11 月",
+              matches: [
+                { date:"Nov 8",  time:"10:00", tag:"华体会", team1:{name:"Davis Origin", davis:true, winner:true},  team2:{name:"UC Berkeley",    davis:false, winner:false}, score:"3 : 2", result:"win" },
+                { date:"Nov 9",  time:"11:00", tag:"华体会", team1:{name:"Davis Origin", davis:true, winner:false}, team2:{name:"Stanford",       davis:false, winner:false}, score:"2 : 2", result:"draw" },
+                { date:"Nov 15", time:"10:30", tag:"华体会", team1:{name:"Davis Origin", davis:true, winner:false}, team2:{name:"San Jose State", davis:false, winner:true},  score:"0 : 1", result:"loss" }
+              ]
             }
           }
         },
@@ -202,19 +248,33 @@ window.SEASON_DATA = {
                   lineup: ["相铮","王钧","夏梓宸","叶奕承","赵天钰","孙楚越","赵乐涵","曹震旦","史佳驰","王亚珩","尹鸣赫"] }
               ]
             },
-            huati: {
-              label: "华体会",
+            jiaoji: {
+              label: "校际杯",
               venue: "加州尔湾",
               schedule: "2026 年 3 月 20–22 日",
-              matches: [],
-              note: "随队出征尔湾的加州华人大学生足球校际杯，最终小组第六，具体逐场比分还没整理。"
+              matches: [
+                { date:"Mar 20", time:"14:00", tag:"校际杯", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"UCI",      davis:false, winner:true},  score:"1 : 3", result:"loss" },
+                { date:"Mar 21", time:"15:00", tag:"校际杯", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"Cal Poly", davis:false, winner:true},  score:"0 : 2", result:"loss" },
+                { date:"Mar 22", time:"13:00", tag:"校际杯", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"UCSD B",   davis:false, winner:false}, score:"1 : 1", result:"draw" }
+              ]
             },
             xinnian: {
               label: "贺岁杯",
               venue: "北美湾区",
               schedule: "2026 年 1 月 16 日",
-              matches: [],
-              note: "1 月 16 日北美湾区贺岁杯迎战 SF United，具体比分还没整理。"
+              matches: [
+                { date:"Jan 16", time:"13:30", tag:"贺岁杯", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"SF United", davis:false, winner:false}, score:"1 : 1", result:"draw" }
+              ]
+            },
+            huati: {
+              label: "华体会",
+              venue: "北加州湾区",
+              schedule: "2025 年 11 月",
+              matches: [
+                { date:"Nov 8",  time:"13:00", tag:"华体会", team1:{name:"Davis Origin Reverse", davis:true, winner:true},  team2:{name:"UC Berkeley B",    davis:false, winner:false}, score:"1 : 0", result:"win" },
+                { date:"Nov 9",  time:"14:00", tag:"华体会", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"Stanford B",       davis:false, winner:true},  score:"1 : 4", result:"loss" },
+                { date:"Nov 15", time:"13:30", tag:"华体会", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"San Jose State B", davis:false, winner:false}, score:"0 : 0", result:"draw" }
+              ]
             }
           }
         }
@@ -233,6 +293,7 @@ window.SEASON_DATA = {
       roster: { gk: [], def: [], mid: [], fwd: [] },
       matches: {
         league: { label: "北加联", matches: [] },
+        jiaoji: { label: "校际杯", matches: [] },
         huati:  { label: "华体会", matches: [], note: "华体会 2025 亚军——具体逐场比分还没整理。" },
         xinnian:{ label: "贺岁杯", matches: [] }
       },
@@ -242,6 +303,7 @@ window.SEASON_DATA = {
           roster: { gk: [], def: [], mid: [], fwd: [] },
           matches: {
             league: { label: "北加联", matches: [] },
+            jiaoji: { label: "校际杯", matches: [] },
             huati:  { label: "华体会", matches: [], note: "华体会 2025 亚军——具体逐场比分还没整理。" },
             xinnian:{ label: "贺岁杯", matches: [] }
           }
@@ -252,6 +314,7 @@ window.SEASON_DATA = {
           roster: { gk: [], def: [], mid: [], fwd: [] },
           matches: {
             league: { label: "北加联", matches: [] },
+            jiaoji: { label: "校际杯", matches: [] },
             huati:  { label: "华体会", matches: [] },
             xinnian:{ label: "贺岁杯", matches: [] }
           }
@@ -271,6 +334,7 @@ window.SEASON_DATA = {
       roster: { gk: [], def: [], mid: [], fwd: [] },
       matches: {
         league: { label: "北加联", matches: [], note: "2024 年北加联冠军赛季——具体逐场比分还没整理。" },
+        jiaoji: { label: "校际杯", matches: [] },
         huati:  { label: "华体会", matches: [] },
         xinnian:{ label: "贺岁杯", matches: [] }
       },
@@ -280,6 +344,7 @@ window.SEASON_DATA = {
           roster: { gk: [], def: [], mid: [], fwd: [] },
           matches: {
             league: { label: "北加联", matches: [], note: "2024 年北加联冠军赛季——具体逐场比分还没整理。" },
+            jiaoji: { label: "校际杯", matches: [] },
             huati:  { label: "华体会", matches: [] },
             xinnian:{ label: "贺岁杯", matches: [] }
           }
@@ -290,6 +355,7 @@ window.SEASON_DATA = {
           roster: { gk: [], def: [], mid: [], fwd: [] },
           matches: {
             league: { label: "北加联", matches: [] },
+            jiaoji: { label: "校际杯", matches: [] },
             huati:  { label: "华体会", matches: [] },
             xinnian:{ label: "贺岁杯", matches: [] }
           }

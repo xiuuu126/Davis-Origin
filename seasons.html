@@ -471,10 +471,13 @@
     if (!seasons.length) return;
 
     var POSITION_ORDER = ['gk', 'def', 'mid', 'fwd'];
-    // 板块显示顺序按赛季内的自然时间线排：华体会（11月）→ 贺岁杯（次年1月）→
-    // 北加联（次年5月）。具体某一年某个赛事的实际举办日期以该赛事对象自己的
-    // venue/schedule 字段为准，这个顺序只是三大板块固定的展示先后。
-    var CATEGORY_ORDER = ['huati', 'xinnian', 'league'];
+    // 板块显示顺序按赛季内的时间线倒序排（最近发生的在最上面）：北加联
+    // （5月）→ 校际杯（3月）→ 贺岁杯（次年1月）→ 华体会（11月，属于这个
+    // 赛季周期里最早的一段）。校际杯（jiaoji）和华体会（huati）是两个不同
+    // 的赛事，不要合并成一个板块。具体某一年某个赛事的实际举办日期以该
+    // 赛事对象自己的 venue/schedule 字段为准，这个顺序只是四大板块固定的
+    // 展示先后。
+    var CATEGORY_ORDER = ['league', 'jiaoji', 'xinnian', 'huati'];
     var TEAM_ORDER = ['first', 'reserve'];
     var TEAM_FALLBACK_LABEL = { first: '一队', reserve: '预备队' };
 
