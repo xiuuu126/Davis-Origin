@@ -130,13 +130,25 @@
     0%   { opacity: 1; background-position: 150% 0; }
     100% { opacity: 0; background-position: -60% 0; }
   }
+  /* 平时：一行文字，居中显示当前赛季。点一下之后，这块区域自己会长高，
+     原地变成一个 3 行的滚轮（不是在下面另外弹出一个浮层）——显示当前
+     赛季的这块地方，点开之后本身就变成了滚轮的一部分。 */
   .season-bar-center {
-    flex: 1; padding: 15px 12px; cursor: pointer; text-align: center;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    flex: 1; position: relative; cursor: pointer; overflow: hidden;
     background: var(--switch-bg); border-left: 1px solid var(--switch-bg-active);
     border-right: 1px solid var(--switch-bg-active);
-    color: var(--ink); overflow: hidden;
+    color: var(--ink);
+    height: 54px; transition: height .32s cubic-bezier(.4,0,.2,1);
   }
+  .season-bar-wrap.expanded .season-bar-center { height: 168px; }
+  .season-bar-wrap.expanded { z-index: 45; }
+
+  .season-bar-center-label {
+    position: absolute; inset: 0; padding: 15px 12px; text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    opacity: 1; transition: opacity .18s ease;
+  }
+  .season-bar-wrap.expanded .season-bar-center-label { opacity: 0; pointer-events: none; }
   .season-bar-label { font-size: 16px; font-weight: 800; display: inline-block; }
   .season-bar-label.slide-in-next { animation: slideInFromRight .3s ease both; }
   .season-bar-label.slide-in-prev { animation: slideInFromLeft .3s ease both; }
@@ -147,23 +159,20 @@
     background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 999px;
   }
 
-  /* 点击中间才展开的滚轮选择器：固定只露出 3 行，正在查看的赛季永远在
-     正中间（字号更大更突出），上面一行是上一个赛季，下面一行是下一个
-     赛季，可以直接上下滑动切换，上下边缘做了渐隐效果，看起来像一个
-     真正的滚轮 —— 平时（没点开时）这一切都不存在，只是普通的一整条
-     长方形。 */
-  .season-wheel-popup {
-    position: absolute; top: calc(100% + 10px); left: 0; right: 0;
-    height: 168px; overflow-y: auto; overflow-x: hidden;
+  /* 点开之后，原地长高出来的滚轮：固定 3 行，正在看的赛季永远在正中间
+     （字号更大更突出），上一行是上一个赛季，下一行是下一个赛季，可以
+     直接上下滑动切换，上下边缘渐隐，看起来像一个真正的滚轮。平时
+     （没点开时）这一切都不存在，只是普通的一整条长方形——显示当前
+     赛季和挑选赛季是同一块地方，不是两个分开的东西。 */
+  .season-bar-wheel {
+    position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
     scroll-snap-type: y mandatory;
     display: flex; flex-direction: column;
-    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-    box-shadow: 0 18px 44px rgba(15,29,77,.18); z-index: 30;
-    animation: fadeUp .2s ease both;
+    opacity: 0; pointer-events: none; transition: opacity .18s ease .06s;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%);
             mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%);
   }
-  .season-wheel-popup[hidden] { display: none; }
+  .season-bar-wrap.expanded .season-bar-wheel { opacity: 1; pointer-events: auto; }
   .season-wheel-spacer { flex: none; height: 56px; scroll-snap-align: none; }
   .season-wheel-popup-item {
     flex: none; height: 56px; scroll-snap-align: center;
@@ -172,7 +181,7 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
     transition: color .2s ease, opacity .2s ease, font-size .2s ease, font-weight .2s ease;
   }
-  .season-wheel-popup-item.active { opacity: .75; color: var(--accent); }
+  .season-wheel-popup-item.active { opacity: .8; color: var(--ink); }
   .season-wheel-popup-item.centered {
     font-size: 19px; font-weight: 900; color: var(--ink); opacity: 1;
   }
@@ -180,6 +189,15 @@
     font-size: 9px; font-weight: 700; background: var(--accent-soft); color: var(--accent);
     padding: 2px 8px; border-radius: 999px; opacity: .9;
   }
+
+  /* 点开滚轮时，背后整个页面轻微模糊+压暗，让滚轮显得像浮在最上层 */
+  .season-backdrop {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(10,14,26,.22);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none; transition: opacity .28s ease;
+  }
+  .season-backdrop.show { opacity: 1; pointer-events: auto; }
 
   @keyframes panelEnter {
     from { opacity: 0; transform: translateY(14px); }
@@ -348,9 +366,9 @@
 </section>
 
 <section class="season-archive">
+  <div class="season-backdrop" id="seasonBackdrop"></div>
   <div class="season-bar-wrap" id="seasonBarWrap">
     <div class="season-bar" id="seasonBar" role="group" aria-label="选择赛季"></div>
-    <div class="season-wheel-popup" id="seasonWheelPopup" hidden></div>
   </div>
   <div class="season-archive-body" id="seasonArchiveBody"></div>
 </section>
@@ -364,9 +382,10 @@
 <script>
   (function() {
     var barEl = document.getElementById('seasonBar');
-    var wheelPopup = document.getElementById('seasonWheelPopup');
+    var wrapEl = document.getElementById('seasonBarWrap');
+    var backdrop = document.getElementById('seasonBackdrop');
     var bodyEl = document.getElementById('seasonArchiveBody');
-    if (!barEl || !wheelPopup || !bodyEl || !window.SEASON_DATA) return;
+    if (!barEl || !wrapEl || !backdrop || !bodyEl || !window.SEASON_DATA) return;
     var seasons = (window.SEASON_DATA.seasons || []).slice().reverse(); // 按时间从早到晚显示
     if (!seasons.length) return;
 
@@ -523,12 +542,18 @@
     var ARROW_LEFT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
     var ARROW_RIGHT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
 
-    // 普通情况：一整条长方形，‹ 箭头 | 当前赛季（居中，颜色突出） | 箭头 ›
+    // 普通情况：一整条长方形，‹ 箭头 | 当前赛季（居中，颜色突出） | 箭头 ›。
+    // 中间这块（seasonBarCenter）里叠放着两层：平时显示的单行文字
+    // （seasonBarCenterLabel）和点开后才会显示的滚轮（seasonBarWheel）——
+    // 显示当前赛季和挑选赛季用的是同一块地方，不是分开的两个东西。
     barEl.innerHTML =
       '<button type="button" class="season-bar-arrow" id="seasonPrevBtn" aria-label="上一个赛季">' + ARROW_LEFT_SVG + '</button>' +
       '<div class="season-bar-center" id="seasonBarCenter">' +
-        '<span class="season-bar-label" id="seasonBarLabel"></span>' +
-        '<span class="season-bar-tag" id="seasonBarTag" hidden>现役</span>' +
+        '<div class="season-bar-center-label" id="seasonBarCenterLabel">' +
+          '<span class="season-bar-label" id="seasonBarLabel"></span>' +
+          '<span class="season-bar-tag" id="seasonBarTag" hidden>现役</span>' +
+        '</div>' +
+        '<div class="season-bar-wheel" id="seasonBarWheel"></div>' +
       '</div>' +
       '<button type="button" class="season-bar-arrow" id="seasonNextBtn" aria-label="下一个赛季">' + ARROW_RIGHT_SVG + '</button>';
 
@@ -537,11 +562,12 @@
     var barCenter = document.getElementById('seasonBarCenter');
     var barLabel = document.getElementById('seasonBarLabel');
     var barTag = document.getElementById('seasonBarTag');
+    var barWheel = document.getElementById('seasonBarWheel');
 
-    // 点击中间才会展开的滚轮选择器：固定 3 行高度，正在看的赛季永远在
-    // 正中间；前后各放一个和一行等高的占位 spacer，这样第一个/最后一个
-    // 赛季也能被滚动到正中间。
-    wheelPopup.innerHTML =
+    // 滚轮内容：固定 3 行高度，正在看的赛季永远在正中间；前后各放一个
+    // 和一行等高的占位 spacer，这样第一个/最后一个赛季也能被滚动到
+    // 正中间。
+    barWheel.innerHTML =
       '<div class="season-wheel-spacer" aria-hidden="true"></div>' +
       seasons.map(function(sn, i) {
         return '<div class="season-wheel-popup-item" data-index="' + i + '">' +
@@ -551,17 +577,17 @@
       '<div class="season-wheel-spacer" aria-hidden="true"></div>';
 
     function refreshPopupActive() {
-      Array.prototype.forEach.call(wheelPopup.querySelectorAll('.season-wheel-popup-item'), function(el) {
+      Array.prototype.forEach.call(barWheel.querySelectorAll('.season-wheel-popup-item'), function(el) {
         el.classList.toggle('active', Number(el.dataset.index) === currentIndex);
       });
     }
 
-    // 滚动时找到离弹窗正中间最近的那一项，给它加上"当前查看"的放大高亮样式，
+    // 滚动时找到离滚轮正中间最近的那一项，给它加上"当前查看"的放大高亮样式，
     // 模拟真正滚轮"选中项永远居中"的感觉
     function updateCenteredItem() {
-      var wrapRect = wheelPopup.getBoundingClientRect();
+      var wrapRect = barWheel.getBoundingClientRect();
       var mid = wrapRect.top + wrapRect.height / 2;
-      var items = wheelPopup.querySelectorAll('.season-wheel-popup-item');
+      var items = barWheel.querySelectorAll('.season-wheel-popup-item');
       var closest = null, closestDist = Infinity;
       Array.prototype.forEach.call(items, function(el) {
         var r = el.getBoundingClientRect();
@@ -572,13 +598,27 @@
       return closest;
     }
     var wheelScrollRaf = null;
-    wheelPopup.addEventListener('scroll', function() {
+    barWheel.addEventListener('scroll', function() {
       if (wheelScrollRaf) return;
       wheelScrollRaf = requestAnimationFrame(function() {
         wheelScrollRaf = null;
         updateCenteredItem();
       });
     });
+
+    function isExpanded() { return wrapEl.classList.contains('expanded'); }
+
+    function openWheel() {
+      wrapEl.classList.add('expanded');
+      backdrop.classList.add('show');
+      var activeItem = barWheel.querySelector('.season-wheel-popup-item.active');
+      if (activeItem) activeItem.scrollIntoView({ block: 'center' });
+      updateCenteredItem();
+    }
+    function closeWheel() {
+      wrapEl.classList.remove('expanded');
+      backdrop.classList.remove('show');
+    }
 
     function updateBar(direction) {
       var s = seasons[currentIndex];
@@ -593,6 +633,11 @@
       barTag.hidden = !s.current;
 
       refreshPopupActive();
+      if (isExpanded()) {
+        var activeItem = barWheel.querySelector('.season-wheel-popup-item.active');
+        if (activeItem) activeItem.scrollIntoView({ block: 'center' });
+        updateCenteredItem();
+      }
 
       if (direction === 'next' || direction === 'prev') {
         var arrowBtn = direction === 'next' ? nextBtn : prevBtn;
@@ -623,24 +668,21 @@
 
     barCenter.addEventListener('click', function(e) {
       e.stopPropagation();
-      wheelPopup.hidden = !wheelPopup.hidden;
-      if (!wheelPopup.hidden) {
-        var activeItem = wheelPopup.querySelector('.season-wheel-popup-item.active');
-        if (activeItem) activeItem.scrollIntoView({ block: 'center' });
-        updateCenteredItem();
-      }
+      if (isExpanded()) closeWheel(); else openWheel();
     });
-    wheelPopup.addEventListener('click', function(e) {
+    backdrop.addEventListener('click', closeWheel);
+    barWheel.addEventListener('click', function(e) {
+      e.stopPropagation(); // 别让点击冒泡到 barCenter，导致关了又马上被重新打开
       var item = e.target.closest('.season-wheel-popup-item');
       if (!item) return;
       var idx = Number(item.dataset.index);
-      wheelPopup.hidden = true;
       var dir = idx === currentIndex - 1 ? 'prev' : idx === currentIndex + 1 ? 'next' : null;
       goTo(idx, dir);
+      closeWheel();
     });
     document.addEventListener('click', function(e) {
-      if (!wheelPopup.hidden && !e.target.closest('#seasonBarWrap')) {
-        wheelPopup.hidden = true;
+      if (isExpanded() && !e.target.closest('#seasonBarWrap')) {
+        closeWheel();
       }
     });
 
