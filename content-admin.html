@@ -208,33 +208,42 @@
   .custom-event-box input{padding:8px 12px;border:1px solid var(--line);border-radius:8px;
     background:var(--bg-soft);font-size:13.5px;width:180px}
 
-  /* 球员搜索选择器 */
-  .picker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .picker-grid .field{margin-bottom:0}
-  .picker-grid label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--muted);margin-bottom:7px;display:block}
-  .picker-col{position:relative}
-  .picker-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;margin-bottom:8px}
-  .picker-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 11px;
-    border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12.5px;font-weight:600}
-  .picker-chip button{border:none;background:rgba(30,58,138,.14);color:var(--accent);border-radius:50%;
-    width:16px;height:16px;line-height:1;cursor:pointer;font-size:11px;display:grid;place-items:center;padding:0}
-  .picker-chip button:hover{background:rgba(30,58,138,.28)}
-  .picker-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
-    background:#fff;font-size:13px}
-  .picker-input:focus{outline:none;border-color:var(--accent)}
-  .picker-dd{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--card);
-    border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(13,18,36,.14);
-    z-index:20;max-height:220px;overflow:auto;display:none}
-  .picker-dd.on{display:block}
-  .picker-dd-item{padding:9px 13px;font-size:13.5px;cursor:pointer;transition:background .15s}
-  .picker-dd-item:hover,.picker-dd-item.hi{background:var(--accent-soft);color:var(--accent)}
-  .picker-dd-item.add-new{color:var(--ok);font-weight:600}
-  .picker-dd-empty{padding:9px 13px;font-size:12.5px;color:var(--muted)}
+  /* 球员名单看板：搜索加人 + 门将/后卫/中场/前锋四栏，拖动调整位置 */
+  .roster-board-head{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    flex-wrap:wrap;margin-bottom:12px}
+  .roster-search-trigger{padding:9px 16px;border:1px solid var(--line);border-radius:9px;
+    background:var(--bg-soft);color:var(--muted);font-size:13px;cursor:pointer;transition:all .18s;
+    text-align:left}
+  .roster-search-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .roster-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .roster-col{border:1.5px dashed transparent;border-radius:10px;padding:8px;transition:all .15s;min-height:64px}
+  .roster-col.drag-over{border-color:var(--accent);background:var(--accent-soft)}
+  .roster-col-head{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:8px}
+  .roster-col-head b{color:var(--ink-soft);font-weight:700;letter-spacing:0;text-transform:none;font-size:11px}
+  .roster-col-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:30px}
+  .rchip{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--accent-soft);
+    color:var(--accent);font-size:12.5px;font-weight:600;cursor:grab;user-select:none;transition:all .15s}
+  .rchip:active{cursor:grabbing}
+  .rchip.off{background:#ececec;color:var(--muted);text-decoration:line-through;opacity:.75}
+  .rchip.dragging{opacity:.3}
+
+  /* 添加球员的搜索大弹窗 */
+  .roster-search-modal{max-width:520px}
+  .rs-input{width:100%;box-sizing:border-box;padding:15px 16px;font-size:17px;border:1.5px solid var(--line);
+    border-radius:12px;background:var(--bg-soft);margin-bottom:14px}
+  .rs-input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+  .rs-results{max-height:360px;overflow:auto;display:flex;flex-direction:column;gap:3px}
+  .rs-result{padding:11px 14px;border-radius:9px;cursor:pointer;font-size:14.5px;display:flex;
+    justify-content:space-between;align-items:center;transition:background .15s}
+  .rs-result:hover{background:var(--accent-soft);color:var(--accent)}
+  .rs-result .rs-pos{font-size:11px;color:var(--muted)}
+  .rs-result.add-new{color:var(--ok);font-weight:600}
+  .rs-empty{padding:16px;text-align:center;color:var(--muted);font-size:13px}
 
   @media(max-width:860px){
     .topbar-inner,main.wrap{padding-left:16px;padding-right:16px}
-    .row2,.row3,.row4,.picker-grid{grid-template-columns:1fr}
+    .row2,.row3,.row4,.roster-cols{grid-template-columns:1fr}
     .card{padding:20px 16px}
   }
 </style>
@@ -352,6 +361,19 @@
   </div>
 </div>
 
+<!-- 添加球员搜索弹窗（名单看板右上角的搜索按钮点开这个） -->
+<div class="modal-bg" id="mRosterSearchBg">
+  <div class="modal roster-search-modal">
+    <h3>添加球员</h3>
+    <div class="sub">支持姓名、拼音全拼或首字母搜索；点一下就加进去，可以连续加好几个，加完点"完成"。</div>
+    <input type="text" id="rsInput" class="rs-input" placeholder="搜姓名/拼音/首字母" autocomplete="off" />
+    <div class="rs-results" id="rsResults"></div>
+    <div class="modal-actions">
+      <button class="btn full" id="rsDone" type="button">完成</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.3/dist/index.js"></script>
@@ -388,26 +410,28 @@ const EVENT_TEMPLATES = [
   { key: 'xinnian', label: '贺岁杯' },
 ];
 
-// 球员名单搜索选择器：prefix+position -> { getNames() }
-const rosterPickers = new Map();
-// 点搜索框以外的地方，收起所有还开着的下拉
-document.addEventListener('click', e => {
-  if (!e.target.closest('.picker-col')) {
-    document.querySelectorAll('.picker-dd.on').forEach(dd => dd.classList.remove('on'));
-  }
-});
-function matchesQuery(name, q) {
-  const nm = String(name || '');
-  q = String(q || '').trim();
-  if (!q) return true;
-  if (nm.toLowerCase().includes(q.toLowerCase())) return true;
-  if (window.pinyinPro && typeof window.pinyinPro.match === 'function') {
-    try {
-      const r = window.pinyinPro.match(nm, q);
-      return !!(r && r.length);
-    } catch (e) { /* 拼音库万一出错，退回普通子串匹配就好 */ }
-  }
-  return false;
+// 球员名单看板：prefix -> { getRoster(), addPlayer(name) }
+const rosterBoards = new Map();
+// 每个球员历史上都出现在哪些位置（从队伍整体名单/赛事专属名单的历史记录里统计），
+// 用来猜"新加的这个人大概率是哪个位置"，加进去之后还能用拖动手动纠正。
+let PLAYER_POS_HISTORY = new Map();
+function buildPositionHistory() {
+  const hist = new Map();
+  const bump = (name, pos) => {
+    if (!POS.includes(pos) || !name) return;
+    if (!hist.has(name)) hist.set(name, { gk: 0, def: 0, mid: 0, fwd: 0 });
+    hist.get(name)[pos]++;
+  };
+  (D.team_roster || []).forEach(r => bump(r.player_name, r.position));
+  (D.category_roster || []).forEach(r => bump(r.player_name, r.position));
+  return hist;
+}
+function guessPosition(name) {
+  const h = PLAYER_POS_HISTORY.get(name);
+  if (!h) return 'mid';
+  let best = 'mid', bestN = 0;
+  POS.forEach(p => { if (h[p] > bestN) { bestN = h[p]; best = p; } });
+  return best;
 }
 
 const $ = id => document.getElementById(id);
@@ -593,76 +617,148 @@ $('nsSave').onclick = async () => {
 };
 
 /* ===================== 名单与比赛 ===================== */
-/* 球员名单选择器：每个位置一栏，搜索框可以按姓名/拼音/首字母匹配收费后台的
- * 球员名单，点了就加进来；搜不到也可以直接把输入的名字当新名字加进去。 */
-function pickerColHtml(prefix, pos, names) {
-  return `<div class="field picker-col" data-prefix="${esc(prefix)}" data-pos="${pos}">
-    <label>${POS_LABEL[pos]}</label>
-    <div class="picker-chips" data-roster='${esc(JSON.stringify(names || []))}'></div>
-    <input class="picker-input" type="text" placeholder="搜姓名/拼音/首字母" autocomplete="off" />
-    <div class="picker-dd"></div>
+/* 球员名单看板：门将/后卫/中场/前锋四栏，球员是可以拖动换栏的"药丸"；
+ * 点一下药丸切换"选中/灰掉"（灰掉的保存时自动从名单里剔除，不是真删除，
+ * 再点一下可以恢复）；加人统一走右上角的搜索按钮，点开一个大弹窗搜索/添加。 */
+function rosterBoardHtml(prefix, roster, label) {
+  return `<div class="roster-board" data-prefix="${esc(prefix)}" data-roster='${esc(JSON.stringify(roster || {}))}'>
+    <div class="roster-board-head">
+      <div class="hint" style="margin:0"><b data-count="total">0</b> 人 · ${esc(label)}</div>
+      <button type="button" class="roster-search-trigger" data-act="open-roster-search">🔍 搜姓名/拼音/首字母，添加球员</button>
+    </div>
+    <div class="roster-cols">
+      ${POS.map(p => `
+        <div class="roster-col" data-pos="${p}">
+          <div class="roster-col-head">${POS_LABEL[p]} <b data-count="${p}">(0)</b></div>
+          <div class="roster-col-chips"></div>
+        </div>`).join('')}
+    </div>
   </div>`;
 }
-function rosterPickerHtml(prefix, roster) {
-  return `<div class="picker-grid">` + POS.map(p => pickerColHtml(prefix, p, roster[p] || [])).join('') +
-    `</div><div class="hint">输入姓名/拼音/首字母，从列表里点选加入；名单里没有的新名字也可以直接加。</div>`;
-}
-function mountRosterPickers(root) {
-  root.querySelectorAll('.picker-col').forEach(col => {
-    const prefix = col.dataset.prefix, pos = col.dataset.pos;
-    const chipsBox = col.querySelector('.picker-chips');
-    const input = col.querySelector('.picker-input');
-    const dd = col.querySelector('.picker-dd');
-    let names = [];
-    try { names = JSON.parse(chipsBox.dataset.roster || '[]'); } catch (e) {}
+function mountRosterBoards(root) {
+  root.querySelectorAll('.roster-board').forEach(board => {
+    const prefix = board.dataset.prefix;
+    let rosterObj = {};
+    try { rosterObj = JSON.parse(board.dataset.roster || '{}'); } catch (e) {}
+    const entries = [];
+    POS.forEach(p => (rosterObj[p] || []).forEach(name => entries.push({ name, pos: p, excluded: false })));
 
-    function renderChips() {
-      chipsBox.innerHTML = names.map((n, i) =>
-        `<span class="picker-chip">${esc(n)}<button type="button" data-i="${i}">&times;</button></span>`).join('');
-      chipsBox.querySelectorAll('button').forEach(b => b.onclick = () => {
-        names.splice(Number(b.dataset.i), 1);
-        renderChips();
+    const cols = {}, countEls = {};
+    POS.forEach(p => {
+      cols[p] = board.querySelector(`.roster-col[data-pos="${p}"] .roster-col-chips`);
+      countEls[p] = board.querySelector(`.roster-col-head b[data-count="${p}"]`);
+    });
+    const totalEl = board.querySelector('.roster-board-head b[data-count="total"]');
+
+    function wireChips() {
+      board.querySelectorAll('.rchip').forEach(chip => {
+        chip.onclick = () => {
+          entries[Number(chip.dataset.idx)].excluded = !entries[Number(chip.dataset.idx)].excluded;
+          renderChips();
+        };
+        chip.ondragstart = e => {
+          chip.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', chip.dataset.idx);
+          e.dataTransfer.effectAllowed = 'move';
+        };
+        chip.ondragend = () => chip.classList.remove('dragging');
       });
     }
-    function addName(n) {
-      n = String(n || '').trim();
-      if (!n || names.includes(n)) { input.value = ''; dd.classList.remove('on'); return; }
-      names.push(n);
-      renderChips();
-      input.value = '';
-      dd.classList.remove('on');
-      input.focus();
+    function renderChips() {
+      POS.forEach(p => {
+        cols[p].innerHTML = entries.map((e, idx) => e.pos === p
+          ? `<span class="rchip ${e.excluded ? 'off' : ''}" draggable="true" data-idx="${idx}">${esc(e.name)}</span>`
+          : '').join('');
+        countEls[p].textContent = '(' + entries.filter(e => e.pos === p && !e.excluded).length + ')';
+      });
+      totalEl.textContent = entries.filter(e => !e.excluded).length;
+      wireChips();
     }
-    function renderDD() {
-      const q = input.value.trim();
-      if (!q) { dd.classList.remove('on'); dd.innerHTML = ''; return; }
-      const matched = ALL_PLAYERS.filter(n => !names.includes(n) && matchesQuery(n, q)).slice(0, 30);
-      let html = matched.map(n => `<div class="picker-dd-item" data-name="${esc(n)}">${esc(n)}</div>`).join('');
-      if (!ALL_PLAYERS.includes(q)) {
-        html += `<div class="picker-dd-item add-new" data-name="${esc(q)}">+ 添加新名字「${esc(q)}」（不在球员名单里）</div>`;
-      }
-      dd.innerHTML = html || `<div class="picker-dd-empty">没有匹配</div>`;
-      dd.classList.add('on');
-      dd.querySelectorAll('.picker-dd-item').forEach(it => it.onclick = () => addName(it.dataset.name));
-    }
-    input.oninput = renderDD;
-    input.onfocus = renderDD;
-    input.onkeydown = e => {
-      if (e.key === 'Enter') { e.preventDefault(); if (input.value.trim()) addName(input.value); }
-      else if (e.key === 'Escape') { dd.classList.remove('on'); }
-    };
+    POS.forEach(p => {
+      const colEl = board.querySelector(`.roster-col[data-pos="${p}"]`);
+      colEl.addEventListener('dragover', e => { e.preventDefault(); colEl.classList.add('drag-over'); });
+      colEl.addEventListener('dragleave', () => colEl.classList.remove('drag-over'));
+      colEl.addEventListener('drop', e => {
+        e.preventDefault();
+        colEl.classList.remove('drag-over');
+        const idx = Number(e.dataTransfer.getData('text/plain'));
+        if (entries[idx]) { entries[idx].pos = p; renderChips(); }
+      });
+    });
+    const searchBtn = board.querySelector('[data-act="open-roster-search"]');
+    if (searchBtn) searchBtn.onclick = () => openRosterSearch(prefix);
 
     renderChips();
-    rosterPickers.set(prefix + '_' + pos, { getNames: () => names.slice() });
+    rosterBoards.set(prefix, {
+      getRoster() {
+        const out = {};
+        POS.forEach(p => { out[p] = entries.filter(e => e.pos === p && !e.excluded).map(e => e.name); });
+        return out;
+      },
+      addPlayer(name) {
+        const existing = entries.find(e => e.name === name);
+        if (existing) { existing.excluded = false; }
+        else { entries.push({ name, pos: guessPosition(name), excluded: false }); }
+        renderChips();
+      },
+    });
   });
 }
 function readRosterPicker(prefix) {
-  const out = {};
-  POS.forEach(p => {
-    const ctrl = rosterPickers.get(prefix + '_' + p);
-    out[p] = ctrl ? ctrl.getNames() : [];
+  const board = rosterBoards.get(prefix);
+  return board ? board.getRoster() : { gk: [], def: [], mid: [], fwd: [] };
+}
+
+/* ---- 添加球员的搜索大弹窗（统一入口，替代原来每个位置单独一个小搜索框）---- */
+let activeSearchPrefix = null;
+function matchRank(name, q) {
+  if (!q) return 0;
+  const lower = String(name).toLowerCase(), ql = q.toLowerCase();
+  let best = lower.indexOf(ql);
+  if (window.pinyinPro && typeof window.pinyinPro.match === 'function') {
+    try {
+      const r = window.pinyinPro.match(name, q);
+      if (r && r.length && (best === -1 || r[0] < best)) best = r[0];
+    } catch (e) {}
+  }
+  return best;
+}
+function openRosterSearch(prefix) {
+  activeSearchPrefix = prefix;
+  $('rsInput').value = '';
+  renderRosterSearchResults();
+  $('mRosterSearchBg').classList.add('on');
+  setTimeout(() => $('rsInput').focus(), 60);
+}
+function closeRosterSearch() {
+  $('mRosterSearchBg').classList.remove('on');
+  activeSearchPrefix = null;
+}
+function renderRosterSearchResults() {
+  const box = $('rsResults');
+  const q = $('rsInput').value.trim();
+  const board = rosterBoards.get(activeSearchPrefix);
+  const already = new Set(board ? Object.values(board.getRoster()).flat() : []);
+  let candidates = ALL_PLAYERS.filter(n => !already.has(n));
+  if (q) {
+    candidates = candidates.map(n => ({ name: n, rank: matchRank(n, q) }))
+      .filter(c => c.rank !== -1).sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name, 'zh'))
+      .map(c => c.name);
+  }
+  let html = candidates.slice(0, 60).map(n =>
+    `<div class="rs-result" data-name="${esc(n)}"><span>${esc(n)}</span><span class="rs-pos">${POS_LABEL[guessPosition(n)]}</span></div>`
+  ).join('');
+  if (q && !ALL_PLAYERS.includes(q) && !already.has(q)) {
+    html += `<div class="rs-result add-new" data-name="${esc(q)}">+ 添加新名字「${esc(q)}」（不在球员名单里）</div>`;
+  }
+  box.innerHTML = html || `<div class="rs-empty">没有匹配${q ? '' : '，输入名字/拼音/首字母试试'}</div>`;
+  box.querySelectorAll('.rs-result').forEach(el => el.onclick = () => {
+    const b = rosterBoards.get(activeSearchPrefix);
+    if (b) b.addPlayer(el.dataset.name);
+    $('rsInput').value = '';
+    renderRosterSearchResults();
+    $('rsInput').focus();
   });
-  return out;
 }
 
 function matchRowHtml(m, catId) {
@@ -710,8 +806,7 @@ function categoryCardHtml(cat, isOpen) {
       </div>
 
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
-        <div class="hint" style="margin-bottom:8px">这个赛事的球员名单（留空就跟队伍整体名单一样）</div>
-        ${rosterPickerHtml('catroster_' + cat.id, cat.roster)}
+        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '这个赛事的球员名单（留空就跟队伍整体名单一样）')}
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn ghost sm" data-act="save-cat-roster" data-id="${cat.id}">保存这份名单</button>
           <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空（恢复跟队伍整体一样）</button>
@@ -769,8 +864,7 @@ function teamBlockHtml(t) {
     <button class="btn ghost sm" data-act="save-team" data-id="${t.id}">保存队伍信息</button>
 
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
-      <div class="hint" style="margin-bottom:8px">队伍整体名单</div>
-      ${rosterPickerHtml('teamroster_' + t.id, t.roster)}
+      ${rosterBoardHtml('teamroster_' + t.id, t.roster, '队伍整体名单')}
       <button class="btn ghost sm" style="margin-top:10px" data-act="save-team-roster" data-id="${t.id}">保存整体名单</button>
     </div>
 
@@ -789,13 +883,19 @@ function renderContentTab(bySeason) {
   if (!b.teams.some(t => t.team_key === curTeamKey)) curTeamKey = b.teams.length ? b.teams[0].team_key : 'first';
   const curTeam = b.teams.find(t => t.team_key === curTeamKey);
 
-  rosterPickers.clear();
+  rosterBoards.clear();
   area.innerHTML = `<div class="card">
-    <div class="card-head"><div class="card-title">${esc(b.season.label)} · 名单与比赛</div></div>
+    <div class="card-head">
+      <div class="card-title">${esc(b.season.label)} · 名单与比赛</div>
+      <button class="btn" id="btnPublishInline">发布上线</button>
+    </div>
     ${teamSwitchHtml(b)}
     ${curTeam ? teamBlockHtml(curTeam) : '<div class="empty">这支队伍还没建好</div>'}
   </div>`;
-  mountRosterPickers(area);
+  mountRosterBoards(area);
+
+  const pubBtn = $('btnPublishInline');
+  if (pubBtn) pubBtn.onclick = () => doPublish(pubBtn);
 
   area.querySelectorAll('.team-switch button').forEach(btn => btn.onclick = () => {
     curTeamKey = btn.dataset.teamKey;
@@ -947,15 +1047,16 @@ $('btnPreview').onclick = async () => {
     box.innerHTML = `<pre class="preview">${esc(JSON.stringify(d.seasons, null, 2))}</pre>`;
   } catch (e) { box.innerHTML = `<div class="callout err">${esc(e.message)}</div>`; }
 };
-$('btnPublish').onclick = async () => {
-  const btn = $('btnPublish');
+async function doPublish(btn) {
+  const original = btn.textContent;
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 发布中…';
   try {
     await api('/content/publish', { method: 'POST' });
     toast('已发布，几分钟内网站会更新');
   } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; btn.textContent = '发布上线'; }
-};
+  finally { btn.disabled = false; btn.textContent = original; }
+}
+$('btnPublish').onclick = () => doPublish($('btnPublish'));
 
 /* ===================== 确认弹窗 ===================== */
 let confirmAction = null;
@@ -971,6 +1072,15 @@ $('cfOk').onclick = async () => {
   $('mConfirmBg').classList.remove('on');
   if (fn) { try { await fn(); } catch (e) { toast(e.message, true); } }
 };
+
+/* ===================== 添加球员搜索弹窗 ===================== */
+$('rsInput').addEventListener('input', renderRosterSearchResults);
+$('rsInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); const first = $('rsResults').querySelector('.rs-result'); if (first) first.click(); }
+  else if (e.key === 'Escape') { closeRosterSearch(); }
+});
+$('rsDone').onclick = closeRosterSearch;
+$('mRosterSearchBg').addEventListener('click', e => { if (e.target.id === 'mRosterSearchBg') closeRosterSearch(); });
 
 /* ===================== tabs ===================== */
 document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => {
@@ -1010,6 +1120,7 @@ async function reload() {
   ]);
   D = content;
   ALL_PLAYERS = (feeData && Array.isArray(feeData.players)) ? feeData.players : [];
+  PLAYER_POS_HISTORY = buildPositionHistory();
   render();
 }
 
