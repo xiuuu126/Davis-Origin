@@ -138,34 +138,48 @@
     color: var(--ink); overflow: hidden;
   }
   .season-bar-label { font-size: 16px; font-weight: 800; display: inline-block; }
-  .season-bar-label.slide-in-next { animation: slideInFromBottom .3s ease both; }
-  .season-bar-label.slide-in-prev { animation: slideInFromTop .3s ease both; }
-  @keyframes slideInFromBottom { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideInFromTop    { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+  .season-bar-label.slide-in-next { animation: slideInFromRight .3s ease both; }
+  .season-bar-label.slide-in-prev { animation: slideInFromLeft .3s ease both; }
+  @keyframes slideInFromRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideInFromLeft  { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
   .season-bar-tag {
     font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
     background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 999px;
   }
 
-  /* 点击中间才展开的滚轮选择器（可上下滑动） */
+  /* 点击中间才展开的滚轮选择器：固定只露出 3 行，正在查看的赛季永远在
+     正中间（字号更大更突出），上面一行是上一个赛季，下面一行是下一个
+     赛季，可以直接上下滑动切换，上下边缘做了渐隐效果，看起来像一个
+     真正的滚轮 —— 平时（没点开时）这一切都不存在，只是普通的一整条
+     长方形。 */
   .season-wheel-popup {
     position: absolute; top: calc(100% + 10px); left: 0; right: 0;
-    max-height: 236px; overflow-y: auto; scroll-snap-type: y proximity;
+    height: 168px; overflow-y: auto; overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    display: flex; flex-direction: column;
     background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-    box-shadow: 0 18px 44px rgba(15,29,77,.18); padding: 8px; z-index: 30;
+    box-shadow: 0 18px 44px rgba(15,29,77,.18); z-index: 30;
     animation: fadeUp .2s ease both;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%);
   }
   .season-wheel-popup[hidden] { display: none; }
+  .season-wheel-spacer { flex: none; height: 56px; scroll-snap-align: none; }
   .season-wheel-popup-item {
-    scroll-snap-align: center;
-    padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 700;
-    color: var(--ink-soft); cursor: pointer; text-align: center;
+    flex: none; height: 56px; scroll-snap-align: center;
+    padding: 0 16px; font-size: 14.5px; font-weight: 700; opacity: .5;
+    color: var(--muted); cursor: pointer; text-align: center;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: background .2s ease, color .2s ease;
+    transition: color .2s ease, opacity .2s ease, font-size .2s ease, font-weight .2s ease;
   }
-  .season-wheel-popup-item:hover { background: var(--accent-soft); color: var(--accent); }
-  .season-wheel-popup-item.active { background: var(--accent-deep); color: #fff; }
-  .season-wheel-popup-item .tag { font-size: 9px; opacity: .85; }
+  .season-wheel-popup-item.active { opacity: .75; color: var(--accent); }
+  .season-wheel-popup-item.centered {
+    font-size: 19px; font-weight: 900; color: var(--ink); opacity: 1;
+  }
+  .season-wheel-popup-item .tag {
+    font-size: 9px; font-weight: 700; background: var(--accent-soft); color: var(--accent);
+    padding: 2px 8px; border-radius: 999px; opacity: .9;
+  }
 
   @keyframes panelEnter {
     from { opacity: 0; transform: translateY(14px); }
@@ -208,11 +222,12 @@
     border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
   }
 
-  /* 队伍面板：左边球员名单（只列一遍），右边比赛比分 */
-  .team-panel-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 32px; align-items: start; }
+  /* 每个赛事板块（北加联/华体会/贺岁杯）内部：左边这个赛事自己的球员
+     名单，右边这个赛事自己的比赛结果——每个板块都是独立的一份 */
+  .matches-section-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 28px; align-items: start; margin-top: 4px; }
   .roster-col-title {
-    font-size: 12.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
   }
   .roster-col-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
   .roster-position-group { margin-bottom: 18px; }
@@ -227,7 +242,7 @@
   }
 
   /* 比赛板块 */
-  .matches-section + .matches-section { margin-top: 28px; }
+  .matches-section + .matches-section { margin-top: 36px; padding-top: 32px; border-top: 1px solid var(--line); }
   .matches-section-title {
     font-size: 22px; font-weight: 900; letter-spacing: 0; text-transform: none;
     color: var(--ink); margin-bottom: 14px; padding-left: 14px; position: relative;
@@ -297,7 +312,7 @@
     .season-bar-arrow { width: 42px; }
     .season-bar-label { font-size: 14px; }
     .team-tab { padding: 11px 22px; font-size: 13.5px; }
-    .team-panel-grid { grid-template-columns: 1fr; gap: 20px; }
+    .matches-section-grid { grid-template-columns: 1fr; gap: 18px; }
     .matches-section-title { font-size: 18px; margin-bottom: 12px; }
     .match-row { grid-template-columns: 70px 1fr auto; gap: 10px; padding: 12px; }
     .match-team { font-size: 13.5px; }
@@ -390,19 +405,6 @@
         '<div class="' + resultCls + '">' + resultLabel(m.result) + '</div>' +
       '</div>';
     }
-    function categorySectionHtml(cat) {
-      if (!cat) return '';
-      var hasMatches = cat.matches && cat.matches.length;
-      if (!hasMatches && !cat.note) return '';
-      var body = hasMatches
-        ? cat.matches.map(matchRowHtml).join('')
-        : '<div class="matches-section-note">' + escapeHtml(cat.note) + '</div>';
-      return '<div class="matches-section">' +
-        '<div class="matches-section-title">' + escapeHtml(cat.label) + '</div>' +
-        body +
-      '</div>';
-    }
-
     function hasRealContent(s) {
       var roster = s.roster || {};
       var rosterTotal = POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
@@ -412,10 +414,11 @@
       return rosterTotal > 0 || matchesTotal > 0;
     }
 
-    function rosterTotal(t) {
-      var roster = (t && t.roster) || {};
+    function rosterObjTotal(roster) {
+      roster = roster || {};
       return POSITION_ORDER.reduce(function(sum, p) { return sum + (roster[p] || []).length; }, 0);
     }
+    function rosterTotal(t) { return rosterObjTotal(t && t.roster); }
 
     function teamHasContent(t) {
       if (!t) return false;
@@ -426,11 +429,13 @@
       return matchesTotal > 0 || hasNotes || rosterTotal(t) > 0;
     }
 
-    function rosterColumnHtml(t, teamKey) {
-      var roster = (t && t.roster) || {};
+    // 每个赛事板块自己的球员名单——如果这个赛事没有单独整理名单（cat.roster），
+    // 就先用这支队伍的整体名单占位（以后要给某个赛事配一份专属名单，
+    // 直接在 seasons.js 对应赛事对象上加一个 roster 字段即可）。
+    function categoryRosterHtml(roster) {
       var html = '<div class="roster-col-title">球员名单</div>';
-      if (rosterTotal(t) === 0) {
-        return html + '<div class="archive-empty-note">' + escapeHtml((t && t.label) || TEAM_FALLBACK_LABEL[teamKey]) + '名单还没整理。</div>';
+      if (rosterObjTotal(roster) === 0) {
+        return html + '<div class="archive-empty-note">名单还没整理。</div>';
       }
       html += POSITION_ORDER.filter(function(p) { return (roster[p] || []).length > 0; }).map(function(p) {
         var players = roster[p] || [];
@@ -446,11 +451,27 @@
       return html;
     }
 
-    function matchesColumnHtml(t, teamKey) {
-      var sections = CATEGORY_ORDER.map(function(key) {
-        return categorySectionHtml((t.matches || {})[key]);
-      }).filter(Boolean);
-      return sections.length ? sections.join('') : '<div class="archive-empty-note">' + escapeHtml((t && t.label) || TEAM_FALLBACK_LABEL[teamKey]) + '这个赛季还没有比赛记录。</div>';
+    function categoryResultsHtml(cat) {
+      var hasMatches = cat.matches && cat.matches.length;
+      if (hasMatches) return cat.matches.map(matchRowHtml).join('');
+      if (cat.note) return '<div class="matches-section-note">' + escapeHtml(cat.note) + '</div>';
+      return '<div class="archive-empty-note">比赛结果还没整理。</div>';
+    }
+
+    // 每个赛事板块（北加联/华体会/贺岁杯）都是独立一份：自己的球员名单 + 自己的比赛结果
+    function categorySectionHtml(cat, fallbackRoster) {
+      if (!cat) return '';
+      var roster = cat.roster || fallbackRoster || {};
+      var hasMatches = cat.matches && cat.matches.length;
+      var hasRoster = rosterObjTotal(roster) > 0;
+      if (!hasMatches && !cat.note && !hasRoster) return '';
+      return '<div class="matches-section">' +
+        '<div class="matches-section-title">' + escapeHtml(cat.label) + '</div>' +
+        '<div class="matches-section-grid">' +
+          '<div class="matches-roster-col">' + categoryRosterHtml(roster) + '</div>' +
+          '<div class="matches-results-col">' + categoryResultsHtml(cat) + '</div>' +
+        '</div>' +
+      '</div>';
     }
 
     function teamPanelHtml(t, teamKey) {
@@ -464,10 +485,10 @@
       if (t.note) {
         html += '<div class="team-note">' + escapeHtml(t.note) + '</div>';
       }
-      html += '<div class="team-panel-grid">' +
-        '<div class="team-roster-col">' + rosterColumnHtml(t, teamKey) + '</div>' +
-        '<div class="team-matches-col">' + matchesColumnHtml(t, teamKey) + '</div>' +
-      '</div>';
+      var sections = CATEGORY_ORDER.map(function(key) {
+        return categorySectionHtml((t.matches || {})[key], t.roster);
+      }).filter(Boolean);
+      html += sections.length ? sections.join('') : '<div class="archive-empty-note">' + escapeHtml((t && t.label) || TEAM_FALLBACK_LABEL[teamKey]) + '这个赛季还没有比赛记录。</div>';
       return html;
     }
 
@@ -517,18 +538,47 @@
     var barLabel = document.getElementById('seasonBarLabel');
     var barTag = document.getElementById('seasonBarTag');
 
-    // 点击中间才会展开的滚轮选择器：一列可以上下滑动的赛季列表
-    wheelPopup.innerHTML = seasons.map(function(sn, i) {
-      return '<div class="season-wheel-popup-item" data-index="' + i + '">' +
-        escapeHtml(sn.label) + (sn.current ? '<span class="tag">现役</span>' : '') +
-      '</div>';
-    }).join('');
+    // 点击中间才会展开的滚轮选择器：固定 3 行高度，正在看的赛季永远在
+    // 正中间；前后各放一个和一行等高的占位 spacer，这样第一个/最后一个
+    // 赛季也能被滚动到正中间。
+    wheelPopup.innerHTML =
+      '<div class="season-wheel-spacer" aria-hidden="true"></div>' +
+      seasons.map(function(sn, i) {
+        return '<div class="season-wheel-popup-item" data-index="' + i + '">' +
+          escapeHtml(sn.label) + (sn.current ? '<span class="tag">现役</span>' : '') +
+        '</div>';
+      }).join('') +
+      '<div class="season-wheel-spacer" aria-hidden="true"></div>';
 
     function refreshPopupActive() {
       Array.prototype.forEach.call(wheelPopup.querySelectorAll('.season-wheel-popup-item'), function(el) {
         el.classList.toggle('active', Number(el.dataset.index) === currentIndex);
       });
     }
+
+    // 滚动时找到离弹窗正中间最近的那一项，给它加上"当前查看"的放大高亮样式，
+    // 模拟真正滚轮"选中项永远居中"的感觉
+    function updateCenteredItem() {
+      var wrapRect = wheelPopup.getBoundingClientRect();
+      var mid = wrapRect.top + wrapRect.height / 2;
+      var items = wheelPopup.querySelectorAll('.season-wheel-popup-item');
+      var closest = null, closestDist = Infinity;
+      Array.prototype.forEach.call(items, function(el) {
+        var r = el.getBoundingClientRect();
+        var dist = Math.abs((r.top + r.height / 2) - mid);
+        if (dist < closestDist) { closestDist = dist; closest = el; }
+      });
+      Array.prototype.forEach.call(items, function(el) { el.classList.toggle('centered', el === closest); });
+      return closest;
+    }
+    var wheelScrollRaf = null;
+    wheelPopup.addEventListener('scroll', function() {
+      if (wheelScrollRaf) return;
+      wheelScrollRaf = requestAnimationFrame(function() {
+        wheelScrollRaf = null;
+        updateCenteredItem();
+      });
+    });
 
     function updateBar(direction) {
       var s = seasons[currentIndex];
@@ -577,6 +627,7 @@
       if (!wheelPopup.hidden) {
         var activeItem = wheelPopup.querySelector('.season-wheel-popup-item.active');
         if (activeItem) activeItem.scrollIntoView({ block: 'center' });
+        updateCenteredItem();
       }
     });
     wheelPopup.addEventListener('click', function(e) {
