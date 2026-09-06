@@ -23,24 +23,37 @@
         比赛数组；如果暂时没有逐场比分，可以用 note 写一句话代替
 
    2) teams.first / teams.reserve —— 一队 / 预备队分开版，只有
-      seasons.html（赛季存档页）用这个，结构和上面基本一样
-      （matches 按三大板块分组），但只放这支队伍自己的比赛。
-      - roster 字段目前保留在这里，只是一个"这支队伍大概有哪些人"
-        的名字池，seasons.html 不会把它单独列一块显示——具体谁上场
-        是挂在每场比赛自己的 lineup 字段上的（见下面）。
-      - 目前"一队/预备队"具体是哪些人是按老名单粗略拆的占位版，
+      seasons.html（赛季存档页）用这个。每个板块（league/huati/
+      xinnian）在页面上都是独立一份：自己的球员名单 + 自己的比赛
+      结果，横向两栏并排显示。
+      - roster：这支队伍整体的名字池，按 gk/def/mid/fwd 分组。
+        目前"一队/预备队"具体是哪些人是按老名单粗略拆的占位版，
         不是精确的历史记录（球员经常两队之间调整），以后要改哪个
         人属于哪队，直接在 teams.first.roster / teams.reserve.roster
         里挪名字就行，其他页面不受影响。
+      - matches.league / matches.huati / matches.xinnian：每个赛事
+        对象上可以有这些字段——
+          label：板块中文名
+          matches：具体比赛数组（对象里 date/time/team1/team2/
+            score/result 这几个字段会显示，team1/team2 的 davis:true
+            标记哪一边是我们自己）
+          note：还没有逐场比分时，用一句话代替比赛列表
+          roster（可选）：这个赛事专属的球员名单（跟队伍整体的
+            roster 结构一样，按 gk/def/mid/fwd 分组）——不写就自动
+            用这支队伍的整体 roster 占位，写了就优先显示这个
+          venue（可选）：比赛地点，显示在板块标题下面一行的小字里
+          schedule（可选）：赛事时间，跟 venue 并排显示在同一行；
+            venue/schedule 两个都没写，这一行就完全不出现
+      - 每场比赛下面的战绩小结（几战几胜几平几负、净胜球）是
+        seasons.html 自己从 matches 数组实时算出来的，不是存在
+        数据里的字段，比赛一改这里自动跟着变，不用管。
       - team 对象可以有一个可选的 note 字段：当这支队伍这个赛季
-        完全没有比赛数据、但有一句话背景（比如"这一年还没有
-        预备队"）时用，会替代掉常规的"还没整理"占位提示。
-      - matches.league/huati/xinnian 里每场比赛可以有一个可选的
-        lineup 字段（球员名字数组）：这是当场的出场名单，不是
-        整个赛季固定不变的——seasons.html 里点开某场比赛才会展开
-        显示。目前的 lineup 都是从这支队伍的 roster 里挑的占位
-        名单（不是真实的逐场出场记录），以后有真实出场记录了，
-        直接把对应比赛的 lineup 数组换掉就行。
+        完全没有比赛数据、名单也没有，但有一句话背景（比如"这一年
+        还没有预备队"）时用，会替代掉常规的"还没整理"占位提示。
+      - matches.league/huati/xinnian 里每场比赛对象上还留着一个
+        没被用到的 lineup 字段（球员名字数组，早期版本设想的"当场
+        出场名单"）——现在页面不读它，是无害的历史遗留数据，不用
+        管，也不用主动删。
 
    加一个新赛季：复制其中一段 { ... }，塞到 seasons 数组最前面，
    把旧赛季的 current: true 删掉、挪到新赛季上。
@@ -138,6 +151,8 @@ window.SEASON_DATA = {
           matches: {
             league: {
               label: "北加联",
+              venue: "北加州各赛区",
+              schedule: "2026 年 5 月",
               matches: [
                 { date:"May 16", time:"10:00", tag:"北加联", team1:{name:"Davis Origin", davis:true,  winner:false}, team2:{name:"HeHe FC",     davis:false, winner:true},  score:"0 : 2", result:"loss",
                   lineup: ["冯楚明","蔡毅诚","葛孟宇","吉芸莹","李金宇","Attila","Frank Zhu","金圣博","杜康松","刘子云","王俊皓"] },
@@ -151,11 +166,15 @@ window.SEASON_DATA = {
             },
             huati: {
               label: "华体会",
+              venue: "加州尔湾",
+              schedule: "2026 年 3 月 20–22 日",
               matches: [],
               note: "3 月 20–22 日加州华人大学生足球校际杯（尔湾）：小组赛 1 胜 2 平，力克 USC，战平 UCLA、UCSD，最终小组第四。具体逐场比分还没整理。"
             },
             xinnian: {
               label: "贺岁杯",
+              venue: "北美湾区",
+              schedule: "2026 年 1 月 16 日",
               matches: [],
               note: "1 月 16 日北美湾区贺岁杯迎战 Hunter、South Bay，具体比分还没整理。"
             }
@@ -172,6 +191,8 @@ window.SEASON_DATA = {
           matches: {
             league: {
               label: "北加联",
+              venue: "北加州各赛区",
+              schedule: "2026 年 5 月",
               matches: [
                 { date:"May 10", time:"19:45", tag:"北加联", team1:{name:"Davis Origin Reverse", davis:true, winner:false}, team2:{name:"Jinyue",       davis:false, winner:false}, score:"1 : 1", result:"draw",
                   lineup: ["相铮","柴泓旭","何嘉伦","李静诚","李明达","曹震旦","黄溆子","刘铠泽","刘奕","史佳驰","王亚珩"] },
@@ -183,11 +204,15 @@ window.SEASON_DATA = {
             },
             huati: {
               label: "华体会",
+              venue: "加州尔湾",
+              schedule: "2026 年 3 月 20–22 日",
               matches: [],
               note: "随队出征尔湾的加州华人大学生足球校际杯，最终小组第六，具体逐场比分还没整理。"
             },
             xinnian: {
               label: "贺岁杯",
+              venue: "北美湾区",
+              schedule: "2026 年 1 月 16 日",
               matches: [],
               note: "1 月 16 日北美湾区贺岁杯迎战 SF United，具体比分还没整理。"
             }

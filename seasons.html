@@ -208,6 +208,8 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   .season-archive-body.enter { animation: panelEnter .4s ease both; }
+  /* 切一队/预备队时只有这块内容淡入，不会带着上面的简介和切换按钮一起闪一下 */
+  .team-panel.enter { animation: panelEnter .3s ease both; }
 
   /* ===== "这一年的我们"——像告示栏一样的方框，把这个赛季的几句话概括都钉在里面 ===== */
   .season-board {
@@ -222,12 +224,12 @@
     box-shadow: 0 3px 6px rgba(0,0,0,.18), inset 0 1px 1px rgba(255,255,255,.4);
   }
   .season-board-title {
-    font-size: 21px; font-weight: 900; color: var(--ink);
-    margin-bottom: 18px; padding-left: 14px; position: relative;
+    font-size: 28px; font-weight: 900; color: var(--ink);
+    margin-bottom: 20px; padding-left: 16px; position: relative;
   }
   .season-board-title::before {
-    content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; width: 4px;
-    border-radius: 2px; background: var(--accent);
+    content: ''; position: absolute; left: 0; top: 2px; bottom: 2px; width: 5px;
+    border-radius: 2.5px; background: var(--accent);
   }
   .season-highlights { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .season-highlights li { position: relative; padding-left: 22px; font-size: 15px; color: var(--ink); line-height: 1.6; }
@@ -265,8 +267,12 @@
   }
 
   /* 每个赛事板块（北加联/华体会/贺岁杯）内部：左边这个赛事自己的球员
-     名单，右边这个赛事自己的比赛结果——每个板块都是独立的一份 */
-  .matches-section-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 28px; align-items: start; margin-top: 4px; }
+     名单，右边这个赛事自己的比赛结果——每个板块都是独立的一份。两栏
+     中间有一条细分隔线，让高度不一样看起来是设计出来的两栏，不是
+     版式没对齐。 */
+  .matches-section-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0; align-items: start; margin-top: 4px; }
+  .matches-roster-col { padding-right: 28px; }
+  .matches-results-col { padding-left: 28px; border-left: 1px solid var(--line); }
   .roster-col-title {
     font-size: 11.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
     color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
@@ -285,23 +291,62 @@
 
   /* 比赛板块 */
   .matches-section + .matches-section { margin-top: 36px; padding-top: 32px; border-top: 1px solid var(--line); }
+  /* 标题这一行：赛事名（放大）在左，这个赛事的战绩总结在右，同一行 */
+  .matches-section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px 16px; margin-bottom: 6px;
+  }
   .matches-section-title {
-    font-size: 22px; font-weight: 900; letter-spacing: 0; text-transform: none;
-    color: var(--ink); margin-bottom: 14px; padding-left: 14px; position: relative;
+    font-size: 30px; font-weight: 900; letter-spacing: 0; text-transform: none;
+    color: var(--ink); padding-left: 16px; position: relative;
   }
   .matches-section-title::before {
-    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 4px;
-    border-radius: 2px; background: var(--accent);
+    content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; width: 5px;
+    border-radius: 2.5px; background: var(--accent);
+  }
+  /* 赛事统计做成一块有背景的小板子，胜/平/负各自分开、各自配色，
+     跟比赛行左边的胜平负色条是同一套颜色语言 */
+  .matches-section-summary {
+    display: flex; align-items: center; flex-wrap: wrap;
+    background: var(--switch-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 5px 2px; font-size: 13px; font-weight: 700; color: var(--ink-soft);
+  }
+  .matches-section-summary .ms-stat { padding: 5px 11px; white-space: nowrap; }
+  .matches-section-summary .ms-stat + .ms-stat { border-left: 1px solid var(--line); }
+  .matches-section-summary .ms-stat-total,
+  .matches-section-summary .ms-stat-gd { color: var(--ink); font-weight: 800; }
+  .matches-section-summary .ms-stat-win { color: var(--accent); }
+  .matches-section-summary .ms-stat-draw { color: var(--muted); }
+  .matches-section-summary .ms-stat-loss { color: #b04646; }
+  /* 标题下面一行小字：比赛地点 / 赛事时间，一左一右分开显示；没有数据就不显示这一行 */
+  .matches-section-meta {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 28px;
+    margin: 0 0 16px; padding-left: 16px;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .matches-section-meta .meta-label {
+    font-weight: 700; color: var(--ink-soft); margin-right: 5px;
   }
   .matches-section-note {
     font-size: 14px; color: var(--ink-soft); line-height: 1.8; background: var(--card);
     border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
   }
+  /* 每场比赛做成带边框+阴影的卡片，左边一条细色条标记胜/平/负，
+     跟标题、告示栏左边那条竖线是同一套视觉语言 */
   .match-row {
     display: grid; grid-template-columns: 88px 1fr auto; gap: 16px;
-    padding: 14px 16px; margin-bottom: 6px; border-radius: 12px;
-    align-items: center; background: var(--bg-soft); transition: background .2s ease;
+    padding: 14px 16px 14px 20px; margin-bottom: 10px; border-radius: 12px;
+    align-items: center; background: var(--card); border: 1px solid var(--line);
+    box-shadow: 0 2px 10px rgba(15,29,77,.04);
+    position: relative; overflow: hidden;
+    transition: box-shadow .2s ease, transform .2s ease;
   }
+  .match-row:hover { box-shadow: 0 8px 22px rgba(15,29,77,.10); transform: translateY(-1px); }
+  .match-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent);
+  }
+  .match-row.draw::before { background: var(--muted); }
+  .match-row.loss::before { background: #b04646; }
   .match-date-col { font-variant-numeric: tabular-nums; }
   .match-date-day { font-size: 14px; font-weight: 700; color: var(--ink); }
   .match-date-time { font-size: 12px; color: var(--muted); margin-top: 3px; }
@@ -355,10 +400,20 @@
     .season-bar-label { font-size: 14px; }
     .team-tab { padding: 11px 22px; font-size: 13.5px; }
     .season-board { padding: 24px 20px 20px; }
-    .season-board-title { font-size: 18px; margin-bottom: 14px; }
-    .matches-section-grid { grid-template-columns: 1fr; gap: 18px; }
-    .matches-section-title { font-size: 18px; margin-bottom: 12px; }
-    .match-row { grid-template-columns: 70px 1fr auto; gap: 10px; padding: 12px; }
+    .season-board-title { font-size: 20px; margin-bottom: 14px; padding-left: 13px; }
+    /* 手机端：赛事结果在上、球员名单在下，中间一条细横线分隔 */
+    .matches-section-grid { grid-template-columns: 1fr; gap: 0; }
+    .matches-results-col {
+      order: 1; padding-left: 0; border-left: none;
+      padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line);
+    }
+    .matches-roster-col { order: 2; padding-right: 0; }
+    .matches-section-title { font-size: 22px; padding-left: 14px; }
+    .matches-section-title::before { width: 4px; }
+    .matches-section-meta { padding-left: 14px; }
+    .matches-section-summary { font-size: 12px; }
+    .matches-section-summary .ms-stat { padding: 4px 8px; }
+    .match-row { grid-template-columns: 70px 1fr auto; gap: 10px; padding: 12px 12px 12px 16px; }
     .match-team { font-size: 13.5px; }
     .match-score { font-size: 13px; padding: 4px 9px; }
     .match-result { width: 26px; height: 26px; font-size: 10px; }
@@ -416,7 +471,10 @@
     if (!seasons.length) return;
 
     var POSITION_ORDER = ['gk', 'def', 'mid', 'fwd'];
-    var CATEGORY_ORDER = ['league', 'huati', 'xinnian'];
+    // 板块显示顺序按赛季内的自然时间线排：华体会（11月）→ 贺岁杯（次年1月）→
+    // 北加联（次年5月）。具体某一年某个赛事的实际举办日期以该赛事对象自己的
+    // venue/schedule 字段为准，这个顺序只是三大板块固定的展示先后。
+    var CATEGORY_ORDER = ['huati', 'xinnian', 'league'];
     var TEAM_ORDER = ['first', 'reserve'];
     var TEAM_FALLBACK_LABEL = { first: '一队', reserve: '预备队' };
 
@@ -437,7 +495,8 @@
     }
     function matchRowHtml(m) {
       var resultCls = 'match-result' + (m.result !== 'win' ? ' ' + m.result : '');
-      return '<div class="match-row">' +
+      var rowCls = 'match-row' + (m.result !== 'win' ? ' ' + m.result : '');
+      return '<div class="' + rowCls + '">' +
         '<div class="match-date-col">' +
           '<div class="match-date-day">' + escapeHtml(m.date) + '</div>' +
           '<div class="match-date-time">' + escapeHtml(m.time || '') + '</div>' +
@@ -503,6 +562,49 @@
       return '<div class="archive-empty-note">比赛结果还没整理。</div>';
     }
 
+    // 从这个赛事已有的比赛列表里实时算战绩（场次/胜/平/负/净胜球），
+    // 不用额外存数据，比赛一加/一改这里自动跟着变
+    function categoryRecord(cat) {
+      var matches = (cat && cat.matches) || [];
+      if (!matches.length) return null;
+      var w = 0, d = 0, l = 0, gf = 0, ga = 0;
+      matches.forEach(function(m) {
+        if (m.result === 'win') w++;
+        else if (m.result === 'draw') d++;
+        else if (m.result === 'loss') l++;
+        var parts = String(m.score || '').split(':').map(function(x) { return parseInt(x, 10); });
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          var davisIsTeam1 = m.team1 && m.team1.davis;
+          gf += davisIsTeam1 ? parts[0] : parts[1];
+          ga += davisIsTeam1 ? parts[1] : parts[0];
+        }
+      });
+      return { total: matches.length, w: w, d: d, l: l, gf: gf, ga: ga, gd: gf - ga };
+    }
+
+    function categorySummaryHtml(cat) {
+      var rec = categoryRecord(cat);
+      if (!rec) return '';
+      var gdStr = rec.gd > 0 ? ('+' + rec.gd) : String(rec.gd);
+      return '<div class="matches-section-summary">' +
+        '<span class="ms-stat ms-stat-total">' + rec.total + ' 战</span>' +
+        '<span class="ms-stat ms-stat-win">' + rec.w + ' 胜</span>' +
+        '<span class="ms-stat ms-stat-draw">' + rec.d + ' 平</span>' +
+        '<span class="ms-stat ms-stat-loss">' + rec.l + ' 负</span>' +
+        '<span class="ms-stat ms-stat-gd">净胜球 ' + gdStr + '</span>' +
+      '</div>';
+    }
+
+    // 比赛地点 / 赛事时间——数据来自赛事对象上可选的 venue / schedule 字段，
+    // 哪个没有就不显示哪个，两个都没有就整行都不出现
+    function categoryMetaHtml(cat) {
+      var parts = [];
+      if (cat.venue) parts.push('<span><span class="meta-label">比赛地点</span>' + escapeHtml(cat.venue) + '</span>');
+      if (cat.schedule) parts.push('<span><span class="meta-label">赛事时间</span>' + escapeHtml(cat.schedule) + '</span>');
+      if (!parts.length) return '';
+      return '<div class="matches-section-meta">' + parts.join('') + '</div>';
+    }
+
     // 每个赛事板块（北加联/华体会/贺岁杯）都是独立一份：自己的球员名单 + 自己的比赛结果
     function categorySectionHtml(cat, fallbackRoster) {
       if (!cat) return '';
@@ -511,7 +613,11 @@
       var hasRoster = rosterObjTotal(roster) > 0;
       if (!hasMatches && !cat.note && !hasRoster) return '';
       return '<div class="matches-section">' +
-        '<div class="matches-section-title">' + escapeHtml(cat.label) + '</div>' +
+        '<div class="matches-section-head">' +
+          '<div class="matches-section-title">' + escapeHtml(cat.label) + '</div>' +
+          categorySummaryHtml(cat) +
+        '</div>' +
+        categoryMetaHtml(cat) +
         '<div class="matches-section-grid">' +
           '<div class="matches-roster-col">' + categoryRosterHtml(roster) + '</div>' +
           '<div class="matches-results-col">' + categoryResultsHtml(cat) + '</div>' +
@@ -684,6 +790,24 @@
       bodyEl.classList.add('enter');
     }
 
+    // 切一队/预备队：只重新渲染 #teamPanel 这一块，简介（这一年的我们）
+    // 和上面的切换按钮本身都不动，不会有整个内容区跟着刷新的闪烁感
+    function switchTeam(key) {
+      if (key === activeTeam) return;
+      activeTeam = key;
+      Array.prototype.forEach.call(document.querySelectorAll('.team-tab'), function(el) {
+        el.classList.toggle('active', el.dataset.team === key);
+      });
+      var s = seasons[currentIndex];
+      var teams = s.teams || {};
+      var panelEl = document.getElementById('teamPanel');
+      if (!panelEl) return;
+      panelEl.classList.remove('enter');
+      void panelEl.offsetWidth;
+      panelEl.innerHTML = teamPanelHtml(teams[key], key);
+      panelEl.classList.add('enter');
+    }
+
     function goTo(idx, direction) {
       if (idx === currentIndex || idx < 0 || idx >= seasons.length) return;
       currentIndex = idx;
@@ -718,8 +842,7 @@
     document.querySelector('.season-archive').addEventListener('click', function(e) {
       var teamBtn = e.target.closest('.team-tab');
       if (teamBtn) {
-        activeTeam = teamBtn.dataset.team;
-        renderBody();
+        switchTeam(teamBtn.dataset.team);
       }
     });
 
