@@ -116,16 +116,6 @@
   .team-block-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
   .team-block-title{font-size:14.5px;font-weight:700}
 
-  .cat-card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff}
-  .cat-card-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-  .cat-card-hd b{font-size:14px}
-  .cat-card-hd .hint{margin:0}
-
-  .roster-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .roster-grid .field{margin-bottom:0}
-  .roster-grid label{font-size:10px}
-  .roster-grid textarea{min-height:90px;font-size:13.5px}
-
   table.mtx{width:100%;border-collapse:collapse;margin-top:10px}
   table.mtx th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
     color:var(--muted);padding:0 8px 8px;border-bottom:1.5px solid var(--line)}
@@ -187,9 +177,64 @@
     padding:16px;font-size:12px;line-height:1.6;overflow:auto;max-height:420px;
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
+  /* 一队/预备队 切换 */
+  .team-switch{display:inline-flex;gap:4px;background:#efede9;padding:4px;border-radius:10px;margin-bottom:16px}
+  .team-switch button{border:none;background:none;padding:8px 20px;border-radius:7px;
+    font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;transition:all .18s}
+  .team-switch button:hover{color:var(--ink)}
+  .team-switch button.on{background:#fff;color:var(--accent);box-shadow:0 2px 6px rgba(13,18,36,.08)}
+
+  /* 折叠式赛事卡片 */
+  .cat-card{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:#fff;overflow:hidden}
+  .cat-card summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;
+    justify-content:space-between;align-items:center;gap:10px;user-select:none}
+  .cat-card summary::-webkit-details-marker{display:none}
+  .cat-card summary .cs-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .cat-card summary .cs-caret{width:9px;height:9px;border-right:2px solid var(--muted);
+    border-bottom:2px solid var(--muted);transform:rotate(-45deg);flex-shrink:0;transition:transform .18s}
+  .cat-card[open] summary .cs-caret{transform:rotate(45deg)}
+  .cat-card summary b{font-size:14.5px}
+  .cat-card summary .hint{margin:0}
+  .cat-card-body{padding:0 18px 18px}
+  .cat-card-hd{margin-bottom:0}
+
+  /* 添加赛事 */
+  .add-event-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+  .tmpl-btn{padding:8px 16px;border:1.5px dashed var(--line);border-radius:999px;background:var(--bg-soft);
+    font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:all .18s}
+  .tmpl-btn:hover{border-color:var(--accent);border-style:solid;color:var(--accent);background:var(--accent-soft)}
+  .custom-event-box{display:none;gap:8px;align-items:center}
+  .custom-event-box.on{display:flex}
+  .custom-event-box input{padding:8px 12px;border:1px solid var(--line);border-radius:8px;
+    background:var(--bg-soft);font-size:13.5px;width:180px}
+
+  /* 球员搜索选择器 */
+  .picker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .picker-grid .field{margin-bottom:0}
+  .picker-grid label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:7px;display:block}
+  .picker-col{position:relative}
+  .picker-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;margin-bottom:8px}
+  .picker-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 11px;
+    border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12.5px;font-weight:600}
+  .picker-chip button{border:none;background:rgba(30,58,138,.14);color:var(--accent);border-radius:50%;
+    width:16px;height:16px;line-height:1;cursor:pointer;font-size:11px;display:grid;place-items:center;padding:0}
+  .picker-chip button:hover{background:rgba(30,58,138,.28)}
+  .picker-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;font-size:13px}
+  .picker-input:focus{outline:none;border-color:var(--accent)}
+  .picker-dd{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:var(--card);
+    border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(13,18,36,.14);
+    z-index:20;max-height:220px;overflow:auto;display:none}
+  .picker-dd.on{display:block}
+  .picker-dd-item{padding:9px 13px;font-size:13.5px;cursor:pointer;transition:background .15s}
+  .picker-dd-item:hover,.picker-dd-item.hi{background:var(--accent-soft);color:var(--accent)}
+  .picker-dd-item.add-new{color:var(--ok);font-weight:600}
+  .picker-dd-empty{padding:9px 13px;font-size:12.5px;color:var(--muted)}
+
   @media(max-width:860px){
     .topbar-inner,main.wrap{padding-left:16px;padding-right:16px}
-    .row2,.row3,.row4,.roster-grid{grid-template-columns:1fr}
+    .row2,.row3,.row4,.picker-grid{grid-template-columns:1fr}
     .card{padding:20px 16px}
   }
 </style>
@@ -275,7 +320,7 @@
 <div class="modal-bg" id="mSeasonBg">
   <div class="modal">
     <h3>新建赛季</h3>
-    <div class="sub">新赛季会自动建好一队/预备队和四个赛事类目的空壳，之后再逐项填。</div>
+    <div class="sub">新赛季会自动建好一队/预备队两个空壳；赛事不会自动建，去"名单与比赛"里按需添加（可以用常见模版，也可以自己起名字）。</div>
     <div class="field">
       <label for="nsId">赛季 ID（如 26-27，建好之后不能改）</label>
       <input type="text" id="nsId" placeholder="26-27" />
@@ -309,6 +354,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.3/dist/index.js"></script>
 <script>
 if (location.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
   location.replace('https://' + location.host + location.pathname + location.search + location.hash);
@@ -332,7 +378,37 @@ async function resolveApi() {
 
 const TK = 'do_admin_token'; // 跟收费后台共用同一个登录状态
 let D = null;                // /content/all 的原始数据
+let ALL_PLAYERS = [];        // 收费后台球员名单（/data 的 players），给名单选择器搜索用
 let curSeasonId = null;
+let curTeamKey = 'first';    // 当前"名单与比赛"tab 里选的是一队还是预备队
+
+const EVENT_TEMPLATES = [
+  { key: 'league',  label: '北加联' },
+  { key: 'huati',   label: '华体会' },
+  { key: 'xinnian', label: '贺岁杯' },
+];
+
+// 球员名单搜索选择器：prefix+position -> { getNames() }
+const rosterPickers = new Map();
+// 点搜索框以外的地方，收起所有还开着的下拉
+document.addEventListener('click', e => {
+  if (!e.target.closest('.picker-col')) {
+    document.querySelectorAll('.picker-dd.on').forEach(dd => dd.classList.remove('on'));
+  }
+});
+function matchesQuery(name, q) {
+  const nm = String(name || '');
+  q = String(q || '').trim();
+  if (!q) return true;
+  if (nm.toLowerCase().includes(q.toLowerCase())) return true;
+  if (window.pinyinPro && typeof window.pinyinPro.match === 'function') {
+    try {
+      const r = window.pinyinPro.match(nm, q);
+      return !!(r && r.length);
+    } catch (e) { /* 拼音库万一出错，退回普通子串匹配就好 */ }
+  }
+  return false;
+}
 
 const $ = id => document.getElementById(id);
 function esc(s) {
@@ -420,7 +496,7 @@ function renderSeasonBar() {
     const chip = document.createElement('div');
     chip.className = 'season-chip' + (s.id === curSeasonId ? ' on' : '');
     chip.innerHTML = (s.is_current ? '<span class="dot"></span>' : '') + esc(s.label);
-    chip.onclick = () => { curSeasonId = s.id; render(); };
+    chip.onclick = () => { curSeasonId = s.id; curTeamKey = 'first'; render(); };
     bar.appendChild(chip);
   });
   const spacer = document.createElement('div');
@@ -517,16 +593,75 @@ $('nsSave').onclick = async () => {
 };
 
 /* ===================== 名单与比赛 ===================== */
-function rosterTextareas(prefix, roster) {
-  return `<div class="roster-grid">` + POS.map(p => `
-    <div class="field">
-      <label>${POS_LABEL[p]}</label>
-      <textarea data-pos="${p}" id="${prefix}_${p}">${esc((roster[p] || []).join('\n'))}</textarea>
-    </div>`).join('') + `</div><div class="hint">一行一个名字。</div>`;
+/* 球员名单选择器：每个位置一栏，搜索框可以按姓名/拼音/首字母匹配收费后台的
+ * 球员名单，点了就加进来；搜不到也可以直接把输入的名字当新名字加进去。 */
+function pickerColHtml(prefix, pos, names) {
+  return `<div class="field picker-col" data-prefix="${esc(prefix)}" data-pos="${pos}">
+    <label>${POS_LABEL[pos]}</label>
+    <div class="picker-chips" data-roster='${esc(JSON.stringify(names || []))}'></div>
+    <input class="picker-input" type="text" placeholder="搜姓名/拼音/首字母" autocomplete="off" />
+    <div class="picker-dd"></div>
+  </div>`;
 }
-function readRosterTextareas(prefix) {
+function rosterPickerHtml(prefix, roster) {
+  return `<div class="picker-grid">` + POS.map(p => pickerColHtml(prefix, p, roster[p] || [])).join('') +
+    `</div><div class="hint">输入姓名/拼音/首字母，从列表里点选加入；名单里没有的新名字也可以直接加。</div>`;
+}
+function mountRosterPickers(root) {
+  root.querySelectorAll('.picker-col').forEach(col => {
+    const prefix = col.dataset.prefix, pos = col.dataset.pos;
+    const chipsBox = col.querySelector('.picker-chips');
+    const input = col.querySelector('.picker-input');
+    const dd = col.querySelector('.picker-dd');
+    let names = [];
+    try { names = JSON.parse(chipsBox.dataset.roster || '[]'); } catch (e) {}
+
+    function renderChips() {
+      chipsBox.innerHTML = names.map((n, i) =>
+        `<span class="picker-chip">${esc(n)}<button type="button" data-i="${i}">&times;</button></span>`).join('');
+      chipsBox.querySelectorAll('button').forEach(b => b.onclick = () => {
+        names.splice(Number(b.dataset.i), 1);
+        renderChips();
+      });
+    }
+    function addName(n) {
+      n = String(n || '').trim();
+      if (!n || names.includes(n)) { input.value = ''; dd.classList.remove('on'); return; }
+      names.push(n);
+      renderChips();
+      input.value = '';
+      dd.classList.remove('on');
+      input.focus();
+    }
+    function renderDD() {
+      const q = input.value.trim();
+      if (!q) { dd.classList.remove('on'); dd.innerHTML = ''; return; }
+      const matched = ALL_PLAYERS.filter(n => !names.includes(n) && matchesQuery(n, q)).slice(0, 30);
+      let html = matched.map(n => `<div class="picker-dd-item" data-name="${esc(n)}">${esc(n)}</div>`).join('');
+      if (!ALL_PLAYERS.includes(q)) {
+        html += `<div class="picker-dd-item add-new" data-name="${esc(q)}">+ 添加新名字「${esc(q)}」（不在球员名单里）</div>`;
+      }
+      dd.innerHTML = html || `<div class="picker-dd-empty">没有匹配</div>`;
+      dd.classList.add('on');
+      dd.querySelectorAll('.picker-dd-item').forEach(it => it.onclick = () => addName(it.dataset.name));
+    }
+    input.oninput = renderDD;
+    input.onfocus = renderDD;
+    input.onkeydown = e => {
+      if (e.key === 'Enter') { e.preventDefault(); if (input.value.trim()) addName(input.value); }
+      else if (e.key === 'Escape') { dd.classList.remove('on'); }
+    };
+
+    renderChips();
+    rosterPickers.set(prefix + '_' + pos, { getNames: () => names.slice() });
+  });
+}
+function readRosterPicker(prefix) {
   const out = {};
-  POS.forEach(p => { out[p] = $(`${prefix}_${p}`).value.split('\n').map(x => x.trim()).filter(Boolean); });
+  POS.forEach(p => {
+    const ctrl = rosterPickers.get(prefix + '_' + p);
+    out[p] = ctrl ? ctrl.getNames() : [];
+  });
   return out;
 }
 
@@ -556,44 +691,73 @@ function newMatchRowHtml(catId) {
   </tr>`;
 }
 
-function categoryCardHtml(cat) {
-  return `<div class="cat-card" data-cat="${cat.id}">
-    <div class="cat-card-hd">
-      <b>${esc(cat.label)}</b>
-      <div class="hint">key: ${esc(cat.category_key)}</div>
-    </div>
-    <div class="row3">
-      <div class="field"><label>赛事名称</label><input class="c-label" value="${esc(cat.label)}" /></div>
-      <div class="field"><label>场地</label><input class="c-venue" value="${esc(cat.venue || '')}" /></div>
-      <div class="field"><label>赛程说明</label><input class="c-schedule" value="${esc(cat.schedule || '')}" /></div>
-    </div>
-    <div class="field"><label>说明（还没有逐场比分时显示的一句话，比如"赛程待定"）</label><input class="c-note" value="${esc(cat.note || '')}" /></div>
-    <button class="btn ghost sm" data-act="save-cat" data-id="${cat.id}">保存赛事信息</button>
+function categoryCardHtml(cat, isOpen) {
+  return `<details class="cat-card" data-cat="${cat.id}" ${isOpen ? 'open' : ''}>
+    <summary>
+      <div class="cs-left"><span class="cs-caret"></span><b>${esc(cat.label)}</b></div>
+      <div class="hint">${cat.matches.length} 场比赛</div>
+    </summary>
+    <div class="cat-card-body">
+      <div class="row3">
+        <div class="field"><label>赛事名称</label><input class="c-label" value="${esc(cat.label)}" /></div>
+        <div class="field"><label>场地</label><input class="c-venue" value="${esc(cat.venue || '')}" /></div>
+        <div class="field"><label>赛程说明</label><input class="c-schedule" value="${esc(cat.schedule || '')}" /></div>
+      </div>
+      <div class="field"><label>说明（还没有逐场比分时显示的一句话，比如"赛程待定"）</label><input class="c-note" value="${esc(cat.note || '')}" /></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost sm" data-act="save-cat" data-id="${cat.id}">保存赛事信息</button>
+        <button class="btn danger sm" data-act="del-cat" data-id="${cat.id}">删除这个赛事</button>
+      </div>
 
-    <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
-      <div class="field chk-line"><input type="checkbox" class="c-use-roster" ${cat.hasCatRoster ? 'checked' : ''} /><span>这个赛事单独配一份球员名单（不勾选就跟队伍整体名单一样）</span></div>
-      <div class="cat-roster-box" style="${cat.hasCatRoster ? '' : 'display:none'}">
-        ${rosterTextareas('catroster_' + cat.id, cat.roster)}
-        <button class="btn ghost sm" data-act="save-cat-roster" data-id="${cat.id}">保存专属名单</button>
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
+        <div class="hint" style="margin-bottom:8px">这个赛事的球员名单（留空就跟队伍整体名单一样）</div>
+        ${rosterPickerHtml('catroster_' + cat.id, cat.roster)}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn ghost sm" data-act="save-cat-roster" data-id="${cat.id}">保存这份名单</button>
+          <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空（恢复跟队伍整体一样）</button>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
+        <div class="hint" style="margin-bottom:8px">比赛（${cat.matches.length} 场）</div>
+        <div style="overflow-x:auto">
+          <table class="mtx">
+            <thead><tr><th>日期</th><th>时间</th><th>对手</th><th colspan="3">比分（Davis : 对方）</th><th></th></tr></thead>
+            <tbody>
+              ${cat.matches.map(m => matchRowHtml(m, cat.id)).join('')}
+              ${newMatchRowHtml(cat.id)}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+  </details>`;
+}
 
-    <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
-      <div class="hint" style="margin-bottom:8px">比赛（${cat.matches.length} 场）</div>
-      <div style="overflow-x:auto">
-        <table class="mtx">
-          <thead><tr><th>日期</th><th>时间</th><th>对手</th><th colspan="3">比分（Davis : 对方）</th><th></th></tr></thead>
-          <tbody>
-            ${cat.matches.map(m => matchRowHtml(m, cat.id)).join('')}
-            ${newMatchRowHtml(cat.id)}
-          </tbody>
-        </table>
-      </div>
+function teamSwitchHtml(b) {
+  return `<div class="team-switch">` + b.teams.map(t =>
+    `<button type="button" class="${t.team_key === curTeamKey ? 'on' : ''}" data-team-key="${t.team_key}">${esc(TEAM_LABEL_FALLBACK[t.team_key] || t.label)}</button>`
+  ).join('') + `</div>`;
+}
+
+function addEventRowHtml(t) {
+  const existingKeys = new Set(t.categories.map(c => c.category_key));
+  const tmplBtns = EVENT_TEMPLATES.filter(tpl => !existingKeys.has(tpl.key)).map(tpl =>
+    `<button type="button" class="tmpl-btn" data-tmpl-key="${tpl.key}" data-tmpl-label="${esc(tpl.label)}">+ ${esc(tpl.label)}</button>`
+  ).join('');
+  return `<div class="add-event-row" data-team="${t.id}">
+    ${tmplBtns}
+    <button type="button" class="tmpl-btn" data-tmpl-custom="1">+ 新赛事…</button>
+    <div class="custom-event-box">
+      <input type="text" class="custom-event-input" placeholder="赛事名称" />
+      <button type="button" class="btn sm" data-act="add-custom-event">添加</button>
+      <button type="button" class="btn ghost sm" data-act="cancel-custom-event">取消</button>
     </div>
   </div>`;
 }
 
 function teamBlockHtml(t) {
+  const openId = t.categories.length ? t.categories[0].id : null;
   return `<div class="team-block" data-team="${t.id}">
     <div class="team-block-hd">
       <div class="team-block-title">${esc(t.label)}<span class="hint" style="display:inline;margin-left:8px">(${t.team_key === 'first' ? '一队' : '预备队'})</span></div>
@@ -606,12 +770,14 @@ function teamBlockHtml(t) {
 
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
       <div class="hint" style="margin-bottom:8px">队伍整体名单</div>
-      ${rosterTextareas('teamroster_' + t.id, t.roster)}
+      ${rosterPickerHtml('teamroster_' + t.id, t.roster)}
       <button class="btn ghost sm" style="margin-top:10px" data-act="save-team-roster" data-id="${t.id}">保存整体名单</button>
     </div>
 
-    <div style="margin-top:18px">
-      ${t.categories.map(categoryCardHtml).join('')}
+    <div style="margin-top:22px">
+      <div class="hint" style="margin-bottom:10px">赛事（每个学期参加的不一定一样，用模版快速加，或者自己起名字）</div>
+      ${addEventRowHtml(t)}
+      ${t.categories.length ? t.categories.map(cat => categoryCardHtml(cat, cat.id === openId)).join('') : '<div class="empty">还没有添加赛事，点上面加一个吧</div>'}
     </div>
   </div>`;
 }
@@ -620,7 +786,54 @@ function renderContentTab(bySeason) {
   const area = $('contentArea');
   const b = bySeason[curSeasonId];
   if (!b) { area.innerHTML = '<div class="card"><div class="empty">先在"赛季信息"里新建一个赛季。</div></div>'; return; }
-  area.innerHTML = `<div class="card"><div class="card-head"><div class="card-title">${esc(b.season.label)} · 名单与比赛</div></div>${b.teams.map(teamBlockHtml).join('')}</div>`;
+  if (!b.teams.some(t => t.team_key === curTeamKey)) curTeamKey = b.teams.length ? b.teams[0].team_key : 'first';
+  const curTeam = b.teams.find(t => t.team_key === curTeamKey);
+
+  rosterPickers.clear();
+  area.innerHTML = `<div class="card">
+    <div class="card-head"><div class="card-title">${esc(b.season.label)} · 名单与比赛</div></div>
+    ${teamSwitchHtml(b)}
+    ${curTeam ? teamBlockHtml(curTeam) : '<div class="empty">这支队伍还没建好</div>'}
+  </div>`;
+  mountRosterPickers(area);
+
+  area.querySelectorAll('.team-switch button').forEach(btn => btn.onclick = () => {
+    curTeamKey = btn.dataset.teamKey;
+    render();
+  });
+
+  area.querySelectorAll('.tmpl-btn[data-tmpl-key]').forEach(btn => btn.onclick = async () => {
+    const teamId = btn.closest('.add-event-row').dataset.team;
+    btn.disabled = true;
+    try {
+      await api('/content/categories', {
+        method: 'POST',
+        body: JSON.stringify({ teamId: Number(teamId), key: btn.dataset.tmplKey, label: btn.dataset.tmplLabel }),
+      });
+      await reload(); toast('已添加赛事');
+    } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
+  });
+
+  area.querySelectorAll('.tmpl-btn[data-tmpl-custom]').forEach(btn => btn.onclick = () => {
+    const box = btn.closest('.add-event-row').querySelector('.custom-event-box');
+    box.classList.add('on');
+    box.querySelector('.custom-event-input').focus();
+  });
+  area.querySelectorAll('[data-act="cancel-custom-event"]').forEach(btn => btn.onclick = () => {
+    const box = btn.closest('.custom-event-box');
+    box.classList.remove('on');
+    box.querySelector('.custom-event-input').value = '';
+  });
+  area.querySelectorAll('[data-act="add-custom-event"]').forEach(btn => btn.onclick = async () => {
+    const row = btn.closest('.add-event-row');
+    const label = row.querySelector('.custom-event-input').value.trim();
+    if (!label) { toast('填个赛事名称', true); return; }
+    btn.disabled = true;
+    try {
+      await api('/content/categories', { method: 'POST', body: JSON.stringify({ teamId: Number(row.dataset.team), label }) });
+      await reload(); toast('已添加赛事');
+    } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
+  });
 
   area.querySelectorAll('[data-act="save-team"]').forEach(btn => btn.onclick = async () => {
     const wrap = btn.closest('.team-block');
@@ -638,7 +851,7 @@ function renderContentTab(bySeason) {
     const teamId = btn.dataset.id;
     btn.disabled = true;
     try {
-      await api(`/content/team-roster/${teamId}`, { method: 'PUT', body: JSON.stringify({ roster: readRosterTextareas('teamroster_' + teamId) }) });
+      await api(`/content/team-roster/${teamId}`, { method: 'PUT', body: JSON.stringify({ roster: readRosterPicker('teamroster_' + teamId) }) });
       await reload(); toast('已保存');
     } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
   });
@@ -660,20 +873,27 @@ function renderContentTab(bySeason) {
     } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
   });
 
-  area.querySelectorAll('.c-use-roster').forEach(chk => chk.onchange = () => {
-    chk.closest('.cat-card').querySelector('.cat-roster-box').style.display = chk.checked ? '' : 'none';
-  });
+  area.querySelectorAll('[data-act="del-cat"]').forEach(btn => btn.onclick = () => confirmModal(
+    '删除这个赛事？', '这个赛事底下的比赛和专属名单会一起删掉，删完发布一次才会在网站上消失，删错了也没法撤销。',
+    async () => { await api(`/content/category/${btn.dataset.id}`, { method: 'DELETE' }); await reload(); toast('已删除'); }
+  ));
 
   area.querySelectorAll('[data-act="save-cat-roster"]').forEach(btn => btn.onclick = async () => {
-    const wrap = btn.closest('.cat-card');
-    const use = wrap.querySelector('.c-use-roster').checked;
     btn.disabled = true;
     try {
-      const roster = use ? readRosterTextareas('catroster_' + wrap.dataset.cat) : { gk: [], def: [], mid: [], fwd: [] };
-      await api(`/content/category-roster/${wrap.dataset.cat}`, { method: 'PUT', body: JSON.stringify({ roster }) });
+      const roster = readRosterPicker('catroster_' + btn.dataset.id);
+      await api(`/content/category-roster/${btn.dataset.id}`, { method: 'PUT', body: JSON.stringify({ roster }) });
       await reload(); toast('已保存');
     } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
   });
+
+  area.querySelectorAll('[data-act="clear-cat-roster"]').forEach(btn => btn.onclick = () => confirmModal(
+    '清空这个赛事的专属名单？', '清空之后这个赛事显示的球员会跟队伍整体名单一样。',
+    async () => {
+      await api(`/content/category-roster/${btn.dataset.id}`, { method: 'PUT', body: JSON.stringify({ roster: { gk: [], def: [], mid: [], fwd: [] } }) });
+      await reload(); toast('已清空');
+    }
+  ));
 
   area.querySelectorAll('[data-act="add-match"]').forEach(btn => btn.onclick = async () => {
     const tr = btn.closest('tr');
@@ -784,7 +1004,12 @@ $('btnRefresh').onclick = async () => {
 };
 
 async function reload() {
-  D = await api('/content/all');
+  const [content, feeData] = await Promise.all([
+    api('/content/all'),
+    api('/data').catch(() => null), // 球员名单选择器要用；拿不到也不影响其它功能，退化成只能手动加新名字
+  ]);
+  D = content;
+  ALL_PLAYERS = (feeData && Array.isArray(feeData.players)) ? feeData.players : [];
   render();
 }
 

@@ -490,6 +490,16 @@
   .sess-names summary:hover{color:var(--accent)}
   .sess-names-body{font-size:12.5px;color:var(--ink-soft);line-height:1.9;
     margin-top:8px;padding:12px 14px;background:var(--bg-soft);border-radius:9px}
+  .sess-names-hint{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+  .name-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .name-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+    background:#fff;border:1px solid var(--line);font-size:12.5px;color:var(--ink-soft);
+    cursor:pointer;transition:all .15s;line-height:1.5}
+  .name-chip:hover{border-color:var(--accent);color:var(--accent)}
+  .name-chip.ex{background:var(--warn-soft);border-color:rgba(176,118,42,.35);color:#7a5518}
+  .name-chip.ex:hover{border-color:var(--warn)}
+  .name-chip .ex-flag{font-size:10.5px;font-weight:700;background:var(--warn);color:#fff;
+    padding:1px 5px;border-radius:5px;letter-spacing:.04em}
 
   .toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);background:var(--ink);
     color:#fff;padding:12px 22px;border-radius:10px;font-size:13.5px;font-weight:500;opacity:0;
@@ -1957,9 +1967,17 @@ function renderSessions(){
         <div class="sess-sub">
           ${isMatch?'参赛':'到场'} <b>${s.attendees.length}</b> 人${showCost ? ` · 费用 <b>${money(s.cost)}</b>` : ''}${isMatch && s.attendees.length ? ` · 人均 <b>${money(per)}</b>` : ''}
         </div>
-        <details class="sess-names">
+        <details class="sess-names" ${openNames.has(s.id)?'open':''}>
           <summary>查看名单</summary>
-          <div class="sess-names-body">${esc(s.attendees.join('、'))||'—'}</div>
+          <div class="sess-names-body">
+            ${s.attendees.length ? `
+              <div class="sess-names-hint">点名字可以标记"这次免费"（不计费、也不占分摊单价的人头，到场记录还在）</div>
+              <div class="name-chips">${s.attendees.map(n=>{
+                const isEx = (s.exempt||[]).includes(n);
+                return `<span class="name-chip ${isEx?'ex':''}" data-sess="${s.id}" data-name="${esc(n)}">${esc(n)}${isEx?'<span class="ex-flag">免</span>':''}</span>`;
+              }).join('')}</div>
+            ` : '—'}
+          </div>
         </details>
       </div>
       <div class="sess-actions">
@@ -1979,6 +1997,26 @@ function renderSessions(){
     };
   });
   updateSessPickHint();
+
+  box.querySelectorAll('.sess-names').forEach(det=>{
+    det.addEventListener('toggle', ()=>{
+      const id = Number(det.closest('[data-srow]').dataset.srow);
+      det.open ? openNames.add(id) : openNames.delete(id);
+    });
+  });
+
+  box.querySelectorAll('.name-chip').forEach(chip=>{
+    chip.onclick = async ()=>{
+      const sid = Number(chip.dataset.sess), name = chip.dataset.name;
+      const willExempt = !chip.classList.contains('ex');
+      chip.style.pointerEvents = 'none';
+      try{
+        await api(`/sessions/${sid}/exempt`, { method:'PUT', body: JSON.stringify({ name, exempt: willExempt }) });
+        await reload();
+        toast(willExempt ? `${name} 这次免费了` : `${name} 恢复正常收费`);
+      }catch(e){ toast(e.message, true); chip.style.pointerEvents = ''; }
+    };
+  });
 
   box.querySelectorAll('[data-del]').forEach(b=>{
     b.onclick = ()=>{
@@ -2161,6 +2199,7 @@ let sortFee  = { k:'balance', dir:-1 };
 let sortStat = { k:'balance', dir:-1 };
 let statPick = new Set();   // 跨学期统计选中的学期 id
 let pickedSess = new Set(); // 训练记录里勾选的场次（空 = 全部）
+let openNames = new Set();  // 训练记录里"查看名单"展开着的场次（重新渲染后保持展开）
 
 /** 通用比较：数字比大小，文字按中文拼音，空值永远排最后 */
 function cmp(a, b, dir){
