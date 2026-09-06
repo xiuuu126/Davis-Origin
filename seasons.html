@@ -471,13 +471,35 @@
     if (!seasons.length) return;
 
     var POSITION_ORDER = ['gk', 'def', 'mid', 'fwd'];
-    // 板块显示顺序按赛季内的时间线倒序排（最近发生的在最上面）：北加联
-    // （5月）→ 校际杯（3月）→ 贺岁杯（次年1月）→ 华体会（11月，属于这个
-    // 赛季周期里最早的一段）。校际杯（jiaoji）和华体会（huati）是两个不同
-    // 的赛事，不要合并成一个板块。具体某一年某个赛事的实际举办日期以该
-    // 赛事对象自己的 venue/schedule 字段为准，这个顺序只是四大板块固定的
-    // 展示先后。
-    var CATEGORY_ORDER = ['league', 'jiaoji', 'xinnian', 'huati'];
+    // 板块显示顺序：优先从 seasons.js 里每个赛事对象自带的 order 字段算出来
+    // （内容管理后台"发布上线"时会自动写上，跟后台的赛事排序设置保持一致）。
+    // 这里保留一份兜底顺序，只在读到老格式（没有 order 字段）的 seasons.js
+    // 时才用得上：北加联（5月）→ 校际杯（3月）→ 贺岁杯（次年1月）→ 华体会
+    // （11月，属于这个赛季周期里最早的一段）。校际杯（jiaoji）和华体会
+    // （huati）是两个不同的赛事，不要合并成一个板块。
+    var FALLBACK_CATEGORY_ORDER = ['league', 'jiaoji', 'xinnian', 'huati'];
+    function computeCategoryOrder(seasonsList) {
+      var orderMap = {};
+      (seasonsList || []).forEach(function(s) {
+        var scopes = [s.matches || {}];
+        ['first', 'reserve'].forEach(function(tk) {
+          var t = (s.teams || {})[tk];
+          if (t) scopes.push(t.matches || {});
+        });
+        scopes.forEach(function(catMap) {
+          Object.keys(catMap).forEach(function(key) {
+            var o = catMap[key] && catMap[key].order;
+            if (typeof o === 'number' && orderMap[key] === undefined) orderMap[key] = o;
+          });
+        });
+      });
+      var keys = Object.keys(orderMap);
+      if (!keys.length) return FALLBACK_CATEGORY_ORDER.slice();
+      keys.sort(function(a, b) { return orderMap[a] - orderMap[b]; });
+      FALLBACK_CATEGORY_ORDER.forEach(function(k) { if (keys.indexOf(k) === -1) keys.push(k); });
+      return keys;
+    }
+    var CATEGORY_ORDER = computeCategoryOrder(seasons);
     var TEAM_ORDER = ['first', 'reserve'];
     var TEAM_FALLBACK_LABEL = { first: '一队', reserve: '预备队' };
 

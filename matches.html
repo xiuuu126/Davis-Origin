@@ -410,7 +410,32 @@
     '</div>';
   }
 
-  var CATEGORY_ORDER = ['league', 'jiaoji', 'xinnian', 'huati'];
+  // 板块顺序：优先从 seasons.js 里每个赛事对象自带的 order 字段算出来
+  // （内容管理后台"发布上线"时会自动写上）；读到老格式（没有 order 字段）
+  // 的 seasons.js 时用这份兜底顺序。
+  var FALLBACK_CATEGORY_ORDER = ['league', 'jiaoji', 'xinnian', 'huati'];
+  function computeCategoryOrder(seasonsList) {
+    var orderMap = {};
+    (seasonsList || []).forEach(function(s) {
+      var scopes = [s.matches || {}];
+      ['first', 'reserve'].forEach(function(tk) {
+        var t = (s.teams || {})[tk];
+        if (t) scopes.push(t.matches || {});
+      });
+      scopes.forEach(function(catMap) {
+        Object.keys(catMap).forEach(function(key) {
+          var o = catMap[key] && catMap[key].order;
+          if (typeof o === 'number' && orderMap[key] === undefined) orderMap[key] = o;
+        });
+      });
+    });
+    var keys = Object.keys(orderMap);
+    if (!keys.length) return FALLBACK_CATEGORY_ORDER.slice();
+    keys.sort(function(a, b) { return orderMap[a] - orderMap[b]; });
+    FALLBACK_CATEGORY_ORDER.forEach(function(k) { if (keys.indexOf(k) === -1) keys.push(k); });
+    return keys;
+  }
+  var CATEGORY_ORDER = computeCategoryOrder((window.SEASON_DATA && window.SEASON_DATA.seasons) || []);
 
   function categorySectionHtml(cat) {
     if (!cat) return '';

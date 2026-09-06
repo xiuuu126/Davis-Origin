@@ -1303,7 +1303,9 @@
     }
     function computeRecord(season) {
       const rec = { w: 0, d: 0, l: 0 };
-      ['league', 'jiaoji', 'xinnian', 'huati'].forEach(key => {
+      // 这里只是求胜平负总数，跟板块先后顺序无关，直接用数据里有哪些赛事
+      // 类目就行，不用像 seasons.html/matches.html 那样维护一份展示顺序。
+      Object.keys(season.matches || {}).forEach(key => {
         const cat = (season.matches || {})[key];
         (cat && cat.matches || []).forEach(m => {
           if (m.result === 'win') rec.w++;
