@@ -89,6 +89,16 @@
   .panel{display:none}.panel.on{display:block;animation:fade .3s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
+  /* 大板块切换（赛季/新闻/荣誉/经历/故事——每个都各自独立发布） */
+  .module-bar{display:flex;gap:8px;overflow-x:auto;margin-bottom:26px;padding-bottom:2px}
+  .module-btn{padding:12px 22px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);
+    font-weight:700;font-size:14.5px;border-radius:14px;cursor:pointer;white-space:nowrap;
+    transition:all .2s;letter-spacing:.01em}
+  .module-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .module-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;
+    box-shadow:0 10px 22px rgba(30,58,138,.22)}
+  .module{display:none}.module.on{display:block;animation:fade .3s ease}
+
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;
     padding:26px 28px;margin-bottom:18px;box-shadow:0 1px 2px rgba(13,18,36,.03)}
   .card-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
@@ -334,30 +344,65 @@
   <main class="wrap">
     <div id="apiWarn"></div>
 
-    <div class="season-bar" id="seasonBar"></div>
-
-    <div class="tabs">
-      <button class="tab on" data-tab="season">赛季信息</button>
-      <button class="tab" data-tab="content">名单与比赛</button>
-      <button class="tab" data-tab="news">新闻</button>
-      <button class="tab" data-tab="publish">发布上线</button>
+    <!-- 大板块：赛季 / 新闻 / 荣誉 / 经历 / 故事——各自独立编辑、独立发布，互不影响 -->
+    <div class="module-bar" id="moduleBar">
+      <button class="module-btn on" data-module="seasons">🗓️ 赛季</button>
+      <button class="module-btn" data-module="news">📰 新闻</button>
+      <button class="module-btn" data-module="honors">🏆 荣誉</button>
+      <button class="module-btn" data-module="history">📍 经历</button>
+      <button class="module-btn" data-module="story">📖 故事</button>
     </div>
 
-    <!-- 赛季信息 -->
-    <section class="panel on" id="tab-season">
-      <div class="card" id="seasonCard"></div>
-    </section>
+    <!-- ============ 大板块：赛季 ============ -->
+    <section class="module on" id="module-seasons">
+      <div class="season-bar" id="seasonBar"></div>
 
-    <!-- 名单与比赛 -->
-    <section class="panel" id="tab-content">
-      <div id="contentArea"></div>
-    </section>
+      <div class="publish-banner">
+        <div>
+          <div class="p-main">发布这个赛季</div>
+          <div class="p-sub" id="publishSeasonSub">只会重新发布当前选中的这一个赛季，其它赛季维持它们各自上一次发布时的样子，不会被牵连。</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn ghost" id="btnPreview">生成预览</button>
+          <button class="btn" id="btnPublishSeason">发布这个赛季</button>
+        </div>
+      </div>
 
-    <!-- 新闻 -->
-    <section class="panel" id="tab-news">
+      <div class="tabs">
+        <button class="tab on" data-tab="season">赛季信息</button>
+        <button class="tab" data-tab="content">名单与比赛</button>
+      </div>
+
+      <!-- 赛季信息 -->
+      <section class="panel on" id="tab-season">
+        <div class="card" id="seasonCard"></div>
+      </section>
+
+      <!-- 名单与比赛 -->
+      <section class="panel" id="tab-content">
+        <div id="contentArea"></div>
+      </section>
+
       <div class="card">
         <div class="card-head">
-          <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，最后去"发布上线"生效。</div></div>
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用当前选中赛季还没发布的这份内容，直接还原出"赛季存档"页面真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+        </div>
+        <div id="previewBox"><div class="hint">点上面"生成预览"看看结果。</div></div>
+      </div>
+    </section>
+
+    <!-- ============ 大板块：新闻 ============ -->
+    <section class="module" id="module-news">
+      <div class="publish-banner">
+        <div>
+          <div class="p-main">发布新闻</div>
+          <div class="p-sub">新闻是整个板块一起发布的，不像赛季能一个一个单独发；跟"赛季"板块的发布互不影响。</div>
+        </div>
+        <button class="btn" id="btnPublishNews">发布新闻</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，最后点上面"发布新闻"生效。</div></div>
         </div>
         <div class="add-event-row">
           <input type="text" id="newArtTitle" placeholder="新文章标题…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft);font-size:13.5px" />
@@ -367,20 +412,65 @@
       </div>
     </section>
 
-    <!-- 发布 -->
-    <section class="panel" id="tab-publish">
+    <!-- ============ 大板块：荣誉 ============ -->
+    <section class="module" id="module-honors">
       <div class="publish-banner">
         <div>
-          <div class="p-main">发布上线</div>
+          <div class="p-main">发布荣誉</div>
+          <div class="p-sub">跟"赛季""新闻"互不影响，各自独立发布。</div>
         </div>
-        <button class="btn" id="btnPublish">发布上线</button>
+        <button class="btn" id="btnPublishHonors">发布荣誉</button>
       </div>
       <div class="card">
         <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用还没发布的这份内容，直接还原出"赛季存档"页面真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
-          <button class="btn ghost sm" id="btnPreview">生成预览</button>
+          <div><div class="card-title">荣誉列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，最后点上面"发布荣誉"生效。</div></div>
         </div>
-        <div id="previewBox"><div class="hint">点"生成预览"看看结果。</div></div>
+        <div class="add-event-row"><button class="btn sm" id="btnAddHonor">+ 新增荣誉</button></div>
+        <div id="honorsList"></div>
+      </div>
+    </section>
+
+    <!-- ============ 大板块：经历 ============ -->
+    <section class="module" id="module-history">
+      <div class="publish-banner">
+        <div>
+          <div class="p-main">发布经历</div>
+          <div class="p-sub">跟"赛季""新闻""荣誉"互不影响，各自独立发布。</div>
+        </div>
+        <button class="btn" id="btnPublishHistory">发布经历</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">时间线（按年份分组）</div><div class="card-sub">先按年份分组，再往每个年份底下加具体的条目。上下箭头分别调整"年份分组"之间的顺序、和"同一年份内条目"之间的顺序。</div></div>
+        </div>
+        <div class="add-event-row"><button class="btn sm" id="btnAddHistYear">+ 新增年份分组</button></div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <!-- ============ 大板块：故事 ============ -->
+    <section class="module" id="module-story">
+      <div class="publish-banner">
+        <div>
+          <div class="p-main">发布故事</div>
+          <div class="p-sub">跟"赛季""新闻""荣誉""经历"互不影响，各自独立发布。</div>
+        </div>
+        <button class="btn" id="btnPublishStory">发布故事</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">正文段落</div><div class="card-sub">从上到下依次显示；支持 **加粗** 和 _斜体_。改完记得点下面"保存"，最后点上面"发布故事"生效。</div></div>
+        </div>
+        <div class="blocks-editor">
+          <div class="blocks-list" id="storyBlocksList"></div>
+          <div class="add-block-row">
+            <button type="button" class="tmpl-btn" data-act="story-blk-add" data-type="p">+ 段落</button>
+            <button type="button" class="tmpl-btn" data-act="story-blk-add" data-type="quote">+ 引用</button>
+          </div>
+        </div>
+        <div class="art-save-bar">
+          <button class="btn" id="btnSaveStory" type="button">保存</button>
+        </div>
       </div>
     </section>
   </main>
@@ -473,6 +563,22 @@ const BLOCK_TYPE_LABEL = {
   image: '配图 4:3', image_wide: '通栏大图 16:9', image_square: '方图 1:1（如二维码）', image_portrait: '竖图 3:4',
 };
 const IMAGE_BLOCK_TYPES = new Set(['image', 'image_wide', 'image_square', 'image_portrait']);
+
+/* ===================== 荣誉 ===================== */
+let HONORS = [];       // /content/honors 的原始行
+let honorsOpenId = null;
+
+/* ===================== 经历（时间线） ===================== */
+let HISTORY_YEARS = [];  // /content/history 的原始年份分组（每个带 .items 数组）
+let histYearOpenId = null;
+let histItemOpenId = null;
+
+/* ===================== 故事 ===================== */
+let STORY_BLOCKS = [];   // /content/story 的原始段落行
+let storyDraft = null;   // 编辑中的段落副本（跟新闻正文块一样，加/删/挪先只改本地，点"保存"才提交）
+
+/* ===================== 大板块切换 ===================== */
+let curModule = 'seasons';
 
 const EVENT_TEMPLATES = [
   { key: 'league',  label: '北加联' },
@@ -582,6 +688,16 @@ function render() {
   renderSeasonTab(bySeason);
   renderContentTab(bySeason);
   renderNewsTab();
+  renderHonorsTab();
+  renderHistoryTab();
+  renderStoryTab();
+  const sub = $('publishSeasonSub');
+  if (sub) {
+    const s = curSeasonId && bySeason[curSeasonId] ? bySeason[curSeasonId].season : null;
+    sub.textContent = s
+      ? `只会重新发布当前选中的「${s.label}」，其它赛季维持它们各自上一次发布时的样子，不会被牵连。`
+      : '只会重新发布当前选中的这一个赛季，其它赛季维持它们各自上一次发布时的样子，不会被牵连。';
+  }
 }
 
 function renderSeasonBar() {
@@ -1470,6 +1586,455 @@ function renderNewsTab() {
   list.querySelectorAll('[data-act="art-down"]').forEach(btn => btn.onclick = () => moveArticle(1)(btn));
 }
 
+/* ===================== 荣誉 ===================== */
+function honorCardHtml(h, idx, total) {
+  return `<details class="cat-card" data-honor="${h.id}" ${honorsOpenId === h.id ? 'open' : ''}>
+    <summary>
+      <div class="cs-left">
+        <div class="updown" onclick="event.preventDefault()">
+          <button type="button" data-act="honor-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-act="honor-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+        <b>${esc(h.title || '（还没填标题）')}</b>
+        <span class="hint" style="margin:0">${esc(h.year_label || '')}</span>
+      </div>
+      <div class="cs-right"><span class="hint" style="margin:0">${h.tier === 'silver' ? '银' : '金'}</span><span class="cs-caret"></span></div>
+    </summary>
+    <div class="cat-card-body">
+      <div class="row2">
+        <div class="field"><label>年份/名次标签（比如"2024 · Champion"）</label><input class="h-year" value="${esc(h.year_label || '')}" /></div>
+        <div class="field"><label>档次</label><select class="h-tier">
+          <option value="gold" ${h.tier !== 'silver' ? 'selected' : ''}>金（第一档）</option>
+          <option value="silver" ${h.tier === 'silver' ? 'selected' : ''}>银（第二档）</option>
+        </select></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>标题（比如"北加联 · 冠军"）</label><input class="h-title" value="${esc(h.title || '')}" /></div>
+        <div class="field"><label>英文副标题</label><input class="h-suben" value="${esc(h.sub_en || '')}" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>赛事</label><input class="h-event" value="${esc(h.event_name || '')}" /></div>
+        <div class="field"><label>名次（比如"冠军 · 1st"）</label><input class="h-rank" value="${esc(h.rank_label || '')}" /></div>
+      </div>
+      <div class="art-save-bar">
+        <button class="btn danger sm" data-act="del-honor" type="button">删除</button>
+        <button class="btn" data-act="save-honor" type="button">保存</button>
+      </div>
+    </div>
+  </details>`;
+}
+
+function renderHonorsTab() {
+  const list = $('honorsList');
+  if (!list) return;
+  const sorted = HONORS.slice().sort((a, b) => (b.sort_order - a.sort_order) || (b.id - a.id));
+  list.innerHTML = sorted.length ? sorted.map((h, i) => honorCardHtml(h, i, sorted.length)).join('') : '<div class="empty">还没有荣誉，上面加一条吧</div>';
+
+  list.querySelectorAll('details[data-honor]').forEach(det => {
+    const hid = Number(det.dataset.honor);
+    const h = sorted.find(x => x.id === hid);
+    if (h) wireHonorCard(det.querySelector('.cat-card-body'), h);
+  });
+
+  const move = dir => async (btn) => {
+    const det = btn.closest('details[data-honor]');
+    const id = Number(det.dataset.honor);
+    const idx = sorted.findIndex(x => x.id === id);
+    const swapWith = idx + dir;
+    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
+    const order = sorted.map(x => x.id);
+    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+    honorsOpenId = id;
+    try { await api('/content/honors-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
+    catch (e) { toast(e.message, true); }
+  };
+  list.querySelectorAll('[data-act="honor-up"]').forEach(btn => btn.onclick = () => move(-1)(btn));
+  list.querySelectorAll('[data-act="honor-down"]').forEach(btn => btn.onclick = () => move(1)(btn));
+}
+
+function wireHonorCard(bodyEl, h) {
+  const delBtn = bodyEl.querySelector('[data-act="del-honor"]');
+  if (delBtn) delBtn.onclick = () => confirmModal(
+    `删除荣誉「${h.title}」？`,
+    '删除后没法恢复；网站上要等下次点"发布荣誉"才会真的消失。',
+    async () => {
+      await api(`/content/honors/${h.id}`, { method: 'DELETE' });
+      if (honorsOpenId === h.id) honorsOpenId = null;
+      await reload();
+      toast('已删除');
+    }
+  );
+  const saveBtn = bodyEl.querySelector('[data-act="save-honor"]');
+  if (saveBtn) saveBtn.onclick = async () => {
+    const title = bodyEl.querySelector('.h-title').value.trim();
+    if (!title) { toast('标题不能为空', true); return; }
+    saveBtn.disabled = true;
+    const original = saveBtn.textContent;
+    saveBtn.innerHTML = '<span class="spinner"></span> 保存中…';
+    try {
+      await api(`/content/honors/${h.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          yearLabel: bodyEl.querySelector('.h-year').value,
+          title,
+          subEn: bodyEl.querySelector('.h-suben').value,
+          tier: bodyEl.querySelector('.h-tier').value,
+          eventName: bodyEl.querySelector('.h-event').value,
+          rankLabel: bodyEl.querySelector('.h-rank').value,
+        }),
+      });
+      honorsOpenId = h.id;
+      await reload();
+      toast('已保存');
+    } catch (e) {
+      toast(e.message, true);
+      saveBtn.disabled = false;
+      saveBtn.textContent = original;
+    }
+  };
+}
+
+$('btnAddHonor').onclick = async () => {
+  const btn = $('btnAddHonor');
+  btn.disabled = true;
+  try {
+    const d = await api('/content/honors', { method: 'POST', body: JSON.stringify({ title: '新的荣誉' }) });
+    honorsOpenId = d.id;
+    await reload();
+    toast('已新建，展开编辑');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; }
+};
+
+/* ===================== 经历（时间线） ===================== */
+function histItemCardHtml(it, idx, total) {
+  return `<details class="cat-card" data-hist-item="${it.id}" ${histItemOpenId === it.id ? 'open' : ''}>
+    <summary>
+      <div class="cs-left">
+        <div class="updown" onclick="event.preventDefault()">
+          <button type="button" data-act="item-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-act="item-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+        <b>${esc(it.title || '（还没填标题）')}</b>
+        <span class="hint" style="margin:0">${esc(it.date_label || '')}</span>
+      </div>
+      <div class="cs-right"><span class="cs-caret"></span></div>
+    </summary>
+    <div class="cat-card-body">
+      <div class="row2">
+        <div class="field"><label>日期/阶段标签（比如"2026 · 05 · 23"或"三年前"）</label><input class="i-date" value="${esc(it.date_label || '')}" /></div>
+        <div class="field"><label>标题</label><input class="i-title" value="${esc(it.title || '')}" /></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label class="chk-line"><input type="checkbox" class="i-trophy" ${it.is_trophy ? 'checked' : ''} /><span>标题前面加 🏆</span></label></div>
+        <div class="field"><label>颜色档次</label><select class="i-tier">
+          <option value="" ${!it.tier ? 'selected' : ''}>默认（蓝）</option>
+          <option value="gold" ${it.tier === 'gold' ? 'selected' : ''}>金</option>
+          <option value="silver" ${it.tier === 'silver' ? 'selected' : ''}>银</option>
+        </select></div>
+        <div class="field"><label class="chk-line"><input type="checkbox" class="i-now" ${it.is_now ? 'checked' : ''} /><span>标记为"现在"（跳动圆点）</span></label></div>
+      </div>
+      <div class="field"><label>正文（支持 **加粗** _斜体_；空一行 = 分段）</label><textarea class="i-desc" rows="4">${esc(it.description || '')}</textarea></div>
+      <div class="row2">
+        <div class="field"><label>引用（可选，留空则不显示引用框）</label><input class="i-quote" value="${esc(it.quote || '')}" /></div>
+        <div class="field"><label>标签（可选，一行一个）</label><textarea class="i-tags" rows="2">${esc(it.tags || '')}</textarea></div>
+      </div>
+      <div class="art-save-bar">
+        <button class="btn danger sm" data-act="del-item" type="button">删除这条</button>
+        <button class="btn" data-act="save-item" type="button">保存</button>
+      </div>
+    </div>
+  </details>`;
+}
+
+function histYearCardHtml(y, idx, total) {
+  const items = (y.items || []).slice().sort((a, b) => a.sort_order - b.sort_order);
+  return `<details class="cat-card" data-hist-year="${y.id}" ${histYearOpenId === y.id ? 'open' : ''}>
+    <summary>
+      <div class="cs-left">
+        <div class="updown" onclick="event.preventDefault()">
+          <button type="button" data-act="year-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-act="year-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+        <b>${esc(y.year_label || '（还没填年份）')}</b>
+        <span class="hint" style="margin:0">${esc(y.year_tag || '')}</span>
+      </div>
+      <div class="cs-right"><span class="hint" style="margin:0">${items.length} 条</span><span class="cs-caret"></span></div>
+    </summary>
+    <div class="cat-card-body">
+      <div class="row3">
+        <div class="field"><label>年份（比如"2026"或"NOW"）</label><input class="y-label" value="${esc(y.year_label || '')}" /></div>
+        <div class="field"><label>年份小标签（比如"高光"）</label><input class="y-tag" value="${esc(y.year_tag || '')}" /></div>
+        <div class="field"><label>年份数字颜色</label><select class="y-tier">
+          <option value="" ${!y.tier ? 'selected' : ''}>默认（蓝）</option>
+          <option value="gold" ${y.tier === 'gold' ? 'selected' : ''}>金</option>
+          <option value="silver" ${y.tier === 'silver' ? 'selected' : ''}>银</option>
+        </select></div>
+      </div>
+      <div class="field"><label class="chk-line"><input type="checkbox" class="y-special" ${y.special === 'now' ? 'checked' : ''} /><span>这是"NOW"特殊分组（收官那一条的样式）</span></label></div>
+      <div class="art-save-bar" style="margin-top:14px">
+        <button class="btn danger sm" data-act="del-year" type="button">删除这个年份分组（连同底下所有条目）</button>
+        <button class="btn" data-act="save-year" type="button">保存年份信息</button>
+      </div>
+
+      <div class="hint" style="margin:18px 0 10px">这一年的具体条目（${items.length} 条）</div>
+      <div class="add-event-row"><button class="btn ghost sm" type="button" data-act="add-item">+ 新增条目</button></div>
+      <div class="hist-items-list">${items.length ? items.map((it, i) => histItemCardHtml(it, i, items.length)).join('') : '<div class="empty">这一年还没有条目</div>'}</div>
+    </div>
+  </details>`;
+}
+
+function renderHistoryTab() {
+  const list = $('historyList');
+  if (!list) return;
+  const sorted = HISTORY_YEARS.slice().sort((a, b) => a.sort_order - b.sort_order);
+  list.innerHTML = sorted.length ? sorted.map((y, i) => histYearCardHtml(y, i, sorted.length)).join('') : '<div class="empty">还没有年份分组，上面加一个吧</div>';
+
+  list.querySelectorAll('details[data-hist-year]').forEach(det => {
+    const yid = Number(det.dataset.histYear);
+    const y = sorted.find(x => x.id === yid);
+    if (y) wireHistYearCard(det.querySelector('.cat-card-body'), y);
+  });
+
+  const moveYear = dir => async (btn) => {
+    const det = btn.closest('details[data-hist-year]');
+    const id = Number(det.dataset.histYear);
+    const idx = sorted.findIndex(x => x.id === id);
+    const swapWith = idx + dir;
+    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
+    const order = sorted.map(x => x.id);
+    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+    histYearOpenId = id;
+    try { await api('/content/history-years-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
+    catch (e) { toast(e.message, true); }
+  };
+  list.querySelectorAll('[data-act="year-up"]').forEach(btn => btn.onclick = () => moveYear(-1)(btn));
+  list.querySelectorAll('[data-act="year-down"]').forEach(btn => btn.onclick = () => moveYear(1)(btn));
+}
+
+function wireHistYearCard(bodyEl, y) {
+  const delBtn = bodyEl.querySelector('[data-act="del-year"]');
+  if (delBtn) delBtn.onclick = () => confirmModal(
+    `删除年份分组「${y.year_label}」？`,
+    '连同底下所有条目一起删除，没法恢复；网站上要等下次点"发布经历"才会真的消失。',
+    async () => {
+      await api(`/content/history-years/${y.id}`, { method: 'DELETE' });
+      if (histYearOpenId === y.id) histYearOpenId = null;
+      await reload();
+      toast('已删除');
+    }
+  );
+  const saveBtn = bodyEl.querySelector('[data-act="save-year"]');
+  if (saveBtn) saveBtn.onclick = async () => {
+    const yearLabel = bodyEl.querySelector('.y-label').value.trim();
+    if (!yearLabel) { toast('年份不能为空', true); return; }
+    saveBtn.disabled = true;
+    const original = saveBtn.textContent;
+    saveBtn.innerHTML = '<span class="spinner"></span> 保存中…';
+    try {
+      await api(`/content/history-years/${y.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          yearLabel,
+          yearTag: bodyEl.querySelector('.y-tag').value,
+          tier: bodyEl.querySelector('.y-tier').value,
+          special: bodyEl.querySelector('.y-special').checked ? 'now' : '',
+        }),
+      });
+      histYearOpenId = y.id;
+      await reload();
+      toast('已保存');
+    } catch (e) {
+      toast(e.message, true);
+      saveBtn.disabled = false;
+      saveBtn.textContent = original;
+    }
+  };
+
+  const addBtn = bodyEl.querySelector('[data-act="add-item"]');
+  if (addBtn) addBtn.onclick = async () => {
+    addBtn.disabled = true;
+    try {
+      const d = await api('/content/history-items', { method: 'POST', body: JSON.stringify({ yearId: y.id }) });
+      histYearOpenId = y.id;
+      histItemOpenId = d.id;
+      await reload();
+      toast('已新增，展开编辑');
+    } catch (e) { toast(e.message, true); }
+    finally { addBtn.disabled = false; }
+  };
+
+  const items = (y.items || []).slice().sort((a, b) => a.sort_order - b.sort_order);
+  bodyEl.querySelectorAll('details[data-hist-item]').forEach(det => {
+    const iid = Number(det.dataset.histItem);
+    const it = items.find(x => x.id === iid);
+    if (it) wireHistItemCard(det.querySelector('.cat-card-body'), it, y);
+  });
+  const moveItem = dir => async (btn) => {
+    const det = btn.closest('details[data-hist-item]');
+    const id = Number(det.dataset.histItem);
+    const idx = items.findIndex(x => x.id === id);
+    const swapWith = idx + dir;
+    if (idx < 0 || swapWith < 0 || swapWith >= items.length) return;
+    const order = items.map(x => x.id);
+    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+    histYearOpenId = y.id;
+    histItemOpenId = id;
+    try { await api('/content/history-items-order', { method: 'PUT', body: JSON.stringify({ yearId: y.id, order }) }); await reload(); }
+    catch (e) { toast(e.message, true); }
+  };
+  bodyEl.querySelectorAll('[data-act="item-up"]').forEach(btn => btn.onclick = () => moveItem(-1)(btn));
+  bodyEl.querySelectorAll('[data-act="item-down"]').forEach(btn => btn.onclick = () => moveItem(1)(btn));
+}
+
+function wireHistItemCard(bodyEl, it, y) {
+  const delBtn = bodyEl.querySelector('[data-act="del-item"]');
+  if (delBtn) delBtn.onclick = () => confirmModal(
+    `删除条目「${it.title}」？`,
+    '删除后没法恢复；网站上要等下次点"发布经历"才会真的消失。',
+    async () => {
+      await api(`/content/history-items/${it.id}`, { method: 'DELETE' });
+      if (histItemOpenId === it.id) histItemOpenId = null;
+      histYearOpenId = y.id;
+      await reload();
+      toast('已删除');
+    }
+  );
+  const saveBtn = bodyEl.querySelector('[data-act="save-item"]');
+  if (saveBtn) saveBtn.onclick = async () => {
+    const title = bodyEl.querySelector('.i-title').value.trim();
+    if (!title) { toast('标题不能为空', true); return; }
+    saveBtn.disabled = true;
+    const original = saveBtn.textContent;
+    saveBtn.innerHTML = '<span class="spinner"></span> 保存中…';
+    try {
+      await api(`/content/history-items/${it.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          dateLabel: bodyEl.querySelector('.i-date').value,
+          title,
+          isTrophy: bodyEl.querySelector('.i-trophy').checked,
+          tier: bodyEl.querySelector('.i-tier').value,
+          isNow: bodyEl.querySelector('.i-now').checked,
+          description: bodyEl.querySelector('.i-desc').value,
+          quote: bodyEl.querySelector('.i-quote').value,
+          tags: bodyEl.querySelector('.i-tags').value,
+        }),
+      });
+      histYearOpenId = y.id;
+      histItemOpenId = it.id;
+      await reload();
+      toast('已保存');
+    } catch (e) {
+      toast(e.message, true);
+      saveBtn.disabled = false;
+      saveBtn.textContent = original;
+    }
+  };
+}
+
+$('btnAddHistYear').onclick = async () => {
+  const btn = $('btnAddHistYear');
+  btn.disabled = true;
+  try {
+    const d = await api('/content/history-years', { method: 'POST', body: JSON.stringify({ yearLabel: '新的一年' }) });
+    histYearOpenId = d.id;
+    await reload();
+    toast('已新建，展开编辑');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; }
+};
+
+/* ===================== 故事 ===================== */
+// 故事只有一个页面、不是"一篇一篇"的文章，所以正文块的增/删/挪/换类型都先只改本地
+// 这份 storyDraft 副本，点"保存"才一次性整体提交（跟新闻一篇文章内部的正文块编辑
+// 是同一套思路，只是故事没有文章这一层，整个页面就是一份"正文块"）。
+function storyBlockRowHtml(b, i, total) {
+  const isQuote = b.type === 'quote';
+  return `<div class="block-row" data-idx="${i}">
+    <div class="block-row-hd">
+      <select class="sblk-type">
+        <option value="p" ${!isQuote ? 'selected' : ''}>正文段落</option>
+        <option value="quote" ${isQuote ? 'selected' : ''}>引用</option>
+      </select>
+      <div class="updown">
+        <button type="button" data-act="sblk-up" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button type="button" data-act="sblk-down" ${i === total - 1 ? 'disabled' : ''}>↓</button>
+        <button type="button" class="btn danger sm" data-act="sblk-del" style="margin-left:4px">删除</button>
+      </div>
+    </div>
+    <textarea class="sblk-text" rows="${isQuote ? 2 : 3}" placeholder="支持 **加粗** 和 _斜体_">${esc(b.text || '')}</textarea>
+    ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
+      style="margin-top:8px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />` : ''}
+  </div>`;
+}
+function storyBlocksListInnerHtml(draft) {
+  return draft.length ? draft.map((b, i) => storyBlockRowHtml(b, i, draft.length)).join('') : '<div class="empty">还没有内容，下面加一段吧</div>';
+}
+function renderStoryTab() {
+  if (!storyDraft) {
+    storyDraft = STORY_BLOCKS.slice().sort((a, b) => a.sort_order - b.sort_order)
+      .map(b => ({ type: b.block_type, text: b.text || '', cite: b.cite || '' }));
+  }
+  refreshStoryEditor();
+}
+function refreshStoryEditor() {
+  const listEl = $('storyBlocksList');
+  if (!listEl) return;
+  listEl.innerHTML = storyBlocksListInnerHtml(storyDraft);
+  wireStoryBlocksEditor();
+}
+function wireStoryBlocksEditor() {
+  const editor = document.querySelector('#module-story .blocks-editor');
+  if (!editor) return;
+  editor.querySelectorAll('.sblk-text').forEach(ta => {
+    const i = Number(ta.closest('.block-row').dataset.idx);
+    ta.oninput = () => { storyDraft[i].text = ta.value; };
+  });
+  editor.querySelectorAll('.sblk-cite').forEach(inp => {
+    const i = Number(inp.closest('.block-row').dataset.idx);
+    inp.oninput = () => { storyDraft[i].cite = inp.value; };
+  });
+  editor.querySelectorAll('.sblk-type').forEach(sel => {
+    const i = Number(sel.closest('.block-row').dataset.idx);
+    sel.onchange = () => { storyDraft[i].type = sel.value; refreshStoryEditor(); };
+  });
+  editor.querySelectorAll('[data-act="sblk-up"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    if (i > 0) { [storyDraft[i - 1], storyDraft[i]] = [storyDraft[i], storyDraft[i - 1]]; refreshStoryEditor(); }
+  });
+  editor.querySelectorAll('[data-act="sblk-down"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    if (i < storyDraft.length - 1) { [storyDraft[i + 1], storyDraft[i]] = [storyDraft[i], storyDraft[i + 1]]; refreshStoryEditor(); }
+  });
+  editor.querySelectorAll('[data-act="sblk-del"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    storyDraft.splice(i, 1);
+    refreshStoryEditor();
+  });
+}
+document.querySelectorAll('[data-act="story-blk-add"]').forEach(btn => btn.onclick = () => {
+  if (!storyDraft) return;
+  storyDraft.push({ type: btn.dataset.type === 'quote' ? 'quote' : 'p', text: '', cite: '' });
+  refreshStoryEditor();
+});
+$('btnSaveStory').onclick = async () => {
+  const btn = $('btnSaveStory');
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> 保存中…';
+  try {
+    await api('/content/story', { method: 'PUT', body: JSON.stringify({ blocks: storyDraft }) });
+    await reload();
+    toast('已保存');
+  } catch (e) {
+    toast(e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+};
+
 /* ===================== 发布 ===================== */
 /* "生成预览"不再是打印一坨 JSON——直接拿真实的 seasons.html 模板，把
  * <script src="seasons.js"> 换成一段内联脚本、塞进这份还没发布的预览数据，
@@ -1491,20 +2056,52 @@ $('btnPreview').onclick = async () => {
     $('previewFrame').srcdoc = withData;
   } catch (e) { box.innerHTML = `<div class="callout err">${esc(e.message)}</div>`; }
 };
-async function doPublish(btn) {
+// 五个大板块各自的发布按钮，共用同一套"点了先弹确认、发布中转圈、成功提示"的逻辑，
+// 只是各自调用的接口（endpoint）不一样——赛季按当前选中的具体赛季单独发布，
+// 别的四个板块整体一起发布。
+async function doPublish(btn, endpoint) {
   const original = btn.textContent;
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 发布中…';
   try {
-    await api('/content/publish', { method: 'POST' });
+    await api(endpoint, { method: 'POST' });
     toast('已发布，几分钟内网站会更新');
   } catch (e) { toast(e.message, true); }
   finally { btn.disabled = false; btn.textContent = original; }
 }
-$('btnPublish').onclick = () => confirmModal(
-  '确认发布上线？',
-  '会把后台现在保存的所有内容重新生成 seasons.js 并推到网站上，几分钟内生效。发布这一步本身没法撤销，不过内容还留在后台，改错了可以再改、再发一次。',
-  () => doPublish($('btnPublish')),
-  '确认发布上线', 'ok'
+$('btnPublishSeason').onclick = () => {
+  if (!curSeasonId) { toast('先选一个赛季', true); return; }
+  const bySeason = indexData();
+  const label = (bySeason[curSeasonId] && bySeason[curSeasonId].season.label) || curSeasonId;
+  confirmModal(
+    `确认发布「${label}」这一个赛季？`,
+    '只会重新生成 seasons.js 里这一个赛季的数据，其它赛季维持它们各自上一次发布时的样子。这一步本身没法撤销，不过内容还留在后台，改错了可以再改、再发一次。',
+    () => doPublish($('btnPublishSeason'), `/content/publish-season/${encodeURIComponent(curSeasonId)}`),
+    '确认发布', 'ok'
+  );
+};
+$('btnPublishNews').onclick = () => confirmModal(
+  '确认发布新闻？',
+  '会把后台现在保存的所有新闻文章重新生成 news-data.js 并推到网站上，几分钟内生效。不会影响赛季/荣誉/经历/故事。',
+  () => doPublish($('btnPublishNews'), '/content/publish-news'),
+  '确认发布', 'ok'
+);
+$('btnPublishHonors').onclick = () => confirmModal(
+  '确认发布荣誉？',
+  '会把后台现在保存的荣誉列表重新生成 honors-data.js 并推到网站上，几分钟内生效。不会影响其它板块。',
+  () => doPublish($('btnPublishHonors'), '/content/publish-honors'),
+  '确认发布', 'ok'
+);
+$('btnPublishHistory').onclick = () => confirmModal(
+  '确认发布经历？',
+  '会把后台现在保存的时间线重新生成 history-data.js 并推到网站上，几分钟内生效。不会影响其它板块。',
+  () => doPublish($('btnPublishHistory'), '/content/publish-history'),
+  '确认发布', 'ok'
+);
+$('btnPublishStory').onclick = () => confirmModal(
+  '确认发布故事？',
+  '会把后台现在保存的正文重新生成 story-data.js 并推到网站上，几分钟内生效。不会影响其它板块。',
+  () => doPublish($('btnPublishStory'), '/content/publish-story'),
+  '确认发布', 'ok'
 );
 
 /* ===================== 确认弹窗 ===================== */
@@ -1564,7 +2161,14 @@ $('newsList').addEventListener('toggle', e => {
   else if (newsOpenId === id) newsOpenId = null;
 }, true);
 
-/* ===================== tabs ===================== */
+/* ===================== 大板块切换 ===================== */
+document.querySelectorAll('.module-btn').forEach(btn => btn.onclick = () => {
+  curModule = btn.dataset.module;
+  document.querySelectorAll('.module-btn').forEach(b => b.classList.toggle('on', b === btn));
+  document.querySelectorAll('.module').forEach(m => m.classList.toggle('on', m.id === 'module-' + curModule));
+});
+
+/* ===================== tabs（赛季信息 / 名单与比赛） ===================== */
 document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'tab-' + tab.dataset.tab));
@@ -1596,10 +2200,13 @@ $('btnRefresh').onclick = async () => {
 };
 
 async function reload() {
-  const [content, feeData, newsData] = await Promise.all([
+  const [content, feeData, newsData, honorsData, historyData, storyData] = await Promise.all([
     api('/content/all'),
     api('/data').catch(() => null), // 球员名单选择器要用；拿不到也不影响其它功能，退化成只能手动加新名字
     api('/content/news').catch(() => ({ articles: [] })),
+    api('/content/honors').catch(() => ({ honors: [] })),
+    api('/content/history').catch(() => ({ years: [] })),
+    api('/content/story').catch(() => ({ blocks: [] })),
   ]);
   D = content;
   ALL_PLAYERS = (feeData && Array.isArray(feeData.players)) ? feeData.players : [];
@@ -1611,6 +2218,10 @@ async function reload() {
   PLAYER_POS_HISTORY = buildPositionHistory();
   NEWS = (newsData && Array.isArray(newsData.articles)) ? newsData.articles : [];
   newsBlockDrafts.clear(); // 每次拿到服务器最新数据之后，正文编辑草稿都要跟着重置，不然会显示已经过时的内容
+  HONORS = (honorsData && Array.isArray(honorsData.honors)) ? honorsData.honors : [];
+  HISTORY_YEARS = (historyData && Array.isArray(historyData.years)) ? historyData.years : [];
+  STORY_BLOCKS = (storyData && Array.isArray(storyData.blocks)) ? storyData.blocks : [];
+  storyDraft = null; // 拿到服务器最新数据之后，故事正文的编辑草稿也要跟着重置
   render();
 }
 

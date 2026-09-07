@@ -186,28 +186,44 @@
 </section>
 
 <main class="story-page">
-  <div class="story-body">
-    <p>戴维斯原点是加州大学戴维斯分校唯一一支华人足球队，也是全球原点足球大家庭的一员。</p>
-
-    <p>我们取名"原点"，是希望每一个来到戴维斯的人——无论第一次踩上这片草坪，还是已经在这里待了好几年——都能找到一个出发点。</p>
-
-    <p>一片可以并肩跑动的草坪，一群愿意把球踢好的人。仅此而已，但也已经足够。</p>
-
-    <p>球队从最初的几个人慢慢长起来，到现在覆盖在校学生和校友球员，一队加预备队几十号人。训练日的风、雨、汗，每一脚传球、每一次回追、每一次为队友补防的瞬间——就是我们在戴维斯一起留下的故事。</p>
-
-    <p>我们不靠光环，也不靠虚名。站在这里的理由很简单：因为爱球，因为爱身边的兄弟。</p>
-
-    <div class="story-quote">
-      爱球队和球队里的人，我们才变成最拼的球队。
-      <cite>— Davis Origin</cite>
-    </div>
-  </div>
+  <div class="story-body" id="storyBody"></div>
 </main>
 
 <footer>
   <div class="slogan-cn">岂曰无衣？与子同袍。</div>
   © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
 </footer>
+
+<script src="story-data.js"></script>
+<script>
+/** 故事正文由内容管理后台生成（story-data.js -> window.STORY_DATA），
+ *  文字支持轻量 markdown（**加粗**、_斜体_），渲染成跟原来手写页面一样的段落/引用结构。 */
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+function liteMdToHtml(text) {
+  return escHtml(text)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+function renderStory() {
+  const blocks = (window.STORY_DATA && window.STORY_DATA.blocks) || [];
+  const body = document.getElementById('storyBody');
+  if (!blocks.length) {
+    body.innerHTML = '<p>正文还在整理中。</p>';
+    return;
+  }
+  body.innerHTML = blocks.map(b => (
+    b.type === 'quote'
+      ? `<div class="story-quote">${liteMdToHtml(b.text)}${b.cite ? `<cite>${escHtml(b.cite)}</cite>` : ''}</div>`
+      : `<p>${liteMdToHtml(b.text)}</p>`
+  )).join('');
+}
+renderStory();
+</script>
 
 </body>
 </html>

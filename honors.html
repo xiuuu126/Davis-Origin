@@ -240,47 +240,45 @@
 </section>
 
 <main class="honors-page">
-  <div class="honors-grid">
-    <article class="honor-card gold">
-      <div class="honor-medal">1</div>
-      <div class="honor-year">2024 · Champion</div>
-      <h2 class="honor-title">北加联 · 冠军</h2>
-      <p class="honor-sub-en">Northern California League Champion</p>
-      <div class="honor-meta">
-        <div class="honor-meta-item">
-          <h5>赛事</h5>
-          <p>北加联赛</p>
-        </div>
-        <div class="honor-meta-item">
-          <h5>名次</h5>
-          <p>冠军 · 1st</p>
-        </div>
-      </div>
-    </article>
-
-    <article class="honor-card silver">
-      <div class="honor-medal">2</div>
-      <div class="honor-year">2025 · Runner-up</div>
-      <h2 class="honor-title">华体会 · 亚军</h2>
-      <p class="honor-sub-en">CSGA Runner-up</p>
-      <div class="honor-meta">
-        <div class="honor-meta-item">
-          <h5>赛事</h5>
-          <p>华体会</p>
-        </div>
-        <div class="honor-meta-item">
-          <h5>名次</h5>
-          <p>亚军 · 2nd</p>
-        </div>
-      </div>
-    </article>
-  </div>
+  <div class="honors-grid" id="honorsGrid"></div>
 </main>
 
 <footer>
   <div class="slogan-cn">岂曰无衣？与子同袍。</div>
   © Davis Origin · 戴维斯原点足球俱乐部 · UC Davis
 </footer>
+
+<script src="honors-data.js"></script>
+<script>
+/** 荣誉数据由内容管理后台生成（honors-data.js -> window.HONORS_DATA），
+ *  这里只负责按数据渲染出跟原来手写页面一模一样的卡片结构。 */
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+function renderHonors() {
+  const honors = (window.HONORS_DATA && window.HONORS_DATA.honors) || [];
+  const grid = document.getElementById('honorsGrid');
+  if (!honors.length) {
+    grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1">还没有荣誉记录。</p>';
+    return;
+  }
+  grid.innerHTML = honors.map((h, i) => `
+    <article class="honor-card ${h.tier === 'silver' ? 'silver' : 'gold'}">
+      <div class="honor-medal">${i + 1}</div>
+      <div class="honor-year">${escHtml(h.yearLabel)}</div>
+      <h2 class="honor-title">${escHtml(h.title)}</h2>
+      <p class="honor-sub-en">${escHtml(h.subEn)}</p>
+      <div class="honor-meta">
+        <div class="honor-meta-item"><h5>赛事</h5><p>${escHtml(h.eventName)}</p></div>
+        <div class="honor-meta-item"><h5>名次</h5><p>${escHtml(h.rankLabel)}</p></div>
+      </div>
+    </article>
+  `).join('');
+}
+renderHonors();
+</script>
 
 </body>
 </html>
