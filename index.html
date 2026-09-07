@@ -669,16 +669,16 @@
     background: var(--line);
   }
   .side-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   .side-card {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 16px;
-    padding: 18px 22px;
+    gap: 10px;
+    padding: 14px 14px;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 14px;
@@ -711,18 +711,25 @@
     transition: color .25s;
   }
   .side-card:hover .side-num { color: var(--accent); }
+  .side-card > div { min-width: 0; }
   .side-name {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 600;
     color: var(--ink);
     letter-spacing: -0.005em;
     transition: color .25s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .side-sub {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--muted);
     margin-top: 2px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .side-card:hover .side-name { color: var(--accent); }
   .side-arrow {
