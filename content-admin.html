@@ -351,6 +351,7 @@
       <button class="module-btn" data-module="honors">🏆 荣誉</button>
       <button class="module-btn" data-module="history">📍 经历</button>
       <button class="module-btn" data-module="story">📖 故事</button>
+      <button class="module-btn" data-module="videos">🎬 经典赛事</button>
     </div>
 
     <!-- ============ 大板块：赛季 ============ -->
@@ -473,6 +474,24 @@
         </div>
       </div>
     </section>
+
+    <!-- ============ 大板块：经典赛事回放 ============ -->
+    <section class="module" id="module-videos">
+      <div class="publish-banner">
+        <div>
+          <div class="p-main">发布经典赛事</div>
+          <div class="p-sub">跟"赛季""新闻""荣誉""经历""故事"互不影响，各自独立发布。</div>
+        </div>
+        <button class="btn" id="btnPublishVideos">发布经典赛事</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">回放列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，最后点上面"发布经典赛事"生效。</div></div>
+        </div>
+        <div class="add-event-row"><button class="btn sm" id="btnAddVideo">+ 新增回放</button></div>
+        <div id="videosList"></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -576,6 +595,10 @@ let histItemOpenId = null;
 /* ===================== 故事 ===================== */
 let STORY_BLOCKS = [];   // /content/story 的原始段落行
 let storyDraft = null;   // 编辑中的段落副本（跟新闻正文块一样，加/删/挪先只改本地，点"保存"才提交）
+
+/* ===================== 经典赛事回放 ===================== */
+let VIDEOS = [];       // /content/videos 的原始行
+let videosOpenId = null;
 
 /* ===================== 大板块切换 ===================== */
 let curModule = 'seasons';
@@ -691,6 +714,7 @@ function render() {
   renderHonorsTab();
   renderHistoryTab();
   renderStoryTab();
+  renderVideosTab();
   const sub = $('publishSeasonSub');
   if (sub) {
     const s = curSeasonId && bySeason[curSeasonId] ? bySeason[curSeasonId].season : null;
@@ -1707,6 +1731,133 @@ $('btnAddHonor').onclick = async () => {
   finally { btn.disabled = false; }
 };
 
+/* ===================== 经典赛事回放 ===================== */
+function videoCardHtml(v, idx, total) {
+  return `<details class="cat-card" data-video="${v.id}" ${videosOpenId === v.id ? 'open' : ''}>
+    <summary>
+      <div class="cs-left">
+        <div class="updown" onclick="event.preventDefault()">
+          <button type="button" data-act="video-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-act="video-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+        <b>${esc(v.team_left || 'Davis Origin')} vs ${esc(v.team_right || '（还没填对手）')}</b>
+        <span class="hint" style="margin:0">${esc(v.tournament || '')}</span>
+      </div>
+      <div class="cs-right"><span class="hint" style="margin:0">${esc(v.score_left || '—')}:${esc(v.score_right || '—')}</span><span class="cs-caret"></span></div>
+    </summary>
+    <div class="cat-card-body">
+      <div class="row2">
+        <div class="field"><label>赛事名称（比如"2026 加州华人大学生校际杯 · LA"）</label><input class="v-tournament" value="${esc(v.tournament || '')}" /></div>
+        <div class="field"><label>日期标签（比如"2026 / 03"）</label><input class="v-date" value="${esc(v.match_date || '')}" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>左边队伍</label><input class="v-teamleft" value="${esc(v.team_left || '')}" /></div>
+        <div class="field"><label>右边队伍</label><input class="v-teamright" value="${esc(v.team_right || '')}" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>左边比分（没有比分就填"—"）</label><input class="v-scoreleft" value="${esc(v.score_left || '')}" /></div>
+        <div class="field"><label>右边比分（没有比分就填"—"）</label><input class="v-scoreright" value="${esc(v.score_right || '')}" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>获胜方（决定名字/比分高亮显示在哪边）</label><select class="v-winner">
+          <option value="" ${!v.winner ? 'selected' : ''}>不标（平局/待定）</option>
+          <option value="left" ${v.winner === 'left' ? 'selected' : ''}>左边获胜</option>
+          <option value="right" ${v.winner === 'right' ? 'selected' : ''}>右边获胜</option>
+        </select></div>
+        <div class="field"><label>录像链接</label><input class="v-url" value="${esc(v.video_url || '')}" placeholder="https://…" /></div>
+      </div>
+      <div class="field"><label>备注（一句话说明这场比赛）</label><input class="v-note" value="${esc(v.note || '')}" /></div>
+      <div class="art-save-bar">
+        <button class="btn danger sm" data-act="del-video" type="button">删除</button>
+        <button class="btn" data-act="save-video" type="button">保存</button>
+      </div>
+    </div>
+  </details>`;
+}
+
+function renderVideosTab() {
+  const list = $('videosList');
+  if (!list) return;
+  const sorted = VIDEOS.slice().sort((a, b) => (b.sort_order - a.sort_order) || (b.id - a.id));
+  list.innerHTML = sorted.length ? sorted.map((v, i) => videoCardHtml(v, i, sorted.length)).join('') : '<div class="empty">还没有回放记录，上面加一条吧</div>';
+
+  list.querySelectorAll('details[data-video]').forEach(det => {
+    const vid = Number(det.dataset.video);
+    const v = sorted.find(x => x.id === vid);
+    if (v) wireVideoCard(det.querySelector('.cat-card-body'), v);
+  });
+
+  const move = dir => async (btn) => {
+    const det = btn.closest('details[data-video]');
+    const id = Number(det.dataset.video);
+    const idx = sorted.findIndex(x => x.id === id);
+    const swapWith = idx + dir;
+    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
+    const order = sorted.map(x => x.id);
+    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+    videosOpenId = id;
+    try { await api('/content/videos-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
+    catch (e) { toast(e.message, true); }
+  };
+  list.querySelectorAll('[data-act="video-up"]').forEach(btn => btn.onclick = () => move(-1)(btn));
+  list.querySelectorAll('[data-act="video-down"]').forEach(btn => btn.onclick = () => move(1)(btn));
+}
+
+function wireVideoCard(bodyEl, v) {
+  const delBtn = bodyEl.querySelector('[data-act="del-video"]');
+  if (delBtn) delBtn.onclick = () => confirmModal(
+    `删除这条回放记录（${v.team_left || 'Davis Origin'} vs ${v.team_right || ''}）？`,
+    '删除后没法恢复；网站上要等下次点"发布经典赛事"才会真的消失。',
+    async () => {
+      await api(`/content/videos/${v.id}`, { method: 'DELETE' });
+      if (videosOpenId === v.id) videosOpenId = null;
+      await reload();
+      toast('已删除');
+    }
+  );
+  const saveBtn = bodyEl.querySelector('[data-act="save-video"]');
+  if (saveBtn) saveBtn.onclick = async () => {
+    saveBtn.disabled = true;
+    const original = saveBtn.textContent;
+    saveBtn.innerHTML = '<span class="spinner"></span> 保存中…';
+    try {
+      await api(`/content/videos/${v.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          tournament: bodyEl.querySelector('.v-tournament').value,
+          matchDate: bodyEl.querySelector('.v-date').value,
+          teamLeft: bodyEl.querySelector('.v-teamleft').value,
+          teamRight: bodyEl.querySelector('.v-teamright').value,
+          scoreLeft: bodyEl.querySelector('.v-scoreleft').value,
+          scoreRight: bodyEl.querySelector('.v-scoreright').value,
+          winner: bodyEl.querySelector('.v-winner').value,
+          videoUrl: bodyEl.querySelector('.v-url').value,
+          note: bodyEl.querySelector('.v-note').value,
+        }),
+      });
+      videosOpenId = v.id;
+      await reload();
+      toast('已保存');
+    } catch (e) {
+      toast(e.message, true);
+      saveBtn.disabled = false;
+      saveBtn.textContent = original;
+    }
+  };
+}
+
+$('btnAddVideo').onclick = async () => {
+  const btn = $('btnAddVideo');
+  btn.disabled = true;
+  try {
+    const d = await api('/content/videos', { method: 'POST', body: JSON.stringify({ tournament: '新的赛事' }) });
+    videosOpenId = d.id;
+    await reload();
+    toast('已新建，展开编辑');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; }
+};
+
 /* ===================== 经历（时间线） ===================== */
 function histItemCardHtml(it, idx, total) {
   return `<details class="cat-card" data-hist-item="${it.id}" ${histItemOpenId === it.id ? 'open' : ''}>
@@ -2104,6 +2255,12 @@ $('btnPublishStory').onclick = () => confirmModal(
   () => doPublish($('btnPublishStory'), '/content/publish-story'),
   '确认发布', 'ok'
 );
+$('btnPublishVideos').onclick = () => confirmModal(
+  '确认发布经典赛事？',
+  '会把后台现在保存的回放列表重新生成 videos-data.js 并推到网站上，几分钟内生效。不会影响其它板块。',
+  () => doPublish($('btnPublishVideos'), '/content/publish-videos'),
+  '确认发布', 'ok'
+);
 
 /* ===================== 确认弹窗 ===================== */
 let confirmAction = null;
@@ -2201,13 +2358,14 @@ $('btnRefresh').onclick = async () => {
 };
 
 async function reload() {
-  const [content, feeData, newsData, honorsData, historyData, storyData] = await Promise.all([
+  const [content, feeData, newsData, honorsData, historyData, storyData, videosData] = await Promise.all([
     api('/content/all'),
     api('/data').catch(() => null), // 球员名单选择器要用；拿不到也不影响其它功能，退化成只能手动加新名字
     api('/content/news').catch(() => ({ articles: [] })),
     api('/content/honors').catch(() => ({ honors: [] })),
     api('/content/history').catch(() => ({ years: [] })),
     api('/content/story').catch(() => ({ blocks: [] })),
+    api('/content/videos').catch(() => ({ videos: [] })),
   ]);
   D = content;
   ALL_PLAYERS = (feeData && Array.isArray(feeData.players)) ? feeData.players : [];
@@ -2223,6 +2381,7 @@ async function reload() {
   HISTORY_YEARS = (historyData && Array.isArray(historyData.years)) ? historyData.years : [];
   STORY_BLOCKS = (storyData && Array.isArray(storyData.blocks)) ? storyData.blocks : [];
   storyDraft = null; // 拿到服务器最新数据之后，故事正文的编辑草稿也要跟着重置
+  VIDEOS = (videosData && Array.isArray(videosData.videos)) ? videosData.videos : [];
   render();
 }
 
