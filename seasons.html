@@ -694,16 +694,11 @@
       return html;
     }
 
-<<<<<<< HEAD
     // 优先用后台标记的"当前赛季"（is_current），保证首页「历史赛季→」点进来
     // 默认停在最新赛季，而不是随便挑一个"有内容"的老赛季；只有没设当前赛季时
     // 才退回去找"从早到晚里第一个有真实内容的"，最后兜底用数组最后一个（最新）。
     var defaultSeason = (window.PREVIEW_SEASON_ID != null && seasons.find(function(s) { return s.id === window.PREVIEW_SEASON_ID; })) ||
       seasons.find(function(s) { return s.current; }) || seasons.find(hasRealContent) || seasons[seasons.length - 1];
-=======
-    var defaultSeason = (window.PREVIEW_SEASON_ID != null && seasons.find(function(s) { return s.id === window.PREVIEW_SEASON_ID; })) ||
-      seasons.find(hasRealContent) || seasons.find(function(s) { return s.current; }) || seasons[0];
->>>>>>> origin/main
     var currentIndex = seasons.indexOf(defaultSeason);
     if (currentIndex < 0) currentIndex = 0;
     var activeTeam = 'first';

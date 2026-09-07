@@ -276,11 +276,7 @@ function renderHonors() {
     return;
   }
   grid.innerHTML = honors.map((h, i) => `
-<<<<<<< HEAD
     <article class="honor-card ${h.tier === 'silver' ? 'silver' : h.tier === 'bronze' ? 'bronze' : 'gold'}">
-=======
-    <article class="honor-card ${h.tier === 'silver' ? 'silver' : 'gold'}">
->>>>>>> origin/main
       <div class="honor-medal">${i + 1}</div>
       <div class="honor-year">${escHtml(h.yearLabel)}</div>
       <h2 class="honor-title">${escHtml(h.title)}</h2>
