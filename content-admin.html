@@ -237,8 +237,10 @@
   .rchip.off{background:#ececec;color:var(--muted);text-decoration:line-through;opacity:.75}
   .rchip.dragging{opacity:.3}
 
-  /* 添加球员：点搜索按钮，在它下方弹出一个更宽的检索框（放大动画），不是整屏弹窗 */
-  .roster-search-panel{position:fixed;z-index:150;background:var(--card);border:1px solid var(--line);
+  /* 添加球员：点搜索按钮，在它右对齐、往左展开弹出一个更宽的检索框（放大动画），
+   * 不是整屏弹窗。用 position:absolute（跟着文档滚动）而不是 fixed，这样翻页面的
+   * 时候框不用跟着立刻关掉——只有框本身彻底滚出可视区域才会被关掉，见 JS 部分。 */
+  .roster-search-panel{position:absolute;z-index:150;background:var(--card);border:1px solid var(--line);
     border-radius:14px;padding:12px;box-shadow:0 26px 60px rgba(13,18,36,.22);
     transform:scale(.85);opacity:0;pointer-events:none;
     transition:transform .16s cubic-bezier(.2,.9,.3,1.25),opacity .12s}
@@ -249,9 +251,12 @@
   .rs-results{max-height:340px;overflow:auto;display:flex;flex-direction:column;gap:3px}
   .rs-result{padding:11px 14px;border-radius:9px;cursor:pointer;font-size:14.5px;display:flex;
     justify-content:space-between;align-items:center;transition:background .15s}
-  .rs-result:hover{background:var(--accent-soft);color:var(--accent)}
+  .rs-result:hover,.rs-result.hl{background:var(--accent-soft);color:var(--accent)}
   .rs-result .rs-pos{font-size:11px;color:var(--muted)}
   .rs-result.add-new{color:var(--ok);font-weight:600}
+  .rs-result.selected{cursor:default;opacity:.6}
+  .rs-result.selected:hover{background:none;color:inherit}
+  .rs-result.selected .rs-pos{color:var(--ok);font-weight:700}
   .rs-empty{padding:16px;text-align:center;color:var(--muted);font-size:13px}
 
   @media(max-width:860px){
@@ -769,12 +774,13 @@ function positionRosterSearchPanel(triggerEl) {
   const rect = triggerEl.getBoundingClientRect();
   const width = Math.min(Math.max(rect.width * 1.5, 380), window.innerWidth - 32);
   panel.style.width = width + 'px';
-  let left = rect.left;
-  if (left + width > window.innerWidth - 16) left = window.innerWidth - 16 - width;
+  // 默认右对齐（跟按钮右边缘对齐）、往左边展开；两侧都放不下才退而求其次贴边距。
+  let left = rect.right - width;
   if (left < 16) left = 16;
-  panel.style.left = left + 'px';
-  panel.style.top = (rect.bottom + 8) + 'px';
-  panel.style.transformOrigin = (rect.left - left < width / 2 ? 'top left' : 'top right');
+  if (left + width > window.innerWidth - 16) left = window.innerWidth - 16 - width;
+  panel.style.left = (left + window.scrollX) + 'px';
+  panel.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+  panel.style.transformOrigin = 'top right';
 }
 function openRosterSearch(prefix, triggerEl) {
   activeSearchPrefix = prefix;
@@ -800,27 +806,49 @@ document.addEventListener('click', e => {
   if (e.target.closest('[data-act="open-roster-search"]')) return;
   closeRosterSearch();
 }, true);
-window.addEventListener('scroll', () => { if ($('rsPanel').classList.contains('on')) closeRosterSearch(); }, true);
+// 面板现在是 position:absolute（跟着文档滚动），翻页面的时候不用跟着立刻关掉——
+// 只有当面板本身彻底滚出可视区域（完全看不见了）才关掉，滚动过程中面板还在
+// 视口里就保持打开、跟着文档一起移动。
+window.addEventListener('scroll', () => {
+  const panel = $('rsPanel');
+  if (!panel.classList.contains('on')) return;
+  const r = panel.getBoundingClientRect();
+  if (r.bottom < 0 || r.top > window.innerHeight) closeRosterSearch();
+}, true);
 window.addEventListener('resize', () => { if ($('rsPanel').classList.contains('on')) closeRosterSearch(); });
+let rsHighlightIdx = -1;
+function rsSelectableEls() { return Array.from($('rsResults').querySelectorAll('.rs-result:not(.selected)')); }
+function moveRsHighlight(delta) {
+  const els = rsSelectableEls();
+  if (!els.length) return;
+  rsHighlightIdx = ((rsHighlightIdx + delta) % els.length + els.length) % els.length;
+  els.forEach((el, i) => el.classList.toggle('hl', i === rsHighlightIdx));
+  els[rsHighlightIdx].scrollIntoView({ block: 'nearest' });
+}
 function renderRosterSearchResults() {
   const box = $('rsResults');
   const q = $('rsInput').value.trim();
   const board = rosterBoards.get(activeSearchPrefix);
   const already = new Set(board ? Object.values(board.getRoster()).flat() : []);
-  let candidates = ALL_PLAYERS.filter(n => !already.has(n));
+  let candidates = ALL_PLAYERS.slice();
   if (q) {
     candidates = candidates.map(n => ({ name: n, rank: matchRank(n, q) }))
       .filter(c => c.rank !== -1).sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name, 'zh'))
       .map(c => c.name);
   }
-  let html = candidates.slice(0, 60).map(n =>
-    `<div class="rs-result" data-name="${esc(n)}"><span>${esc(displayName(n))}</span><span class="rs-pos">${POS_LABEL[guessPosition(n)]}</span></div>`
-  ).join('');
+  // 已经在名单里的球员不再从列表里去掉，而是继续显示、标注"已选择"（灰掉、不能点）。
+  let html = candidates.slice(0, 60).map(n => {
+    const sel = already.has(n);
+    return `<div class="rs-result${sel ? ' selected' : ''}" data-name="${esc(n)}">
+      <span>${esc(displayName(n))}</span><span class="rs-pos">${sel ? '已选择' : POS_LABEL[guessPosition(n)]}</span>
+    </div>`;
+  }).join('');
   if (q && !ALL_PLAYERS.includes(q) && !already.has(q)) {
     html += `<div class="rs-result add-new" data-name="${esc(q)}">+ 添加新名字「${esc(q)}」（不在球员名单里）</div>`;
   }
   box.innerHTML = html || `<div class="rs-empty">没有匹配${q ? '' : '，输入名字/拼音/首字母试试'}</div>`;
-  box.querySelectorAll('.rs-result').forEach(el => el.onclick = () => {
+  rsHighlightIdx = -1;
+  box.querySelectorAll('.rs-result:not(.selected)').forEach(el => el.onclick = () => {
     const b = rosterBoards.get(activeSearchPrefix);
     if (b) b.addPlayer(el.dataset.name);
     $('rsInput').value = '';
@@ -874,9 +902,9 @@ function categoryCardHtml(cat, isOpen) {
       </div>
 
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
-        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '这个赛事的球员名单（留空就跟队伍整体名单一样）', `/content/category-roster/${cat.id}`)}
+        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '这个赛事的球员名单（留空的话，网站上会自动显示这支队伍其它赛事名单里出现过的球员）', `/content/category-roster/${cat.id}`)}
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空（恢复跟队伍整体一样）</button>
+          <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空这份专属名单</button>
         </div>
       </div>
 
@@ -929,10 +957,6 @@ function teamBlockHtml(t) {
       <div class="field"><label>说明（这支队伍这赛季完全没数据时的一句话，比如"本赛季暂无预备队"）</label><input class="t-note" value="${esc(t.note || '')}" /></div>
     </div>
     <button class="btn ghost sm" data-act="save-team" data-id="${t.id}">保存队伍信息</button>
-
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
-      ${rosterBoardHtml('teamroster_' + t.id, t.roster, '队伍整体名单', `/content/team-roster/${t.id}`)}
-    </div>
 
     <div style="margin-top:22px">
       <div class="hint" style="margin-bottom:10px">赛事（每个学期参加的不一定一样，用模版快速加，或者自己起名字）</div>
@@ -1032,7 +1056,7 @@ function renderContentTab(bySeason) {
   ));
 
   area.querySelectorAll('[data-act="clear-cat-roster"]').forEach(btn => btn.onclick = () => confirmModal(
-    '清空这个赛事的专属名单？', '清空之后这个赛事显示的球员会跟队伍整体名单一样。',
+    '清空这个赛事的专属名单？', '清空之后这个赛事会自动显示这支队伍其它赛事名单里出现过的球员。',
     async () => {
       await api(`/content/category-roster/${btn.dataset.id}`, { method: 'PUT', body: JSON.stringify({ roster: { gk: [], def: [], mid: [], fwd: [] } }) });
       await reload(); toast('已清空');
@@ -1140,7 +1164,14 @@ $('cfOk').onclick = async () => {
 /* ===================== 添加球员搜索弹窗 ===================== */
 $('rsInput').addEventListener('input', renderRosterSearchResults);
 $('rsInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); const first = $('rsResults').querySelector('.rs-result'); if (first) first.click(); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveRsHighlight(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); moveRsHighlight(-1); }
+  else if (e.key === 'Enter') {
+    e.preventDefault();
+    const els = rsSelectableEls();
+    const target = (rsHighlightIdx >= 0 && els[rsHighlightIdx]) ? els[rsHighlightIdx] : els[0];
+    if (target) target.click();
+  }
   else if (e.key === 'Escape') { closeRosterSearch(); }
 });
 /* ===================== tabs ===================== */
