@@ -6,14 +6,11 @@
 window.SEASON_DATA = {
   "seasons": [
     {
-      "id": "26-27",
-      "label": "26-27 赛季",
-      "current": true,
-      "placeholder": true,
-      "lede": "新赛季刚开始，训练已经启动，比赛安排还在整理中。",
-      "highlights": [
-        "2026 秋季学期训练已经开始，新赛季整装待发"
-      ],
+      "id": "1",
+      "label": "1",
+      "current": false,
+      "lede": "",
+      "highlights": [],
       "roster": {
         "gk": [],
         "def": [],
@@ -31,14 +28,14 @@ window.SEASON_DATA = {
           "order": 2,
           "matches": []
         },
-        "huati": {
-          "label": "华体会",
-          "order": 4,
-          "matches": []
-        },
         "xinnian": {
           "label": "贺岁杯",
           "order": 3,
+          "matches": []
+        },
+        "huati": {
+          "label": "华体会",
+          "order": 4,
           "matches": []
         }
       },
@@ -62,6 +59,110 @@ window.SEASON_DATA = {
               "order": 2,
               "matches": []
             },
+            "xinnian": {
+              "label": "贺岁杯",
+              "order": 3,
+              "matches": []
+            },
+            "huati": {
+              "label": "华体会",
+              "order": 4,
+              "matches": []
+            }
+          },
+          "note": "暂无数据"
+        },
+        "reserve": {
+          "label": "预备队",
+          "roster": {
+            "gk": [],
+            "def": [],
+            "mid": [],
+            "fwd": []
+          },
+          "matches": {
+            "league": {
+              "label": "北加联",
+              "order": 1,
+              "matches": []
+            },
+            "jiaoji": {
+              "label": "校际杯",
+              "order": 2,
+              "matches": []
+            },
+            "xinnian": {
+              "label": "贺岁杯",
+              "order": 3,
+              "matches": []
+            },
+            "huati": {
+              "label": "华体会",
+              "order": 4,
+              "matches": []
+            }
+          },
+          "note": "暂无数据"
+        }
+      }
+    },
+    {
+      "id": "26-27",
+      "label": "26-27 赛季",
+      "current": true,
+      "placeholder": true,
+      "lede": "新赛季刚开始，训练已经启动，比赛安排还在整理中。",
+      "highlights": [
+        "2026 秋季学期训练已经开始，新赛季整装待发"
+      ],
+      "roster": {
+        "gk": [],
+        "def": [],
+        "mid": [],
+        "fwd": []
+      },
+      "matches": {
+        "jiaoji": {
+          "label": "校际杯",
+          "order": 2,
+          "matches": []
+        },
+        "huati": {
+          "label": "华体会",
+          "order": 4,
+          "matches": []
+        },
+        "xinnian": {
+          "label": "贺岁杯",
+          "order": 3,
+          "matches": []
+        },
+        "custom_3t04": {
+          "label": "1",
+          "order": 7291,
+          "matches": []
+        },
+        "league": {
+          "label": "北加联",
+          "order": 1,
+          "matches": []
+        }
+      },
+      "teams": {
+        "first": {
+          "label": "一队",
+          "roster": {
+            "gk": [],
+            "def": [],
+            "mid": [],
+            "fwd": []
+          },
+          "matches": {
+            "jiaoji": {
+              "label": "校际杯",
+              "order": 2,
+              "matches": []
+            },
             "huati": {
               "label": "华体会",
               "order": 4,
@@ -70,6 +171,16 @@ window.SEASON_DATA = {
             "xinnian": {
               "label": "贺岁杯",
               "order": 3,
+              "matches": []
+            },
+            "custom_3t04": {
+              "label": "1",
+              "order": 7291,
+              "matches": []
+            },
+            "league": {
+              "label": "北加联",
+              "order": 1,
               "matches": []
             }
           }
@@ -123,6 +234,7 @@ window.SEASON_DATA = {
         "gk": [
           "冯楚明",
           "相铮",
+          "相铮",
           "熊翰川"
         ],
         "def": [
@@ -132,11 +244,13 @@ window.SEASON_DATA = {
           "何嘉伦",
           "吉芸莹",
           "黎元其",
+          "黎元其",
           "李金宇",
           "李静诚",
           "李明达",
           "李润泽",
           "刘富行",
+          "刘效尔",
           "刘效尔",
           "刘彦君",
           "刘籽珅",
@@ -146,13 +260,16 @@ window.SEASON_DATA = {
           "王钧",
           "王彦沛",
           "夏梓宸",
+          "夏梓宸",
           "杨乐成",
+          "叶奕承",
           "叶奕承",
           "张宏毅",
           "赵天钰"
         ],
         "mid": [
           "曹震旦",
+          "黄溆子",
           "黄溆子",
           "金圣博",
           "刘铠泽",
@@ -164,10 +281,15 @@ window.SEASON_DATA = {
           "盛天成",
           "史皓元",
           "孙楚越",
+          "孙楚越",
+          "徐鹤诚",
+          "徐子翔",
           "张铭源",
           "赵乐涵",
+          "a",
           "Attila",
           "Frank Zhu",
+          "xe",
           "Zoli"
         ],
         "fwd": [
@@ -189,6 +311,23 @@ window.SEASON_DATA = {
           "label": "北加联",
           "order": 1,
           "matches": [
+            {
+              "date": "may 15",
+              "time": "11",
+              "tag": "北加联",
+              "team1": {
+                "name": "Davis Origin",
+                "davis": true,
+                "winner": true
+              },
+              "team2": {
+                "name": "abc",
+                "davis": false,
+                "winner": false
+              },
+              "score": "6 : 1",
+              "result": "win"
+            },
             {
               "date": "May 10",
               "time": "19:45",
@@ -590,31 +729,42 @@ window.SEASON_DATA = {
           "roster": {
             "gk": [
               "冯楚明",
+              "相铮",
               "熊翰川"
             ],
             "def": [
               "蔡毅诚",
               "葛孟宇",
               "吉芸莹",
+              "黎元其",
               "李金宇",
               "李润泽",
               "刘富行",
+              "刘效尔",
               "刘彦君",
               "马俊宇",
               "潘颢文",
               "王彦沛",
+              "夏梓宸",
               "杨乐成",
+              "叶奕承",
               "张宏毅"
             ],
             "mid": [
-              "Attila",
-              "Frank Zhu",
+              "黄溆子",
               "金圣博",
               "刘明硕",
               "陆子涵",
               "欧阳川",
               "史皓元",
+              "孙楚越",
+              "徐鹤诚",
+              "徐子翔",
               "张铭源",
+              "a",
+              "Attila",
+              "Frank Zhu",
+              "xe",
               "Zoli"
             ],
             "fwd": [
@@ -633,6 +783,23 @@ window.SEASON_DATA = {
               "venue": "北加州各赛区",
               "schedule": "2026 年 5 月",
               "matches": [
+                {
+                  "date": "may 15",
+                  "time": "11",
+                  "tag": "北加联",
+                  "team1": {
+                    "name": "Davis Origin",
+                    "davis": true,
+                    "winner": true
+                  },
+                  "team2": {
+                    "name": "abc",
+                    "davis": false,
+                    "winner": false
+                  },
+                  "score": "6 : 1",
+                  "result": "win"
+                },
                 {
                   "date": "May 16",
                   "time": "10:00",
@@ -874,9 +1041,9 @@ window.SEASON_DATA = {
             "def": [
               "柴泓旭",
               "何嘉伦",
+              "黎元其",
               "李静诚",
               "李明达",
-              "黎元其",
               "刘效尔",
               "刘籽珅",
               "马雨辰",
@@ -1287,31 +1454,31 @@ window.SEASON_DATA = {
             "gk": [
               "11",
               "1111",
-              "232",
-              "2222"
+              "2222",
+              "232"
             ],
             "def": [
-              "w",
-              "j",
               "ccc",
-              "sde"
+              "j",
+              "sde",
+              "w"
             ],
             "mid": [
-              "wdffc",
-              "vfew",
               "fwesdv",
-              "sv",
-              "sdaw",
-              "qqwe",
               "qf",
-              "qqw"
+              "qqw",
+              "qqwe",
+              "sdaw",
+              "sv",
+              "vfew",
+              "wdffc"
             ],
             "fwd": [
-              "qw",
-              "we",
               "c",
+              "qw",
               "s",
-              "ssf"
+              "ssf",
+              "we"
             ]
           },
           "matches": {
