@@ -694,7 +694,8 @@
       return html;
     }
 
-    var defaultSeason = seasons.find(hasRealContent) || seasons.find(function(s) { return s.current; }) || seasons[0];
+    var defaultSeason = (window.PREVIEW_SEASON_ID != null && seasons.find(function(s) { return s.id === window.PREVIEW_SEASON_ID; })) ||
+      seasons.find(hasRealContent) || seasons.find(function(s) { return s.current; }) || seasons[0];
     var currentIndex = seasons.indexOf(defaultSeason);
     if (currentIndex < 0) currentIndex = 0;
     var activeTeam = 'first';

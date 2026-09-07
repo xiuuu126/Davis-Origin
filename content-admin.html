@@ -43,6 +43,9 @@
   .field .chk-line{display:flex;align-items:center;gap:8px;height:auto;padding:2px 0}
   .field .chk-line input{width:16px;height:16px;flex:none}
   .field .chk-line span{font-size:13.5px;color:var(--ink-soft)}
+  .chk-line-sm{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .chk-line-sm input{width:13px;height:13px;flex:none}
+  .chk-line-sm span{font-size:12px;color:var(--muted)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;
     border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;
     font-weight:600;cursor:pointer;font-size:14px;
@@ -76,7 +79,8 @@
   main.wrap{max-width:1180px;margin:0 auto;padding:28px 32px 64px}
 
   .tabs{display:flex;gap:6px;overflow-x:auto;
-    background:#efede9;padding:5px;border-radius:12px;margin-bottom:22px}
+    background:#efede9;padding:5px;border-radius:12px;margin-bottom:22px;
+    position:sticky;top:var(--topbar-h,64px);z-index:30;box-shadow:0 2px 0 var(--bg)}
   .tab{padding:9px 18px;border:none;background:none;color:var(--muted);font-weight:600;
     cursor:pointer;white-space:nowrap;border-radius:8px;font-size:14px;
     transition:color .2s,background .2s,box-shadow .2s}
@@ -115,6 +119,7 @@
   .team-block{border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;background:var(--bg-soft)}
   .team-block-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
   .team-block-title{font-size:14.5px;font-weight:700}
+  .team-subcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px 18px}
 
   table.mtx{width:100%;border-collapse:collapse;margin-top:10px}
   table.mtx th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
@@ -195,10 +200,11 @@
     justify-content:space-between;align-items:center;gap:10px;user-select:none}
   .cat-card summary::-webkit-details-marker{display:none}
   .cat-card summary .cs-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .cat-card summary .cs-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .cat-card summary .cs-caret{width:9px;height:9px;border-right:2px solid var(--muted);
     border-bottom:2px solid var(--muted);transform:rotate(-45deg);flex-shrink:0;transition:transform .18s}
   .cat-card[open] summary .cs-caret{transform:rotate(45deg)}
-  .cat-card summary b{font-size:14.5px}
+  .cat-card summary b{font-size:17px}
   .cat-card summary .hint{margin:0}
   .cat-card-body{padding:0 18px 18px}
   .cat-card-hd{margin-bottom:0}
@@ -248,7 +254,7 @@
   .rs-input{width:100%;box-sizing:border-box;padding:13px 15px;font-size:16px;border:1.5px solid var(--line);
     border-radius:11px;background:var(--bg-soft);margin-bottom:10px}
   .rs-input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
-  .rs-results{max-height:340px;overflow:auto;display:flex;flex-direction:column;gap:3px}
+  .rs-results{max-height:228px;overflow:auto;display:flex;flex-direction:column;gap:3px} /* ~5 条结果的高度，多的滚动查看 */
   .rs-result{padding:11px 14px;border-radius:9px;cursor:pointer;font-size:14.5px;display:flex;
     justify-content:space-between;align-items:center;transition:background .15s}
   .rs-result:hover,.rs-result.hl{background:var(--accent-soft);color:var(--accent)}
@@ -328,7 +334,6 @@
       <div class="publish-banner">
         <div>
           <div class="p-main">发布上线</div>
-          <div class="p-sub">把上面改的内容生成新的 seasons.js，提交到 GitHub，Cloudflare Pages 会自动重新部署，几分钟内网站就会更新。改了东西之后记得点这个，不点就只是存在后台，网站上看不到。</div>
         </div>
         <button class="btn" id="btnPublish">发布上线</button>
       </div>
@@ -572,8 +577,10 @@ function renderSeasonTab(bySeason) {
       <label>赛季亮点（一行一条，显示在首页赛季摘要里）</label>
       <textarea id="sHighlights" rows="4">${esc((b.highlights.map(h => h.text)).join('\n'))}</textarea>
     </div>
-    <div class="field chk-line"><input type="checkbox" id="sPlaceholder" ${s.is_placeholder ? 'checked' : ''} /><span>这是个占位赛季（还没有真实数据，页面上会显示"敬请期待"一类的提示）</span></div>
-    <button class="btn" id="btnSaveSeason">保存赛季信息</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <label class="chk-line-sm"><input type="checkbox" id="sPlaceholder" ${s.is_placeholder ? 'checked' : ''} /><span>占位赛季（还没有真实数据，页面上显示"敬请期待"）</span></label>
+      <button class="btn" id="btnSaveSeason">保存赛季信息</button>
+    </div>
   `;
   $('btnSaveSeason').onclick = async () => {
     const btn = $('btnSaveSeason');
@@ -886,8 +893,8 @@ function newMatchRowHtml(catId) {
 function categoryCardHtml(cat, isOpen) {
   return `<details class="cat-card" data-cat="${cat.id}" ${isOpen ? 'open' : ''}>
     <summary>
-      <div class="cs-left"><span class="cs-caret"></span><b>${esc(cat.label)}</b></div>
-      <div class="hint">${cat.matches.length} 场比赛</div>
+      <div class="cs-left"><b>${esc(cat.label)}</b></div>
+      <div class="cs-right"><div class="hint">${cat.matches.length} 场比赛</div><span class="cs-caret"></span></div>
     </summary>
     <div class="cat-card-body">
       <div class="row3">
@@ -952,13 +959,15 @@ function teamBlockHtml(t) {
     <div class="team-block-hd">
       <div class="team-block-title">${esc(t.label)}<span class="hint" style="display:inline;margin-left:8px">(${t.team_key === 'first' ? '一队' : '预备队'})</span></div>
     </div>
-    <div class="row2">
-      <div class="field"><label>队伍名称</label><input class="t-label" value="${esc(t.label)}" /></div>
-      <div class="field"><label>说明（这支队伍这赛季完全没数据时的一句话，比如"本赛季暂无预备队"）</label><input class="t-note" value="${esc(t.note || '')}" /></div>
+    <div class="team-subcard">
+      <div class="row2">
+        <div class="field"><label>队伍名称</label><input class="t-label" value="${esc(t.label)}" /></div>
+        <div class="field"><label>说明（这支队伍这赛季完全没数据时的一句话，比如"本赛季暂无预备队"）</label><input class="t-note" value="${esc(t.note || '')}" /></div>
+      </div>
+      <button class="btn ghost sm" data-act="save-team" data-id="${t.id}">保存队伍信息</button>
     </div>
-    <button class="btn ghost sm" data-act="save-team" data-id="${t.id}">保存队伍信息</button>
 
-    <div style="margin-top:22px">
+    <div class="team-subcard" style="margin-top:16px">
       <div class="hint" style="margin-bottom:10px">赛事（每个学期参加的不一定一样，用模版快速加，或者自己起名字）</div>
       ${addEventRowHtml(t)}
       ${t.categories.length ? t.categories.map(cat => categoryCardHtml(cat, cat.id === openId)).join('') : '<div class="empty">还没有添加赛事，点上面加一个吧</div>'}
@@ -1056,7 +1065,7 @@ function renderContentTab(bySeason) {
   ));
 
   area.querySelectorAll('[data-act="clear-cat-roster"]').forEach(btn => btn.onclick = () => confirmModal(
-    '清空这个赛事的专属名单？', '清空之后这个赛事会自动显示这支队伍其它赛事名单里出现过的球员。',
+    '清空这个赛事的专属名单？', '如果这支队伍其它赛事配了专属名单，清空后会自动汇总显示那些球员；如果哪个赛事都没配，清空后这里就没有球员了，需要重新搜索添加。',
     async () => {
       await api(`/content/category-roster/${btn.dataset.id}`, { method: 'PUT', body: JSON.stringify({ roster: { gk: [], def: [], mid: [], fwd: [] } }) });
       await reload(); toast('已清空');
@@ -1119,7 +1128,8 @@ $('btnPreview').onclick = async () => {
     if (!tplRes.ok) throw new Error('拿不到 seasons.html 模板（HTTP ' + tplRes.status + '）');
     const tplHtml = await tplRes.text();
     const dataJson = JSON.stringify({ seasons: d.seasons }).replace(/<\/script/gi, '<\\/script');
-    const injected = `<base href="${location.origin}/"><script>window.SEASON_DATA = ${dataJson};<\/script>`;
+    const previewSeasonId = JSON.stringify(curSeasonId);
+    const injected = `<base href="${location.origin}/"><script>window.SEASON_DATA = ${dataJson}; window.PREVIEW_SEASON_ID = ${previewSeasonId};<\/script>`;
     const withData = tplHtml.replace(/<script\s+src=["']seasons\.js["']\s*>\s*<\/script>/i, injected);
     box.innerHTML = `<div class="preview-frame-wrap"><iframe class="preview-frame" id="previewFrame"
       sandbox="allow-scripts allow-same-origin" title="预览"></iframe></div>`;
@@ -1221,9 +1231,20 @@ async function reload() {
   render();
 }
 
+/* tabs（赛季信息/名单与比赛/发布上线）用 position:sticky，正常跟着页面滚动，
+ * 滚到顶部固定的 topbar 下面时就贴住不再往上滚——sticky 的 top 值要等于
+ * topbar 的实际高度，这里量出来写成 CSS 变量，而不是猜一个固定像素数，
+ * 这样以后 topbar 的内容/字号变了，这个联动也不用跟着手动改。 */
+function syncTopbarHeight() {
+  const tb = document.querySelector('.topbar');
+  if (tb) document.documentElement.style.setProperty('--topbar-h', tb.offsetHeight + 'px');
+}
+window.addEventListener('resize', syncTopbarHeight);
+
 async function boot() {
   $('loginScreen').style.display = 'none';
   $('app').classList.add('on');
+  syncTopbarHeight();
   $('apiWarn').innerHTML = '<div class="loading">加载中…</div>';
   try {
     await reload();
