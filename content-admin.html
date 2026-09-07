@@ -265,6 +265,29 @@
   .rs-result.selected .rs-pos{color:var(--ok);font-weight:700}
   .rs-empty{padding:16px;text-align:center;color:var(--muted);font-size:13px}
 
+  /* 新闻：文章正文分块编辑 */
+  .block-row{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:var(--bg-soft)}
+  .block-row-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .block-row-hd select{padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12.5px;font-weight:600;color:var(--ink-soft)}
+  .block-row-hd .updown{display:flex;gap:4px;margin-left:auto}
+  .block-row-hd .updown button{width:26px;height:26px;border:1px solid var(--line);background:#fff;
+    border-radius:6px;cursor:pointer;color:var(--ink-soft)}
+  .block-row-hd .updown button:hover{border-color:var(--accent);color:var(--accent)}
+  .block-row-hd .updown button:disabled{opacity:.35;cursor:not-allowed}
+  .block-row textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;font-size:13.5px;line-height:1.6;resize:vertical}
+  .block-row textarea:focus{outline:none;border-color:var(--accent)}
+  .block-img-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .block-thumb{width:64px;height:48px;border-radius:8px;background:#e9e6de;border:1px solid var(--line);
+    object-fit:cover;flex-shrink:0}
+  .block-thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+  .add-block-row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .cover-thumb{width:88px;height:64px;border-radius:10px;background:#e9e6de;border:1px solid var(--line);
+    object-fit:cover;flex-shrink:0}
+  .cover-thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px}
+  .art-save-bar{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:16px;
+    padding-top:16px;border-top:1px solid var(--line)}
+
   @media(max-width:860px){
     .topbar-inner,main.wrap{padding-left:16px;padding-right:16px}
     .row2,.row3,.row4,.roster-cols{grid-template-columns:1fr}
@@ -316,6 +339,7 @@
     <div class="tabs">
       <button class="tab on" data-tab="season">赛季信息</button>
       <button class="tab" data-tab="content">名单与比赛</button>
+      <button class="tab" data-tab="news">新闻</button>
       <button class="tab" data-tab="publish">发布上线</button>
     </div>
 
@@ -327,6 +351,20 @@
     <!-- 名单与比赛 -->
     <section class="panel" id="tab-content">
       <div id="contentArea"></div>
+    </section>
+
+    <!-- 新闻 -->
+    <section class="panel" id="tab-news">
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，最后去"发布上线"生效。</div></div>
+        </div>
+        <div class="add-event-row">
+          <input type="text" id="newArtTitle" placeholder="新文章标题…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft);font-size:13.5px" />
+          <button class="btn sm" id="btnAddArticle">+ 新建文章</button>
+        </div>
+        <div id="newsList"></div>
+      </div>
     </section>
 
     <!-- 发布 -->
@@ -425,6 +463,16 @@ function displayName(name) {
 }
 let curSeasonId = null;
 let curTeamKey = 'first';    // 当前"名单与比赛"tab 里选的是一队还是预备队
+
+/* ===================== 新闻 ===================== */
+let NEWS = [];                        // /content/news 的文章列表（含每篇的 blocks）
+let newsBlockDrafts = new Map();      // 文章 id -> 正文分块的编辑中副本（加/删/挪块不用等服务器就先本地更新，点"保存"才真正提交）
+let newsOpenId = null;                // 当前展开编辑的是哪篇文章，重新渲染列表时保持展开
+const BLOCK_TYPE_LABEL = {
+  lead: '导语（开头大字）', p: '正文段落', quote: '引用', list: '项目列表（一行一条）',
+  image: '配图 4:3', image_wide: '通栏大图 16:9', image_square: '方图 1:1（如二维码）', image_portrait: '竖图 3:4',
+};
+const IMAGE_BLOCK_TYPES = new Set(['image', 'image_wide', 'image_square', 'image_portrait']);
 
 const EVENT_TEMPLATES = [
   { key: 'league',  label: '北加联' },
@@ -533,6 +581,7 @@ function render() {
   renderSeasonBar();
   renderSeasonTab(bySeason);
   renderContentTab(bySeason);
+  renderNewsTab();
 }
 
 function renderSeasonBar() {
@@ -1115,6 +1164,312 @@ function renderContentTab(bySeason) {
   ));
 }
 
+/* ===================== 新闻：渲染 ===================== */
+
+// 封面图/配图缩略图：占位图标一直垫在下面，图片加载失败就让 <img> 隐藏，占位图标自然露出来——
+// 跟 news.html 正式页面上占位框的做法（figureHtml + onerror）是同一个思路，缩略图版本更简单一点。
+function thumbHtml(cls, path, icon, w, h) {
+  return `<div style="position:relative;width:${w}px;height:${h}px;flex-shrink:0">
+    <div class="${cls} empty" style="position:absolute;inset:0">${esc(icon || '📷')}</div>
+    ${path ? `<img class="${cls}" style="position:absolute;inset:0" src="${esc(path)}" onerror="this.style.display='none'" />` : ''}
+  </div>`;
+}
+
+function coverShapeOptionsHtml(sel) {
+  const labels = { default: '默认 4:3', wide: '通栏 16:9', square: '方图 1:1', portrait: '竖图 3:4' };
+  return Object.entries(labels).map(([k, label]) =>
+    `<option value="${k}" ${(sel || 'default') === k ? 'selected' : ''}>${label}</option>`).join('');
+}
+
+function blockRowHtml(b, i, total) {
+  const typeOpts = Object.entries(BLOCK_TYPE_LABEL).map(([k, label]) =>
+    `<option value="${k}" ${b.type === k ? 'selected' : ''}>${label}</option>`).join('');
+  const isImg = IMAGE_BLOCK_TYPES.has(b.type);
+  const body = isImg
+    ? `<div class="block-img-row">
+        ${thumbHtml('block-thumb', b.image, b.icon, 64, 48)}
+        <input type="file" accept="image/*" class="blk-upload-input" style="display:none" />
+        <button type="button" class="btn ghost sm" data-act="blk-upload-trigger">上传图片</button>
+        <input type="text" class="blk-caption" placeholder="说明文字（图片占位框上显示，比如&quot;名单封面&quot;）" value="${esc(b.caption || '')}"
+          style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
+      </div>`
+    : b.type === 'list'
+      ? `<textarea class="blk-text" rows="3" placeholder="一行一条">${esc(b.text || '')}</textarea>`
+      : `<textarea class="blk-text" rows="${b.type === 'quote' ? 2 : 3}" placeholder="支持 **加粗** 和 _斜体_">${esc(b.text || '')}</textarea>`;
+  return `<div class="block-row" data-idx="${i}">
+    <div class="block-row-hd">
+      <select class="blk-type">${typeOpts}</select>
+      <div class="updown">
+        <button type="button" data-act="blk-up" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button type="button" data-act="blk-down" ${i === total - 1 ? 'disabled' : ''}>↓</button>
+        <button type="button" class="btn danger sm" data-act="blk-del" style="margin-left:4px">删除</button>
+      </div>
+    </div>
+    ${body}
+  </div>`;
+}
+
+function newsArticleBodyHtml(a) {
+  let draft = newsBlockDrafts.get(a.id);
+  if (!draft) {
+    draft = (a.blocks || []).slice().sort((x, y) => x.sort_order - y.sort_order).map(b => ({
+      type: b.block_type, text: b.text || '', image: b.image_path || '', icon: b.image_icon || '📷', caption: b.image_caption || '',
+    }));
+    newsBlockDrafts.set(a.id, draft);
+  }
+  return `
+    <div class="row2">
+      <div class="field"><label>标题</label><input class="a-title" value="${esc(a.title)}" /></div>
+      <div class="field"><label>小标签（eyebrow，比如"赛事预告"）</label><input class="a-eyebrow" value="${esc(a.eyebrow || '')}" /></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>发布日期</label><input class="a-date" type="date" value="${esc(a.pub_date || '')}" /></div>
+      <div class="field"><label>地点（可选）</label><input class="a-location" value="${esc(a.location || '')}" /></div>
+      <div class="field"><label>作者</label><input class="a-author" value="${esc(a.author || '戴维斯原点足球俱乐部')}" /></div>
+    </div>
+    <div class="field">
+      <label>封面图</label>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span class="cover-thumb-wrap">${thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 88, 64)}</span>
+        <input type="file" accept="image/*" class="cover-upload-input" style="display:none" />
+        <button type="button" class="btn ghost sm" data-act="cover-upload-trigger">上传封面图</button>
+        <select class="a-cover-shape">${coverShapeOptionsHtml(a.cover_shape)}</select>
+        <input type="text" class="a-cover-caption" placeholder="说明文字（占位框上显示，比如&quot;封面照片&quot;）" value="${esc(a.cover_caption || '')}"
+          style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
+      </div>
+      <div class="hint cover-path-hint">${a.cover_image ? esc(a.cover_image) : '还没上传，网站上先显示占位框'}</div>
+    </div>
+
+    <div class="hint" style="margin:16px 0 4px">正文内容（<span class="blk-count">${draft.length}</span> 块，从上到下依次显示）</div>
+    <div class="blocks-editor">
+      <div class="blocks-list">${blocksListInnerHtml(draft)}</div>
+      <div class="add-block-row">
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="lead">+ 导语</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="p">+ 段落</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="quote">+ 引用</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="list">+ 列表</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="image">+ 配图</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="image_wide">+ 大图</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="image_square">+ 方图</button>
+        <button type="button" class="tmpl-btn" data-act="blk-add" data-type="image_portrait">+ 竖图</button>
+      </div>
+    </div>
+
+    <div class="art-save-bar">
+      <button class="btn danger sm" data-act="del-article" type="button">删除这篇文章</button>
+      <button class="btn" data-act="save-article" type="button">保存</button>
+    </div>
+  `;
+}
+function blocksListInnerHtml(draft) {
+  return draft.length ? draft.map((b, i) => blockRowHtml(b, i, draft.length)).join('') : '<div class="empty">还没有内容，下面加一块吧</div>';
+}
+
+function newsArticleCardHtml(a, idx, total) {
+  return `<details class="cat-card" data-art="${a.id}" ${newsOpenId === a.id ? 'open' : ''}>
+    <summary>
+      <div class="cs-left">
+        <div class="updown" onclick="event.preventDefault()">
+          <button type="button" data-act="art-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" data-act="art-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+        <b>${esc(a.title)}</b>
+        <span class="hint" style="margin:0">${esc(a.pub_date || '')}</span>
+      </div>
+      <div class="cs-right"><span class="hint" style="margin:0">${(a.blocks || []).length} 块</span><span class="cs-caret"></span></div>
+    </summary>
+    <div class="cat-card-body">${newsArticleBodyHtml(a)}</div>
+  </details>`;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('读取图片失败'));
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadNewsImage(file) {
+  if (file.size > 8 * 1024 * 1024) throw new Error('图片太大了（超过 8MB），先压缩一下再传');
+  const dataBase64 = await fileToBase64(file);
+  const d = await api('/content/news-image', { method: 'POST', body: JSON.stringify({ filename: file.name, dataBase64 }) });
+  return d.path;
+}
+
+// 正文块的增/删/挪/换类型/传图，只重画 .blocks-editor 这一小块（不碰标题/日期/
+// 封面这些还没保存的字段，不然每加一块正文，前面刚打的字就被"重新渲染"冲掉了）。
+function refreshBlocksEditor(artId) {
+  const a = NEWS.find(x => x.id === artId);
+  if (!a) return;
+  const bodyEl = document.querySelector(`#newsList details[data-art="${artId}"] > .cat-card-body`);
+  if (!bodyEl) return;
+  const draft = newsBlockDrafts.get(artId) || [];
+  const listEl = bodyEl.querySelector('.blocks-list');
+  if (listEl) listEl.innerHTML = blocksListInnerHtml(draft);
+  const countEl = bodyEl.querySelector('.blk-count');
+  if (countEl) countEl.textContent = draft.length;
+  wireBlocksEditor(bodyEl, a);
+}
+
+// 块编辑区（.blocks-editor 里面：每一块的文字/类型/上下移/删除，加块按钮）的事件绑定，
+// 初次渲染整篇文章、以及每次 refreshBlocksEditor 局部重画之后都要重新挂一遍。
+function wireBlocksEditor(bodyEl, a) {
+  const draft = newsBlockDrafts.get(a.id) || [];
+  const editor = bodyEl.querySelector('.blocks-editor');
+  if (!editor) return;
+
+  editor.querySelectorAll('.blk-text').forEach(ta => {
+    const i = Number(ta.closest('.block-row').dataset.idx);
+    ta.oninput = () => { draft[i].text = ta.value; };
+  });
+  editor.querySelectorAll('.blk-caption').forEach(inp => {
+    const i = Number(inp.closest('.block-row').dataset.idx);
+    inp.oninput = () => { draft[i].caption = inp.value; };
+  });
+  editor.querySelectorAll('.blk-type').forEach(sel => {
+    const i = Number(sel.closest('.block-row').dataset.idx);
+    sel.onchange = () => { draft[i].type = sel.value; refreshBlocksEditor(a.id); };
+  });
+  editor.querySelectorAll('[data-act="blk-up"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    if (i > 0) { [draft[i - 1], draft[i]] = [draft[i], draft[i - 1]]; refreshBlocksEditor(a.id); }
+  });
+  editor.querySelectorAll('[data-act="blk-down"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    if (i < draft.length - 1) { [draft[i + 1], draft[i]] = [draft[i], draft[i + 1]]; refreshBlocksEditor(a.id); }
+  });
+  editor.querySelectorAll('[data-act="blk-del"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    draft.splice(i, 1);
+    refreshBlocksEditor(a.id);
+  });
+  editor.querySelectorAll('[data-act="blk-upload-trigger"]').forEach(btn => btn.onclick = () => {
+    btn.closest('.block-row').querySelector('.blk-upload-input').click();
+  });
+  editor.querySelectorAll('.blk-upload-input').forEach(inp => {
+    inp.onchange = async () => {
+      const file = inp.files && inp.files[0];
+      if (!file) return;
+      const i = Number(inp.closest('.block-row').dataset.idx);
+      try { draft[i].image = await uploadNewsImage(file); refreshBlocksEditor(a.id); toast('图片已上传'); }
+      catch (e) { toast(e.message, true); }
+    };
+  });
+
+  editor.querySelectorAll('[data-act="blk-add"]').forEach(btn => btn.onclick = () => {
+    const type = btn.dataset.type;
+    draft.push(IMAGE_BLOCK_TYPES.has(type) ? { type, text: '', image: '', icon: '📷', caption: '' } : { type, text: '' });
+    refreshBlocksEditor(a.id);
+  });
+}
+
+// 文章级别的事件绑定：标题/日期等元信息字段、封面图上传、保存、删除文章——
+// 只在整篇文章的编辑区第一次渲染出来时挂一次，跟 wireBlocksEditor 的"每次局部重画都要重挂"不一样。
+function wireArticleBody(bodyEl, a) {
+  const draft = newsBlockDrafts.get(a.id) || [];
+  wireBlocksEditor(bodyEl, a);
+
+  const coverBtn = bodyEl.querySelector('[data-act="cover-upload-trigger"]');
+  if (coverBtn) coverBtn.onclick = () => bodyEl.querySelector('.cover-upload-input').click();
+  const coverInput = bodyEl.querySelector('.cover-upload-input');
+  if (coverInput) coverInput.onchange = async () => {
+    const file = coverInput.files && coverInput.files[0];
+    if (!file) return;
+    try {
+      a.cover_image = await uploadNewsImage(file);
+      const wrap = bodyEl.querySelector('.cover-thumb-wrap');
+      if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 88, 64);
+      const hint = bodyEl.querySelector('.cover-path-hint');
+      if (hint) hint.textContent = a.cover_image;
+      toast('封面图已上传');
+    } catch (e) { toast(e.message, true); }
+  };
+
+  const delBtn = bodyEl.querySelector('[data-act="del-article"]');
+  if (delBtn) delBtn.onclick = () => confirmModal(
+    `删除文章「${a.title}」？`,
+    '删除后没法恢复；网站上要等下次点"发布上线"才会真的消失。',
+    async () => {
+      await api(`/content/news/${a.id}`, { method: 'DELETE' });
+      newsBlockDrafts.delete(a.id);
+      if (newsOpenId === a.id) newsOpenId = null;
+      await reload();
+      toast('已删除');
+    }
+  );
+
+  const saveBtn = bodyEl.querySelector('[data-act="save-article"]');
+  if (saveBtn) saveBtn.onclick = async () => {
+    const title = bodyEl.querySelector('.a-title').value.trim();
+    if (!title) { toast('标题不能为空', true); return; }
+    saveBtn.disabled = true;
+    const original = saveBtn.textContent;
+    saveBtn.innerHTML = '<span class="spinner"></span> 保存中…';
+    try {
+      await api(`/content/news/${a.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          title,
+          eyebrow: bodyEl.querySelector('.a-eyebrow').value,
+          pubDate: bodyEl.querySelector('.a-date').value,
+          location: bodyEl.querySelector('.a-location').value,
+          author: bodyEl.querySelector('.a-author').value,
+          coverImage: a.cover_image || '',
+          coverCaption: bodyEl.querySelector('.a-cover-caption').value,
+          coverShape: bodyEl.querySelector('.a-cover-shape').value,
+        }),
+      });
+      await api(`/content/news/${a.id}/blocks`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          blocks: draft.map(b => ({
+            type: b.type, text: b.text || '', image: b.image || '', icon: b.icon || '📷', caption: b.caption || '',
+          })),
+        }),
+      });
+      newsOpenId = a.id;
+      newsBlockDrafts.delete(a.id);
+      await reload();
+      toast('已保存');
+    } catch (e) {
+      toast(e.message, true);
+      saveBtn.disabled = false;
+      saveBtn.textContent = original;
+    }
+  };
+}
+
+function renderNewsTab() {
+  const list = $('newsList');
+  if (!list) return;
+  const sorted = NEWS.slice().sort((a, b) => (b.sort_order - a.sort_order) || (b.id - a.id));
+  list.innerHTML = sorted.length
+    ? sorted.map((a, i) => newsArticleCardHtml(a, i, sorted.length)).join('')
+    : '<div class="empty">还没有文章，上面加一篇吧</div>';
+
+  list.querySelectorAll('details[data-art]').forEach(det => {
+    const artId = Number(det.dataset.art);
+    const a = sorted.find(x => x.id === artId);
+    if (a) wireArticleBody(det.querySelector('.cat-card-body'), a);
+  });
+
+  const moveArticle = (dir) => async (btn) => {
+    const det = btn.closest('details[data-art]');
+    const id = Number(det.dataset.art);
+    const idx = sorted.findIndex(x => x.id === id);
+    const swapWith = idx + dir;
+    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
+    const order = sorted.map(x => x.id);
+    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+    newsOpenId = id;
+    try { await api('/content/news-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
+    catch (e) { toast(e.message, true); }
+  };
+  list.querySelectorAll('[data-act="art-up"]').forEach(btn => btn.onclick = () => moveArticle(-1)(btn));
+  list.querySelectorAll('[data-act="art-down"]').forEach(btn => btn.onclick = () => moveArticle(1)(btn));
+}
+
 /* ===================== 发布 ===================== */
 /* "生成预览"不再是打印一坨 JSON——直接拿真实的 seasons.html 模板，把
  * <script src="seasons.js"> 换成一段内联脚本、塞进这份还没发布的预览数据，
@@ -1184,6 +1539,31 @@ $('rsInput').addEventListener('keydown', e => {
   }
   else if (e.key === 'Escape') { closeRosterSearch(); }
 });
+/* ===================== 新闻：新建 + 展开状态记忆 ===================== */
+$('btnAddArticle').onclick = async () => {
+  const input = $('newArtTitle');
+  const title = input.value.trim();
+  if (!title) { toast('先填个标题', true); return; }
+  const btn = $('btnAddArticle');
+  btn.disabled = true;
+  try {
+    const d = await api('/content/news', { method: 'POST', body: JSON.stringify({ title }) });
+    input.value = '';
+    newsOpenId = d.id;
+    await reload();
+    toast('已新建，展开编辑正文和图片');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; }
+};
+// <details> 的 toggle 事件不冒泡，但在祖先节点上用捕获阶段（第三个参数 true）监听仍然收得到，
+// 记住当前展开的是哪篇，这样加/删/挪块触发的局部重渲染、或者排序触发的整体 reload 都不会把它收起来。
+$('newsList').addEventListener('toggle', e => {
+  if (!(e.target instanceof HTMLElement) || !e.target.matches('details[data-art]')) return;
+  const id = Number(e.target.dataset.art);
+  if (e.target.open) newsOpenId = id;
+  else if (newsOpenId === id) newsOpenId = null;
+}, true);
+
 /* ===================== tabs ===================== */
 document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
@@ -1216,9 +1596,10 @@ $('btnRefresh').onclick = async () => {
 };
 
 async function reload() {
-  const [content, feeData] = await Promise.all([
+  const [content, feeData, newsData] = await Promise.all([
     api('/content/all'),
     api('/data').catch(() => null), // 球员名单选择器要用；拿不到也不影响其它功能，退化成只能手动加新名字
+    api('/content/news').catch(() => ({ articles: [] })),
   ]);
   D = content;
   ALL_PLAYERS = (feeData && Array.isArray(feeData.players)) ? feeData.players : [];
@@ -1228,6 +1609,8 @@ async function reload() {
       .map(c => [c.name, c.number])
   );
   PLAYER_POS_HISTORY = buildPositionHistory();
+  NEWS = (newsData && Array.isArray(newsData.articles)) ? newsData.articles : [];
+  newsBlockDrafts.clear(); // 每次拿到服务器最新数据之后，正文编辑草稿都要跟着重置，不然会显示已经过时的内容
   render();
 }
 
