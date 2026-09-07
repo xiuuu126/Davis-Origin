@@ -1598,14 +1598,24 @@ function honorCardHtml(h, idx, total) {
         <b>${esc(h.title || '（还没填标题）')}</b>
         <span class="hint" style="margin:0">${esc(h.year_label || '')}</span>
       </div>
+<<<<<<< HEAD
+      <div class="cs-right"><span class="hint" style="margin:0">${h.tier === 'silver' ? '银' : h.tier === 'bronze' ? '铜' : '金'}</span><span class="cs-caret"></span></div>
+=======
       <div class="cs-right"><span class="hint" style="margin:0">${h.tier === 'silver' ? '银' : '金'}</span><span class="cs-caret"></span></div>
+>>>>>>> origin/main
     </summary>
     <div class="cat-card-body">
       <div class="row2">
         <div class="field"><label>年份/名次标签（比如"2024 · Champion"）</label><input class="h-year" value="${esc(h.year_label || '')}" /></div>
         <div class="field"><label>档次</label><select class="h-tier">
+<<<<<<< HEAD
+          <option value="gold" ${h.tier !== 'silver' && h.tier !== 'bronze' ? 'selected' : ''}>金（第一档）</option>
+          <option value="silver" ${h.tier === 'silver' ? 'selected' : ''}>银（第二档）</option>
+          <option value="bronze" ${h.tier === 'bronze' ? 'selected' : ''}>铜（第三档）</option>
+=======
           <option value="gold" ${h.tier !== 'silver' ? 'selected' : ''}>金（第一档）</option>
           <option value="silver" ${h.tier === 'silver' ? 'selected' : ''}>银（第二档）</option>
+>>>>>>> origin/main
         </select></div>
       </div>
       <div class="row2">

@@ -20,6 +20,8 @@
     --gold-soft: #f0d896;
     --silver: #9aa0a9;
     --silver-soft: #d8dce1;
+    --bronze: #a0642e;
+    --bronze-soft: #d9a973;
     --card: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -115,6 +117,7 @@
   }
   .honor-card.gold { animation-delay: .2s; }
   .honor-card.silver { animation-delay: .35s; }
+  .honor-card.bronze { animation-delay: .5s; }
   .honor-card::before {
     content: '';
     position: absolute;
@@ -126,12 +129,16 @@
   .honor-card.silver::before {
     background: linear-gradient(180deg, var(--silver) 0%, var(--silver-soft) 100%);
   }
+  .honor-card.bronze::before {
+    background: linear-gradient(180deg, var(--bronze) 0%, var(--bronze-soft) 100%);
+  }
   .honor-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 24px 48px rgba(13, 18, 36, 0.08);
   }
   .honor-card.gold:hover { border-color: var(--gold); }
   .honor-card.silver:hover { border-color: var(--silver); }
+  .honor-card.bronze:hover { border-color: var(--bronze); }
   .honor-card:hover::before { width: 8px; }
   .honor-medal {
     width: 64px; height: 64px;
@@ -148,6 +155,10 @@
   .honor-card.silver .honor-medal {
     background: linear-gradient(135deg, var(--silver) 0%, var(--silver-soft) 100%);
     box-shadow: 0 8px 16px rgba(154, 160, 169, 0.25);
+  }
+  .honor-card.bronze .honor-medal {
+    background: linear-gradient(135deg, var(--bronze) 0%, var(--bronze-soft) 100%);
+    box-shadow: 0 8px 16px rgba(160, 100, 46, 0.25);
   }
   .honor-year {
     font-size: 12px;
@@ -265,7 +276,11 @@ function renderHonors() {
     return;
   }
   grid.innerHTML = honors.map((h, i) => `
+<<<<<<< HEAD
+    <article class="honor-card ${h.tier === 'silver' ? 'silver' : h.tier === 'bronze' ? 'bronze' : 'gold'}">
+=======
     <article class="honor-card ${h.tier === 'silver' ? 'silver' : 'gold'}">
+>>>>>>> origin/main
       <div class="honor-medal">${i + 1}</div>
       <div class="honor-year">${escHtml(h.yearLabel)}</div>
       <h2 class="honor-title">${escHtml(h.title)}</h2>
