@@ -177,6 +177,11 @@
     padding:16px;font-size:12px;line-height:1.6;overflow:auto;max-height:420px;
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
+  /* 发布前预览：真的把 seasons.html 用这份还没发布的数据渲染出来看 */
+  .preview-frame-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    background:#fff;height:900px;min-height:360px;resize:vertical}
+  .preview-frame{width:100%;height:100%;border:0;display:block}
+
   /* 一队/预备队 切换 */
   .team-switch{display:inline-flex;gap:4px;background:#efede9;padding:4px;border-radius:10px;margin-bottom:16px}
   .team-switch button{border:none;background:none;padding:8px 20px;border-radius:7px;
@@ -211,13 +216,17 @@
   /* 球员名单看板：搜索加人 + 门将/后卫/中场/前锋四栏，拖动调整位置 */
   .roster-board-head{display:flex;justify-content:space-between;align-items:center;gap:12px;
     flex-wrap:wrap;margin-bottom:12px}
+  .roster-save-status{color:var(--ok);font-weight:600;margin-left:4px;transition:opacity .2s}
+  .roster-save-status.bad{color:var(--danger)}
   .roster-search-trigger{padding:9px 16px;border:1px solid var(--line);border-radius:9px;
     background:var(--bg-soft);color:var(--muted);font-size:13px;cursor:pointer;transition:all .18s;
     text-align:left}
   .roster-search-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
   .roster-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .roster-col{border:1.5px dashed transparent;border-radius:10px;padding:8px;transition:all .15s;min-height:64px}
-  .roster-col.drag-over{border-color:var(--accent);background:var(--accent-soft)}
+  .roster-col{position:relative;border:1.5px dashed transparent;border-radius:10px;padding:8px;
+    transition:all .16s cubic-bezier(.3,.8,.4,1.2);min-height:64px}
+  .roster-col.drag-over{border-color:var(--accent);border-width:2px;background:var(--accent-soft);
+    padding:16px 12px;box-shadow:0 10px 26px rgba(30,58,138,.2);transform:scale(1.05);z-index:2}
   .roster-col-head{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
     color:var(--muted);margin-bottom:8px}
   .roster-col-head b{color:var(--ink-soft);font-weight:700;letter-spacing:0;text-transform:none;font-size:11px}
@@ -228,12 +237,16 @@
   .rchip.off{background:#ececec;color:var(--muted);text-decoration:line-through;opacity:.75}
   .rchip.dragging{opacity:.3}
 
-  /* 添加球员的搜索大弹窗 */
-  .roster-search-modal{max-width:520px}
-  .rs-input{width:100%;box-sizing:border-box;padding:15px 16px;font-size:17px;border:1.5px solid var(--line);
-    border-radius:12px;background:var(--bg-soft);margin-bottom:14px}
+  /* 添加球员：点搜索按钮，在它下方弹出一个更宽的检索框（放大动画），不是整屏弹窗 */
+  .roster-search-panel{position:fixed;z-index:150;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:12px;box-shadow:0 26px 60px rgba(13,18,36,.22);
+    transform:scale(.85);opacity:0;pointer-events:none;
+    transition:transform .16s cubic-bezier(.2,.9,.3,1.25),opacity .12s}
+  .roster-search-panel.on{transform:scale(1);opacity:1;pointer-events:auto}
+  .rs-input{width:100%;box-sizing:border-box;padding:13px 15px;font-size:16px;border:1.5px solid var(--line);
+    border-radius:11px;background:var(--bg-soft);margin-bottom:10px}
   .rs-input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
-  .rs-results{max-height:360px;overflow:auto;display:flex;flex-direction:column;gap:3px}
+  .rs-results{max-height:340px;overflow:auto;display:flex;flex-direction:column;gap:3px}
   .rs-result{padding:11px 14px;border-radius:9px;cursor:pointer;font-size:14.5px;display:flex;
     justify-content:space-between;align-items:center;transition:background .15s}
   .rs-result:hover{background:var(--accent-soft);color:var(--accent)}
@@ -316,7 +329,7 @@
       </div>
       <div class="card">
         <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">看一下生成出来的数据长什么样（不会真的发布）</div></div>
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用还没发布的这份内容，直接还原出"赛季存档"页面真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
           <button class="btn ghost sm" id="btnPreview">生成预览</button>
         </div>
         <div id="previewBox"><div class="hint">点"生成预览"看看结果。</div></div>
@@ -361,17 +374,10 @@
   </div>
 </div>
 
-<!-- 添加球员搜索弹窗（名单看板右上角的搜索按钮点开这个） -->
-<div class="modal-bg" id="mRosterSearchBg">
-  <div class="modal roster-search-modal">
-    <h3>添加球员</h3>
-    <div class="sub">支持姓名、拼音全拼或首字母搜索；点一下就加进去，可以连续加好几个，加完点"完成"。</div>
-    <input type="text" id="rsInput" class="rs-input" placeholder="搜姓名/拼音/首字母" autocomplete="off" />
-    <div class="rs-results" id="rsResults"></div>
-    <div class="modal-actions">
-      <button class="btn full" id="rsDone" type="button">完成</button>
-    </div>
-  </div>
+<!-- 添加球员的搜索框（名单看板右上角的搜索按钮点开这个，悬浮在按钮下方，不是整屏弹窗） -->
+<div class="roster-search-panel" id="rsPanel">
+  <input type="text" id="rsInput" class="rs-input" placeholder="搜姓名/拼音/首字母，回车加第一个，点了可以连续加" autocomplete="off" />
+  <div class="rs-results" id="rsResults"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -401,6 +407,12 @@ async function resolveApi() {
 const TK = 'do_admin_token'; // 跟收费后台共用同一个登录状态
 let D = null;                // /content/all 的原始数据
 let ALL_PLAYERS = [];        // 收费后台球员名单（/data 的 players），给名单选择器搜索用
+let PLAYER_NUMBER = new Map(); // 姓名 -> 球衣号（来自收费后台 /data 的 codes[].number，
+                                // 号码本身在 admin.html 那边维护，这边只是借用来显示）
+function displayName(name) {
+  const num = PLAYER_NUMBER.get(name);
+  return num ? (num + ' ' + name) : name;
+}
 let curSeasonId = null;
 let curTeamKey = 'first';    // 当前"名单与比赛"tab 里选的是一队还是预备队
 
@@ -618,12 +630,17 @@ $('nsSave').onclick = async () => {
 
 /* ===================== 名单与比赛 ===================== */
 /* 球员名单看板：门将/后卫/中场/前锋四栏，球员是可以拖动换栏的"药丸"；
- * 点一下药丸切换"选中/灰掉"（灰掉的保存时自动从名单里剔除，不是真删除，
- * 再点一下可以恢复）；加人统一走右上角的搜索按钮，点开一个大弹窗搜索/添加。 */
-function rosterBoardHtml(prefix, roster, label) {
-  return `<div class="roster-board" data-prefix="${esc(prefix)}" data-roster='${esc(JSON.stringify(roster || {}))}'>
+ * 点一下药丸切换"选中/灰掉"（灰掉的自动从名单里剔除，不是真删除，再点一下可以
+ * 恢复）；加人统一走右上角的搜索按钮，点开一个悬浮在按钮下方的搜索框。
+ * 没有手动"保存"按钮——每次拖动/点击/加人之后 0.5 秒自动存进后台
+ * （data-save-url 指向这块名单该存去哪个接口，团队整体名单和某个赛事的专属
+ * 名单用的是同一套组件，只是 saveUrl 不一样）。 */
+function rosterBoardHtml(prefix, roster, label, saveUrl) {
+  return `<div class="roster-board" data-prefix="${esc(prefix)}" data-save-url="${esc(saveUrl)}"
+      data-roster='${esc(JSON.stringify(roster || {}))}'>
     <div class="roster-board-head">
-      <div class="hint" style="margin:0"><b data-count="total">0</b> 人 · ${esc(label)}</div>
+      <div class="hint" style="margin:0"><b data-count="total">0</b> 人 · ${esc(label)}
+        <span class="roster-save-status" data-save-status></span></div>
       <button type="button" class="roster-search-trigger" data-act="open-roster-search">🔍 搜姓名/拼音/首字母，添加球员</button>
     </div>
     <div class="roster-cols">
@@ -638,6 +655,7 @@ function rosterBoardHtml(prefix, roster, label) {
 function mountRosterBoards(root) {
   root.querySelectorAll('.roster-board').forEach(board => {
     const prefix = board.dataset.prefix;
+    const saveUrl = board.dataset.saveUrl;
     let rosterObj = {};
     try { rosterObj = JSON.parse(board.dataset.roster || '{}'); } catch (e) {}
     const entries = [];
@@ -649,12 +667,37 @@ function mountRosterBoards(root) {
       countEls[p] = board.querySelector(`.roster-col-head b[data-count="${p}"]`);
     });
     const totalEl = board.querySelector('.roster-board-head b[data-count="total"]');
+    const statusEl = board.querySelector('[data-save-status]');
+
+    function currentRosterOut() {
+      const out = {};
+      POS.forEach(p => { out[p] = entries.filter(e => e.pos === p && !e.excluded).map(e => e.name); });
+      return out;
+    }
+    let saveTimer = null;
+    function scheduleAutoSave() {
+      if (!saveUrl || !statusEl) return;
+      statusEl.classList.remove('bad');
+      statusEl.textContent = '· 保存中…';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        try {
+          await api(saveUrl, { method: 'PUT', body: JSON.stringify({ roster: currentRosterOut() }) });
+          statusEl.textContent = '· 已自动保存';
+          setTimeout(() => { statusEl.textContent = ''; }, 1400);
+        } catch (e) {
+          statusEl.classList.add('bad');
+          statusEl.textContent = '· 保存失败，等会再改一下试试';
+        }
+      }, 500);
+    }
 
     function wireChips() {
       board.querySelectorAll('.rchip').forEach(chip => {
         chip.onclick = () => {
           entries[Number(chip.dataset.idx)].excluded = !entries[Number(chip.dataset.idx)].excluded;
           renderChips();
+          scheduleAutoSave();
         };
         chip.ondragstart = e => {
           chip.classList.add('dragging');
@@ -667,7 +710,7 @@ function mountRosterBoards(root) {
     function renderChips() {
       POS.forEach(p => {
         cols[p].innerHTML = entries.map((e, idx) => e.pos === p
-          ? `<span class="rchip ${e.excluded ? 'off' : ''}" draggable="true" data-idx="${idx}">${esc(e.name)}</span>`
+          ? `<span class="rchip ${e.excluded ? 'off' : ''}" draggable="true" data-idx="${idx}">${esc(displayName(e.name))}</span>`
           : '').join('');
         countEls[p].textContent = '(' + entries.filter(e => e.pos === p && !e.excluded).length + ')';
       });
@@ -682,34 +725,32 @@ function mountRosterBoards(root) {
         e.preventDefault();
         colEl.classList.remove('drag-over');
         const idx = Number(e.dataTransfer.getData('text/plain'));
-        if (entries[idx]) { entries[idx].pos = p; renderChips(); }
+        if (entries[idx] && entries[idx].pos !== p) {
+          entries[idx].pos = p;
+          renderChips();
+          scheduleAutoSave();
+        }
       });
     });
     const searchBtn = board.querySelector('[data-act="open-roster-search"]');
-    if (searchBtn) searchBtn.onclick = () => openRosterSearch(prefix);
+    if (searchBtn) searchBtn.onclick = () => openRosterSearch(prefix, searchBtn);
 
     renderChips();
     rosterBoards.set(prefix, {
-      getRoster() {
-        const out = {};
-        POS.forEach(p => { out[p] = entries.filter(e => e.pos === p && !e.excluded).map(e => e.name); });
-        return out;
-      },
+      getRoster: currentRosterOut,
       addPlayer(name) {
         const existing = entries.find(e => e.name === name);
         if (existing) { existing.excluded = false; }
         else { entries.push({ name, pos: guessPosition(name), excluded: false }); }
         renderChips();
+        scheduleAutoSave();
       },
     });
   });
 }
-function readRosterPicker(prefix) {
-  const board = rosterBoards.get(prefix);
-  return board ? board.getRoster() : { gk: [], def: [], mid: [], fwd: [] };
-}
 
-/* ---- 添加球员的搜索大弹窗（统一入口，替代原来每个位置单独一个小搜索框）---- */
+/* ---- 添加球员的搜索框：点搜索按钮，在它下方弹出一个更宽一点的悬浮框（带放大动画），
+ * 不是整屏弹窗，点框外任意地方或按 Esc 关掉。 ---- */
 let activeSearchPrefix = null;
 function matchRank(name, q) {
   if (!q) return 0;
@@ -723,17 +764,44 @@ function matchRank(name, q) {
   }
   return best;
 }
-function openRosterSearch(prefix) {
+function positionRosterSearchPanel(triggerEl) {
+  const panel = $('rsPanel');
+  const rect = triggerEl.getBoundingClientRect();
+  const width = Math.min(Math.max(rect.width * 1.5, 380), window.innerWidth - 32);
+  panel.style.width = width + 'px';
+  let left = rect.left;
+  if (left + width > window.innerWidth - 16) left = window.innerWidth - 16 - width;
+  if (left < 16) left = 16;
+  panel.style.left = left + 'px';
+  panel.style.top = (rect.bottom + 8) + 'px';
+  panel.style.transformOrigin = (rect.left - left < width / 2 ? 'top left' : 'top right');
+}
+function openRosterSearch(prefix, triggerEl) {
   activeSearchPrefix = prefix;
   $('rsInput').value = '';
   renderRosterSearchResults();
-  $('mRosterSearchBg').classList.add('on');
+  positionRosterSearchPanel(triggerEl);
+  $('rsPanel').classList.add('on');
   setTimeout(() => $('rsInput').focus(), 60);
 }
 function closeRosterSearch() {
-  $('mRosterSearchBg').classList.remove('on');
+  $('rsPanel').classList.remove('on');
   activeSearchPrefix = null;
 }
+// 用捕获阶段监听（第三个参数 true）——因为点某条搜索结果会立刻重新渲染
+// #rsResults（把刚点的那个节点从 DOM 里换掉），如果用冒泡阶段监听，等事件
+// 冒泡到 document 的时候点击的节点已经被换掉/脱离文档了，panel.contains(e.target)
+// 会错误地判定为"点在面板外面"，导致选完一个人面板立刻自己关掉。捕获阶段在
+// 事件到达目标、触发那次重新渲染之前就先跑完了，不会有这个问题。
+document.addEventListener('click', e => {
+  const panel = $('rsPanel');
+  if (!panel.classList.contains('on')) return;
+  if (panel.contains(e.target)) return;
+  if (e.target.closest('[data-act="open-roster-search"]')) return;
+  closeRosterSearch();
+}, true);
+window.addEventListener('scroll', () => { if ($('rsPanel').classList.contains('on')) closeRosterSearch(); }, true);
+window.addEventListener('resize', () => { if ($('rsPanel').classList.contains('on')) closeRosterSearch(); });
 function renderRosterSearchResults() {
   const box = $('rsResults');
   const q = $('rsInput').value.trim();
@@ -746,7 +814,7 @@ function renderRosterSearchResults() {
       .map(c => c.name);
   }
   let html = candidates.slice(0, 60).map(n =>
-    `<div class="rs-result" data-name="${esc(n)}"><span>${esc(n)}</span><span class="rs-pos">${POS_LABEL[guessPosition(n)]}</span></div>`
+    `<div class="rs-result" data-name="${esc(n)}"><span>${esc(displayName(n))}</span><span class="rs-pos">${POS_LABEL[guessPosition(n)]}</span></div>`
   ).join('');
   if (q && !ALL_PLAYERS.includes(q) && !already.has(q)) {
     html += `<div class="rs-result add-new" data-name="${esc(q)}">+ 添加新名字「${esc(q)}」（不在球员名单里）</div>`;
@@ -806,9 +874,8 @@ function categoryCardHtml(cat, isOpen) {
       </div>
 
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
-        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '这个赛事的球员名单（留空就跟队伍整体名单一样）')}
+        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '这个赛事的球员名单（留空就跟队伍整体名单一样）', `/content/category-roster/${cat.id}`)}
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn ghost sm" data-act="save-cat-roster" data-id="${cat.id}">保存这份名单</button>
           <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空（恢复跟队伍整体一样）</button>
         </div>
       </div>
@@ -864,8 +931,7 @@ function teamBlockHtml(t) {
     <button class="btn ghost sm" data-act="save-team" data-id="${t.id}">保存队伍信息</button>
 
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
-      ${rosterBoardHtml('teamroster_' + t.id, t.roster, '队伍整体名单')}
-      <button class="btn ghost sm" style="margin-top:10px" data-act="save-team-roster" data-id="${t.id}">保存整体名单</button>
+      ${rosterBoardHtml('teamroster_' + t.id, t.roster, '队伍整体名单', `/content/team-roster/${t.id}`)}
     </div>
 
     <div style="margin-top:22px">
@@ -887,15 +953,11 @@ function renderContentTab(bySeason) {
   area.innerHTML = `<div class="card">
     <div class="card-head">
       <div class="card-title">${esc(b.season.label)} · 名单与比赛</div>
-      <button class="btn" id="btnPublishInline">发布上线</button>
     </div>
     ${teamSwitchHtml(b)}
     ${curTeam ? teamBlockHtml(curTeam) : '<div class="empty">这支队伍还没建好</div>'}
   </div>`;
   mountRosterBoards(area);
-
-  const pubBtn = $('btnPublishInline');
-  if (pubBtn) pubBtn.onclick = () => doPublish(pubBtn);
 
   area.querySelectorAll('.team-switch button').forEach(btn => btn.onclick = () => {
     curTeamKey = btn.dataset.teamKey;
@@ -947,15 +1009,6 @@ function renderContentTab(bySeason) {
     } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
   });
 
-  area.querySelectorAll('[data-act="save-team-roster"]').forEach(btn => btn.onclick = async () => {
-    const teamId = btn.dataset.id;
-    btn.disabled = true;
-    try {
-      await api(`/content/team-roster/${teamId}`, { method: 'PUT', body: JSON.stringify({ roster: readRosterPicker('teamroster_' + teamId) }) });
-      await reload(); toast('已保存');
-    } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
-  });
-
   area.querySelectorAll('[data-act="save-cat"]').forEach(btn => btn.onclick = async () => {
     const wrap = btn.closest('.cat-card');
     btn.disabled = true;
@@ -977,15 +1030,6 @@ function renderContentTab(bySeason) {
     '删除这个赛事？', '这个赛事底下的比赛和专属名单会一起删掉，删完发布一次才会在网站上消失，删错了也没法撤销。',
     async () => { await api(`/content/category/${btn.dataset.id}`, { method: 'DELETE' }); await reload(); toast('已删除'); }
   ));
-
-  area.querySelectorAll('[data-act="save-cat-roster"]').forEach(btn => btn.onclick = async () => {
-    btn.disabled = true;
-    try {
-      const roster = readRosterPicker('catroster_' + btn.dataset.id);
-      await api(`/content/category-roster/${btn.dataset.id}`, { method: 'PUT', body: JSON.stringify({ roster }) });
-      await reload(); toast('已保存');
-    } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
-  });
 
   area.querySelectorAll('[data-act="clear-cat-roster"]').forEach(btn => btn.onclick = () => confirmModal(
     '清空这个赛事的专属名单？', '清空之后这个赛事显示的球员会跟队伍整体名单一样。',
@@ -1039,12 +1083,23 @@ function renderContentTab(bySeason) {
 }
 
 /* ===================== 发布 ===================== */
+/* "生成预览"不再是打印一坨 JSON——直接拿真实的 seasons.html 模板，把
+ * <script src="seasons.js"> 换成一段内联脚本、塞进这份还没发布的预览数据，
+ * 装进一个 iframe 里，看到的就是发布之后网站会长的真实样子。 */
 $('btnPreview').onclick = async () => {
   const box = $('previewBox');
   box.innerHTML = '<div class="hint"><span class="refresh-spin"></span>生成中…</div>';
   try {
     const d = await api('/content/preview');
-    box.innerHTML = `<pre class="preview">${esc(JSON.stringify(d.seasons, null, 2))}</pre>`;
+    const tplRes = await fetch('seasons.html', { cache: 'no-store' });
+    if (!tplRes.ok) throw new Error('拿不到 seasons.html 模板（HTTP ' + tplRes.status + '）');
+    const tplHtml = await tplRes.text();
+    const dataJson = JSON.stringify({ seasons: d.seasons }).replace(/<\/script/gi, '<\\/script');
+    const injected = `<base href="${location.origin}/"><script>window.SEASON_DATA = ${dataJson};<\/script>`;
+    const withData = tplHtml.replace(/<script\s+src=["']seasons\.js["']\s*>\s*<\/script>/i, injected);
+    box.innerHTML = `<div class="preview-frame-wrap"><iframe class="preview-frame" id="previewFrame"
+      sandbox="allow-scripts allow-same-origin" title="预览"></iframe></div>`;
+    $('previewFrame').srcdoc = withData;
   } catch (e) { box.innerHTML = `<div class="callout err">${esc(e.message)}</div>`; }
 };
 async function doPublish(btn) {
@@ -1056,13 +1111,22 @@ async function doPublish(btn) {
   } catch (e) { toast(e.message, true); }
   finally { btn.disabled = false; btn.textContent = original; }
 }
-$('btnPublish').onclick = () => doPublish($('btnPublish'));
+$('btnPublish').onclick = () => confirmModal(
+  '确认发布上线？',
+  '会把后台现在保存的所有内容重新生成 seasons.js 并推到网站上，几分钟内生效。发布这一步本身没法撤销，不过内容还留在后台，改错了可以再改、再发一次。',
+  () => doPublish($('btnPublish')),
+  '确认发布上线', 'ok'
+);
 
 /* ===================== 确认弹窗 ===================== */
 let confirmAction = null;
-function confirmModal(title, sub, onOk) {
+function confirmModal(title, sub, onOk, okLabel, variant) {
   $('cfTitle').textContent = title;
   $('cfSub').textContent = sub;
+  const okBtn = $('cfOk');
+  okBtn.textContent = okLabel || '确定删除';
+  const color = variant === 'ok' ? 'var(--ok)' : 'var(--danger)';
+  okBtn.style.borderColor = color; okBtn.style.background = color;
   confirmAction = onOk;
   $('mConfirmBg').classList.add('on');
 }
@@ -1079,9 +1143,6 @@ $('rsInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); const first = $('rsResults').querySelector('.rs-result'); if (first) first.click(); }
   else if (e.key === 'Escape') { closeRosterSearch(); }
 });
-$('rsDone').onclick = closeRosterSearch;
-$('mRosterSearchBg').addEventListener('click', e => { if (e.target.id === 'mRosterSearchBg') closeRosterSearch(); });
-
 /* ===================== tabs ===================== */
 document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
@@ -1120,6 +1181,11 @@ async function reload() {
   ]);
   D = content;
   ALL_PLAYERS = (feeData && Array.isArray(feeData.players)) ? feeData.players : [];
+  PLAYER_NUMBER = new Map(
+    (feeData && Array.isArray(feeData.codes) ? feeData.codes : [])
+      .filter(c => c.number)
+      .map(c => [c.name, c.number])
+  );
   PLAYER_POS_HISTORY = buildPositionHistory();
   render();
 }
