@@ -2292,6 +2292,7 @@ function renderFees(){
       <td>
         ${playerNum(f.name)?`<span class="jersey sm" style="margin-right:8px">${esc(playerNum(f.name))}</span>`:''}
         <b>${esc(f.name)}</b>
+        ${hasExemptThisTerm(f.name)?'<span class="ex-flag" style="margin-left:5px" title="本学期有免费记录">免</span>':''}
         ${tg?`<span class="ptag" style="${tagStyle(tg,'player')};margin-left:7px">${esc(tg)}</span>`:''}
       </td>
       <td class="num"><span class="cnt-badge">${f.count}</span></td>
