@@ -358,20 +358,10 @@
     <section class="module on" id="module-seasons">
       <div class="season-bar" id="seasonBar"></div>
 
-      <div class="publish-banner">
-        <div>
-          <div class="p-main">发布这个赛季</div>
-          <div class="p-sub" id="publishSeasonSub">只会重新发布当前选中的这一个赛季，其它赛季维持它们各自上一次发布时的样子，不会被牵连。</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="btn ghost" id="btnPreview">生成预览</button>
-          <button class="btn" id="btnPublishSeason">发布这个赛季</button>
-        </div>
-      </div>
-
       <div class="tabs">
         <button class="tab on" data-tab="season">赛季信息</button>
         <button class="tab" data-tab="content">名单与比赛</button>
+        <button class="tab" data-tab="season-preview">预览</button>
       </div>
 
       <!-- 赛季信息 -->
@@ -384,12 +374,25 @@
         <div id="contentArea"></div>
       </section>
 
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用当前选中赛季还没发布的这份内容，直接还原出"赛季存档"页面真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+      <!-- 预览 -->
+      <section class="panel" id="tab-season-preview">
+        <div class="publish-banner">
+          <div>
+            <div class="p-main">发布这个赛季</div>
+            <div class="p-sub" id="publishSeasonSub">只会重新发布当前选中的这一个赛季，其它赛季维持它们各自上一次发布时的样子，不会被牵连。</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn ghost" id="btnPreview">生成预览</button>
+            <button class="btn" id="btnPublishSeason">发布这个赛季</button>
+          </div>
         </div>
-        <div id="previewBox"><div class="hint">点上面"生成预览"看看结果。</div></div>
-      </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">发布前预览</div><div class="card-sub">用当前选中赛季还没发布的这份内容，直接还原出"赛季存档"页面真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+          </div>
+          <div id="previewBox"><div class="hint">点上面"生成预览"看看结果。</div></div>
+        </div>
+      </section>
     </section>
 
     <!-- ============ 大板块：新闻 ============ -->
