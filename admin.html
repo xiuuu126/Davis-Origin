@@ -498,7 +498,7 @@
   .name-chip:hover{border-color:var(--accent);color:var(--accent)}
   .name-chip.ex{background:var(--warn-soft);border-color:rgba(176,118,42,.35);color:#7a5518}
   .name-chip.ex:hover{border-color:var(--warn)}
-  .name-chip .ex-flag{font-size:10.5px;font-weight:700;background:var(--warn);color:#fff;
+  .ex-flag{font-size:10.5px;font-weight:700;background:var(--warn);color:#fff;
     padding:1px 5px;border-radius:5px;letter-spacing:.04em}
 
   .toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);background:var(--ink);
@@ -1612,6 +1612,13 @@ function attCountAll(name){
   return n;
 }
 
+/** 本学期是否有免费记录（球员名册里加个小标注用） */
+function hasExemptThisTerm(name){
+  const t = T();
+  if(!t) return false;
+  return (t.sessions||[]).some(s => (s.exempt||[]).includes(name));
+}
+
 function renderCodes(){
   const body = $('codeBody');
   const all = D.codes || [];
@@ -1664,6 +1671,7 @@ function renderCodes(){
       <td>
         ${newPlayers.has(c.name)?'<span class="newdot" title="本次新加"></span>':''}
         <b>${esc(c.name)}</b>
+        ${hasExemptThisTerm(c.name)?'<span class="ex-flag" style="margin-left:5px" title="本学期有免费记录">免</span>':''}
       </td>
       <td>${c.tag
         ? `<span class="ptag" style="${tagStyle(c.tag,'player')}">${esc(c.tag)}</span>`
@@ -2013,7 +2021,7 @@ function renderSessions(){
       try{
         await api(`/sessions/${sid}/exempt`, { method:'PUT', body: JSON.stringify({ name, exempt: willExempt }) });
         await reload();
-        toast(willExempt ? `${name} 这次免费了` : `${name} 恢复正常收费`);
+        toast(willExempt ? `${name} 此次不收费` : `${name} 恢复正常收费`);
       }catch(e){ toast(e.message, true); chip.style.pointerEvents = ''; }
     };
   });
