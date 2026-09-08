@@ -1979,7 +1979,7 @@ function renderSessions(){
           <summary>查看名单</summary>
           <div class="sess-names-body">
             ${s.attendees.length ? `
-              <div class="sess-names-hint">点名字可以标记"这次免费"（不计费、也不占分摊单价的人头，到场记录还在）</div>
+              <div class="sess-names-hint">点击名字标记此次训练/比赛免费（不计费、也不占分摊单价的人头，到场记录还在）</div>
               <div class="name-chips">${s.attendees.map(n=>{
                 const isEx = (s.exempt||[]).includes(n);
                 return `<span class="name-chip ${isEx?'ex':''}" data-sess="${s.id}" data-name="${esc(n)}">${esc(n)}${isEx?'<span class="ex-flag">免</span>':''}</span>`;
