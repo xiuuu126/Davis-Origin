@@ -399,7 +399,10 @@
           <div class="p-main">发布新闻</div>
           <div class="p-sub">新闻是整个板块一起发布的，不像赛季能一个一个单独发；跟"赛季"板块的发布互不影响。</div>
         </div>
-        <button class="btn" id="btnPublishNews">发布新闻</button>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn ghost" id="btnPreviewNews">生成预览</button>
+          <button class="btn" id="btnPublishNews">发布新闻</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -411,6 +414,13 @@
         </div>
         <div id="newsList"></div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份新闻内容，直接还原出 news.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+        </div>
+        <div id="previewBoxNews"><div class="hint">点上面"生成预览"看看结果。</div></div>
+      </div>
     </section>
 
     <!-- ============ 大板块：荣誉 ============ -->
@@ -420,7 +430,10 @@
           <div class="p-main">发布荣誉</div>
           <div class="p-sub">跟"赛季""新闻"互不影响，各自独立发布。</div>
         </div>
-        <button class="btn" id="btnPublishHonors">发布荣誉</button>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn ghost" id="btnPreviewHonors">生成预览</button>
+          <button class="btn" id="btnPublishHonors">发布荣誉</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -428,6 +441,13 @@
         </div>
         <div class="add-event-row"><button class="btn sm" id="btnAddHonor">+ 新增荣誉</button></div>
         <div id="honorsList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份荣誉内容，直接还原出 honors.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+        </div>
+        <div id="previewBoxHonors"><div class="hint">点上面"生成预览"看看结果。</div></div>
       </div>
     </section>
 
@@ -438,7 +458,10 @@
           <div class="p-main">发布经历</div>
           <div class="p-sub">跟"赛季""新闻""荣誉"互不影响，各自独立发布。</div>
         </div>
-        <button class="btn" id="btnPublishHistory">发布经历</button>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn ghost" id="btnPreviewHistory">生成预览</button>
+          <button class="btn" id="btnPublishHistory">发布经历</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -446,6 +469,13 @@
         </div>
         <div class="add-event-row"><button class="btn sm" id="btnAddHistYear">+ 新增年份分组</button></div>
         <div id="historyList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份时间线内容，直接还原出 history.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+        </div>
+        <div id="previewBoxHistory"><div class="hint">点上面"生成预览"看看结果。</div></div>
       </div>
     </section>
 
@@ -456,7 +486,10 @@
           <div class="p-main">发布故事</div>
           <div class="p-sub">跟"赛季""新闻""荣誉""经历"互不影响，各自独立发布。</div>
         </div>
-        <button class="btn" id="btnPublishStory">发布故事</button>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn ghost" id="btnPreviewStory">生成预览</button>
+          <button class="btn" id="btnPublishStory">发布故事</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -473,6 +506,13 @@
           <button class="btn" id="btnSaveStory" type="button">保存</button>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份正文，直接还原出 story.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+        </div>
+        <div id="previewBoxStory"><div class="hint">点上面"生成预览"看看结果。</div></div>
+      </div>
     </section>
 
     <!-- ============ 大板块：经典赛事回放 ============ -->
@@ -482,7 +522,10 @@
           <div class="p-main">发布经典赛事</div>
           <div class="p-sub">跟"赛季""新闻""荣誉""经历""故事"互不影响，各自独立发布。</div>
         </div>
-        <button class="btn" id="btnPublishVideos">发布经典赛事</button>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn ghost" id="btnPreviewVideos">生成预览</button>
+          <button class="btn" id="btnPublishVideos">发布经典赛事</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -490,6 +533,13 @@
         </div>
         <div class="add-event-row"><button class="btn sm" id="btnAddVideo">+ 新增回放</button></div>
         <div id="videosList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份回放列表，直接还原出 videos.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+        </div>
+        <div id="previewBoxVideos"><div class="hint">点上面"生成预览"看看结果。</div></div>
       </div>
     </section>
   </main>
@@ -2208,6 +2258,38 @@ $('btnPreview').onclick = async () => {
     $('previewFrame').srcdoc = withData;
   } catch (e) { box.innerHTML = `<div class="callout err">${esc(e.message)}</div>`; }
 };
+
+/* 另外五个板块（新闻/荣誉/经历/故事/经典赛事）没有"当前选中哪一个"这回事，
+ * 整个板块的内容一起预览、一起发布，用同一套逻辑：拿 /content/preview 返回的
+ * 对应字段，套进真实的静态页模板里，跟"赛季"预览是同一个原理。 */
+const OTHER_PREVIEW_MODULES = [
+  { key: 'News',    tpl: 'news.html',    dataJs: 'news-data.js',    varName: 'NEWS_DATA',    wrapKey: 'articles', field: 'news' },
+  { key: 'Honors',  tpl: 'honors.html',  dataJs: 'honors-data.js',  varName: 'HONORS_DATA',  wrapKey: 'honors',   field: 'honors' },
+  { key: 'History', tpl: 'history.html', dataJs: 'history-data.js', varName: 'HISTORY_DATA', wrapKey: 'years',    field: 'history' },
+  { key: 'Story',   tpl: 'story.html',   dataJs: 'story-data.js',   varName: 'STORY_DATA',   wrapKey: 'blocks',   field: 'story' },
+  { key: 'Videos',  tpl: 'videos.html',  dataJs: 'videos-data.js',  varName: 'VIDEOS_DATA',  wrapKey: 'videos',   field: 'videos' },
+];
+OTHER_PREVIEW_MODULES.forEach(m => {
+  const btn = $('btnPreview' + m.key);
+  const box = $('previewBox' + m.key);
+  if (!btn || !box) return;
+  btn.onclick = async () => {
+    box.innerHTML = '<div class="hint"><span class="refresh-spin"></span>生成中…</div>';
+    try {
+      const d = await api('/content/preview');
+      const tplRes = await fetch(m.tpl, { cache: 'no-store' });
+      if (!tplRes.ok) throw new Error(`拿不到 ${m.tpl} 模板（HTTP ${tplRes.status}）`);
+      const tplHtml = await tplRes.text();
+      const dataJson = JSON.stringify({ [m.wrapKey]: d[m.field] }).replace(/<\/script/gi, '<\\/script');
+      const injected = `<base href="${location.origin}/"><script>window.${m.varName} = ${dataJson};<\/script>`;
+      const re = new RegExp(`<script\\s+src=["']${m.dataJs}["']\\s*>\\s*<\\/script>`, 'i');
+      const withData = tplHtml.replace(re, injected);
+      box.innerHTML = `<div class="preview-frame-wrap"><iframe class="preview-frame"
+        sandbox="allow-scripts allow-same-origin" title="预览"></iframe></div>`;
+      box.querySelector('iframe').srcdoc = withData;
+    } catch (e) { box.innerHTML = `<div class="callout err">${esc(e.message)}</div>`; }
+  };
+});
 // 五个大板块各自的发布按钮，共用同一套"点了先弹确认、发布中转圈、成功提示"的逻辑，
 // 只是各自调用的接口（endpoint）不一样——赛季按当前选中的具体赛季单独发布，
 // 别的四个板块整体一起发布。
