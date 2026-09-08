@@ -394,153 +394,198 @@
 
     <!-- ============ 大板块：新闻 ============ -->
     <section class="module" id="module-news">
-      <div class="publish-banner">
-        <div>
-          <div class="p-main">发布新闻</div>
-          <div class="p-sub">新闻是整个板块一起发布的，不像赛季能一个一个单独发；跟"赛季"板块的发布互不影响。</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="btn ghost" id="btnPreviewNews">生成预览</button>
-          <button class="btn" id="btnPublishNews">发布新闻</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，最后点上面"发布新闻"生效。</div></div>
-        </div>
-        <div class="add-event-row">
-          <input type="text" id="newArtTitle" placeholder="新文章标题…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft);font-size:13.5px" />
-          <button class="btn sm" id="btnAddArticle">+ 新建文章</button>
-        </div>
-        <div id="newsList"></div>
+      <div class="tabs">
+        <button class="tab on" data-tab="news-content">内容</button>
+        <button class="tab" data-tab="news-preview">预览</button>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份新闻内容，直接还原出 news.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+      <section class="panel on" id="tab-news-content">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，然后去"预览"标签页发布。</div></div>
+          </div>
+          <div class="add-event-row">
+            <input type="text" id="newArtTitle" placeholder="新文章标题…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft);font-size:13.5px" />
+            <button class="btn sm" id="btnAddArticle">+ 新建文章</button>
+          </div>
+          <div id="newsList"></div>
         </div>
-        <div id="previewBoxNews"><div class="hint">点上面"生成预览"看看结果。</div></div>
-      </div>
+      </section>
+
+      <section class="panel" id="tab-news-preview">
+        <div class="publish-banner">
+          <div>
+            <div class="p-main">发布新闻</div>
+            <div class="p-sub">新闻是整个板块一起发布的，不像赛季能一个一个单独发；跟"赛季"板块的发布互不影响。</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn ghost" id="btnPreviewNews">生成预览</button>
+            <button class="btn" id="btnPublishNews">发布新闻</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份新闻内容，直接还原出 news.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+          </div>
+          <div id="previewBoxNews"><div class="hint">点上面"生成预览"看看结果。</div></div>
+        </div>
+      </section>
     </section>
 
     <!-- ============ 大板块：荣誉 ============ -->
     <section class="module" id="module-honors">
-      <div class="publish-banner">
-        <div>
-          <div class="p-main">发布荣誉</div>
-          <div class="p-sub">跟"赛季""新闻"互不影响，各自独立发布。</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="btn ghost" id="btnPreviewHonors">生成预览</button>
-          <button class="btn" id="btnPublishHonors">发布荣誉</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">荣誉列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，最后点上面"发布荣誉"生效。</div></div>
-        </div>
-        <div class="add-event-row"><button class="btn sm" id="btnAddHonor">+ 新增荣誉</button></div>
-        <div id="honorsList"></div>
+      <div class="tabs">
+        <button class="tab on" data-tab="honors-content">内容</button>
+        <button class="tab" data-tab="honors-preview">预览</button>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份荣誉内容，直接还原出 honors.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+      <section class="panel on" id="tab-honors-content">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">荣誉列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，然后去"预览"标签页发布。</div></div>
+          </div>
+          <div class="add-event-row"><button class="btn sm" id="btnAddHonor">+ 新增荣誉</button></div>
+          <div id="honorsList"></div>
         </div>
-        <div id="previewBoxHonors"><div class="hint">点上面"生成预览"看看结果。</div></div>
-      </div>
+      </section>
+
+      <section class="panel" id="tab-honors-preview">
+        <div class="publish-banner">
+          <div>
+            <div class="p-main">发布荣誉</div>
+            <div class="p-sub">跟"赛季""新闻"互不影响，各自独立发布。</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn ghost" id="btnPreviewHonors">生成预览</button>
+            <button class="btn" id="btnPublishHonors">发布荣誉</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份荣誉内容，直接还原出 honors.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+          </div>
+          <div id="previewBoxHonors"><div class="hint">点上面"生成预览"看看结果。</div></div>
+        </div>
+      </section>
     </section>
 
     <!-- ============ 大板块：经历 ============ -->
     <section class="module" id="module-history">
-      <div class="publish-banner">
-        <div>
-          <div class="p-main">发布经历</div>
-          <div class="p-sub">跟"赛季""新闻""荣誉"互不影响，各自独立发布。</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="btn ghost" id="btnPreviewHistory">生成预览</button>
-          <button class="btn" id="btnPublishHistory">发布经历</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">时间线（按年份分组）</div><div class="card-sub">先按年份分组，再往每个年份底下加具体的条目。上下箭头分别调整"年份分组"之间的顺序、和"同一年份内条目"之间的顺序。</div></div>
-        </div>
-        <div class="add-event-row"><button class="btn sm" id="btnAddHistYear">+ 新增年份分组</button></div>
-        <div id="historyList"></div>
+      <div class="tabs">
+        <button class="tab on" data-tab="history-content">内容</button>
+        <button class="tab" data-tab="history-preview">预览</button>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份时间线内容，直接还原出 history.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+      <section class="panel on" id="tab-history-content">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">时间线（按年份分组）</div><div class="card-sub">先按年份分组，再往每个年份底下加具体的条目。上下箭头分别调整"年份分组"之间的顺序、和"同一年份内条目"之间的顺序。</div></div>
+          </div>
+          <div class="add-event-row"><button class="btn sm" id="btnAddHistYear">+ 新增年份分组</button></div>
+          <div id="historyList"></div>
         </div>
-        <div id="previewBoxHistory"><div class="hint">点上面"生成预览"看看结果。</div></div>
-      </div>
+      </section>
+
+      <section class="panel" id="tab-history-preview">
+        <div class="publish-banner">
+          <div>
+            <div class="p-main">发布经历</div>
+            <div class="p-sub">跟"赛季""新闻""荣誉"互不影响，各自独立发布。</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn ghost" id="btnPreviewHistory">生成预览</button>
+            <button class="btn" id="btnPublishHistory">发布经历</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份时间线内容，直接还原出 history.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+          </div>
+          <div id="previewBoxHistory"><div class="hint">点上面"生成预览"看看结果。</div></div>
+        </div>
+      </section>
     </section>
 
     <!-- ============ 大板块：故事 ============ -->
     <section class="module" id="module-story">
-      <div class="publish-banner">
-        <div>
-          <div class="p-main">发布故事</div>
-          <div class="p-sub">跟"赛季""新闻""荣誉""经历"互不影响，各自独立发布。</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="btn ghost" id="btnPreviewStory">生成预览</button>
-          <button class="btn" id="btnPublishStory">发布故事</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">正文段落</div><div class="card-sub">从上到下依次显示；支持 **加粗** 和 _斜体_。改完记得点下面"保存"，最后点上面"发布故事"生效。</div></div>
-        </div>
-        <div class="blocks-editor">
-          <div class="blocks-list" id="storyBlocksList"></div>
-          <div class="add-block-row">
-            <button type="button" class="tmpl-btn" data-act="story-blk-add" data-type="p">+ 段落</button>
-            <button type="button" class="tmpl-btn" data-act="story-blk-add" data-type="quote">+ 引用</button>
-          </div>
-        </div>
-        <div class="art-save-bar">
-          <button class="btn" id="btnSaveStory" type="button">保存</button>
-        </div>
+      <div class="tabs">
+        <button class="tab on" data-tab="story-content">内容</button>
+        <button class="tab" data-tab="story-preview">预览</button>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份正文，直接还原出 story.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+      <section class="panel on" id="tab-story-content">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">正文段落</div><div class="card-sub">从上到下依次显示；支持 **加粗** 和 _斜体_。改完记得点下面"保存"，然后去"预览"标签页发布。</div></div>
+          </div>
+          <div class="blocks-editor">
+            <div class="blocks-list" id="storyBlocksList"></div>
+            <div class="add-block-row">
+              <button type="button" class="tmpl-btn" data-act="story-blk-add" data-type="p">+ 段落</button>
+              <button type="button" class="tmpl-btn" data-act="story-blk-add" data-type="quote">+ 引用</button>
+            </div>
+          </div>
+          <div class="art-save-bar">
+            <button class="btn" id="btnSaveStory" type="button">保存</button>
+          </div>
         </div>
-        <div id="previewBoxStory"><div class="hint">点上面"生成预览"看看结果。</div></div>
-      </div>
+      </section>
+
+      <section class="panel" id="tab-story-preview">
+        <div class="publish-banner">
+          <div>
+            <div class="p-main">发布故事</div>
+            <div class="p-sub">跟"赛季""新闻""荣誉""经历"互不影响，各自独立发布。</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn ghost" id="btnPreviewStory">生成预览</button>
+            <button class="btn" id="btnPublishStory">发布故事</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份正文，直接还原出 story.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+          </div>
+          <div id="previewBoxStory"><div class="hint">点上面"生成预览"看看结果。</div></div>
+        </div>
+      </section>
     </section>
 
     <!-- ============ 大板块：经典赛事回放 ============ -->
     <section class="module" id="module-videos">
-      <div class="publish-banner">
-        <div>
-          <div class="p-main">发布经典赛事</div>
-          <div class="p-sub">跟"赛季""新闻""荣誉""经历""故事"互不影响，各自独立发布。</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="btn ghost" id="btnPreviewVideos">生成预览</button>
-          <button class="btn" id="btnPublishVideos">发布经典赛事</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">回放列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，最后点上面"发布经典赛事"生效。</div></div>
-        </div>
-        <div class="add-event-row"><button class="btn sm" id="btnAddVideo">+ 新增回放</button></div>
-        <div id="videosList"></div>
+      <div class="tabs">
+        <button class="tab on" data-tab="videos-content">内容</button>
+        <button class="tab" data-tab="videos-preview">预览</button>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份回放列表，直接还原出 videos.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+      <section class="panel on" id="tab-videos-content">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">回放列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，然后去"预览"标签页发布。</div></div>
+          </div>
+          <div class="add-event-row"><button class="btn sm" id="btnAddVideo">+ 新增回放</button></div>
+          <div id="videosList"></div>
         </div>
-        <div id="previewBoxVideos"><div class="hint">点上面"生成预览"看看结果。</div></div>
-      </div>
+      </section>
+
+      <section class="panel" id="tab-videos-preview">
+        <div class="publish-banner">
+          <div>
+            <div class="p-main">发布经典赛事</div>
+            <div class="p-sub">跟"赛季""新闻""荣誉""经历""故事"互不影响，各自独立发布。</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn ghost" id="btnPreviewVideos">生成预览</button>
+            <button class="btn" id="btnPublishVideos">发布经典赛事</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份回放列表，直接还原出 videos.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+          </div>
+          <div id="previewBoxVideos"><div class="hint">点上面"生成预览"看看结果。</div></div>
+        </div>
+      </section>
     </section>
   </main>
 </div>
@@ -2408,10 +2453,15 @@ document.querySelectorAll('.module-btn').forEach(btn => btn.onclick = () => {
   document.querySelectorAll('.module').forEach(m => m.classList.toggle('on', m.id === 'module-' + curModule));
 });
 
-/* ===================== tabs（赛季信息 / 名单与比赛） ===================== */
+/* ===================== tabs（赛季信息/名单与比赛，以及各板块的 内容/预览） =====================
+ * 现在不止"赛季"一个板块有子标签了——新闻/荣誉/经历/故事/经典赛事也各自有一套
+ * "内容/预览"标签。如果还是不分板块、全页面查询 .tab/.panel 来切换，点一个板块
+ * 里的标签会把其它板块的标签"on"状态也一起改掉，切回那个板块时会变成哪个子标签
+ * 都没选中。所以这里限定在点击的标签所在的这个 .module 范围内切换，互不影响。 */
 document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'tab-' + tab.dataset.tab));
+  const scope = tab.closest('.module') || document;
+  scope.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === tab));
+  scope.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'tab-' + tab.dataset.tab));
 });
 
 /* ===================== 登录 / 启动 ===================== */
