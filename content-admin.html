@@ -584,8 +584,8 @@
         <div class="card">
           <div class="card-head">
             <div><div class="card-title">回放列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，然后去"预览"标签页发布。</div></div>
+            <button class="btn" id="btnAddVideo">+ 新增回放</button>
           </div>
-          <div class="add-event-row"><button class="btn sm" id="btnAddVideo">+ 新增回放</button></div>
           <div id="videosList"></div>
         </div>
       </section>
@@ -714,6 +714,39 @@
       <button class="btn full" id="nySave" type="button">创建</button>
     </div>
     <div class="modal-err" id="nyErr"></div>
+  </div>
+</div>
+
+<!-- 新增回放弹窗 -->
+<div class="modal-bg" id="mNewVideoBg">
+  <div class="modal">
+    <h3>新增回放</h3>
+    <div class="row2">
+      <div class="field"><label for="nvTournament">赛事名称</label><input type="text" id="nvTournament" placeholder="比如&quot;2026 加州华人大学生校际杯 · LA&quot;" /></div>
+      <div class="field"><label for="nvDate">日期标签</label><input type="text" id="nvDate" placeholder="比如&quot;2026 / 03&quot;" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="nvTeamLeft">左边队伍</label><input type="text" id="nvTeamLeft" value="Davis Origin" /></div>
+      <div class="field"><label for="nvTeamRight">右边队伍</label><input type="text" id="nvTeamRight" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="nvScoreLeft">左边比分</label><input type="text" id="nvScoreLeft" placeholder="没有比分就填 —" /></div>
+      <div class="field"><label for="nvScoreRight">右边比分</label><input type="text" id="nvScoreRight" placeholder="没有比分就填 —" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="nvWinner">获胜方</label><select id="nvWinner">
+        <option value="">不标（平局/待定）</option>
+        <option value="left">左边获胜</option>
+        <option value="right">右边获胜</option>
+      </select></div>
+      <div class="field"><label for="nvUrl">录像链接</label><input type="text" id="nvUrl" placeholder="https://…" /></div>
+    </div>
+    <div class="field"><label for="nvNote">备注（可选）</label><input type="text" id="nvNote" /></div>
+    <div class="modal-actions">
+      <button class="btn ghost full" id="nvCancel" type="button">取消</button>
+      <button class="btn full" id="nvSave" type="button">创建</button>
+    </div>
+    <div class="modal-err" id="nvErr"></div>
   </div>
 </div>
 
@@ -2070,16 +2103,48 @@ function wireVideoCard(bodyEl, v) {
   };
 }
 
-$('btnAddVideo').onclick = async () => {
-  const btn = $('btnAddVideo');
+$('btnAddVideo').onclick = () => {
+  $('nvTournament').value = ''; $('nvDate').value = '';
+  $('nvTeamLeft').value = 'Davis Origin'; $('nvTeamRight').value = '';
+  $('nvScoreLeft').value = ''; $('nvScoreRight').value = '';
+  $('nvWinner').value = ''; $('nvUrl').value = ''; $('nvNote').value = '';
+  $('nvErr').textContent = '';
+  $('mNewVideoBg').classList.add('on');
+};
+$('nvCancel').onclick = () => $('mNewVideoBg').classList.remove('on');
+$('nvSave').onclick = async () => {
+  const tournament = $('nvTournament').value.trim();
+  if (!tournament) { $('nvErr').textContent = '赛事名称不能为空'; return; }
+  const btn = $('nvSave');
   btn.disabled = true;
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> 创建中…';
   try {
-    const d = await api('/content/videos', { method: 'POST', body: JSON.stringify({ tournament: '新的赛事' }) });
+    const d = await api('/content/videos', { method: 'POST', body: JSON.stringify({ tournament }) });
+    await api(`/content/videos/${d.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        tournament,
+        matchDate: $('nvDate').value.trim(),
+        teamLeft: $('nvTeamLeft').value.trim(),
+        teamRight: $('nvTeamRight').value.trim(),
+        scoreLeft: $('nvScoreLeft').value.trim(),
+        scoreRight: $('nvScoreRight').value.trim(),
+        winner: $('nvWinner').value,
+        videoUrl: $('nvUrl').value.trim(),
+        note: $('nvNote').value.trim(),
+      }),
+    });
+    $('mNewVideoBg').classList.remove('on');
     videosOpenId = d.id;
     await reload();
-    toast('已新建，展开编辑');
-  } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; }
+    toast('已新建');
+  } catch (e) {
+    $('nvErr').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 };
 
 /* ===================== 经历（时间线） ===================== */
