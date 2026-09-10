@@ -401,18 +401,17 @@
         <div class="publish-banner">
           <div>
             <div class="p-main">发布这个赛季</div>
-            <div class="p-sub" id="publishSeasonSub">只会重新发布当前选中的这一个赛季，其它赛季维持它们各自上一次发布时的样子，不会被牵连。</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn ghost" id="btnPreview">生成预览</button>
             <button class="btn" id="btnPublishSeason">发布这个赛季</button>
           </div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">发布前预览</div><div class="card-sub">用当前选中赛季还没发布的这份内容，直接还原出"赛季存档"页面真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+            <div><div class="card-title">发布前预览</div></div>
+            <button class="btn ghost" id="btnPreview">生成预览</button>
           </div>
-          <div id="previewBox"><div class="hint">点上面"生成预览"看看结果。</div></div>
+          <div id="previewBox"></div>
         </div>
       </section>
     </section>
@@ -946,13 +945,6 @@ function render() {
   renderHistoryTab();
   renderStoryTab();
   renderVideosTab();
-  const sub = $('publishSeasonSub');
-  if (sub) {
-    const s = curSeasonId && bySeason[curSeasonId] ? bySeason[curSeasonId].season : null;
-    sub.textContent = s
-      ? `只会重新发布当前选中的「${s.label}」，其它赛季维持它们各自上一次发布时的样子，不会被牵连。`
-      : '只会重新发布当前选中的这一个赛季，其它赛季维持它们各自上一次发布时的样子，不会被牵连。';
-  }
 }
 
 function renderSeasonBar() {
@@ -989,16 +981,16 @@ function renderSeasonTab(bySeason) {
     <div class="row2">
       <div class="field"><label>赛季名称</label><input id="sLabel" value="${esc(s.label)}" /></div>
       <div class="field">
-        <label class="chk-line" style="height:42px"><input type="checkbox" id="sCurrent" ${s.is_current ? 'checked' : ''} /><span>设为当前赛季（首页/导航默认显示这一届）</span></label>
+        <label class="chk-line" style="height:42px"><input type="checkbox" id="sCurrent" ${s.is_current ? 'checked' : ''} /><span>设为当前赛季</span></label>
       </div>
     </div>
-    <div class="field"><label>赛季简介（lede，显示在赛季存档页顶部）</label><textarea id="sLede" rows="2">${esc(s.lede || '')}</textarea></div>
+    <div class="field"><label>赛季简介</label><textarea id="sLede" rows="2">${esc(s.lede || '')}</textarea></div>
     <div class="field">
-      <label>赛季亮点（一行一条，显示在首页赛季摘要里）</label>
+      <label>赛季亮点</label>
       <textarea id="sHighlights" rows="4">${esc((b.highlights.map(h => h.text)).join('\n'))}</textarea>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
-      <label class="chk-line-sm"><input type="checkbox" id="sPlaceholder" ${s.is_placeholder ? 'checked' : ''} /><span>占位赛季（还没有真实数据，页面上显示"敬请期待"）</span></label>
+      <label class="chk-line-sm"><input type="checkbox" id="sPlaceholder" ${s.is_placeholder ? 'checked' : ''} /><span>占位赛季（显示"敬请期待"）</span></label>
       <button class="btn" id="btnSaveSeason">保存赛季信息</button>
     </div>
   `;
@@ -1073,7 +1065,7 @@ function rosterBoardHtml(prefix, roster, label, saveUrl) {
     <div class="roster-board-head">
       <div class="hint" style="margin:0"><b data-count="total">0</b> 人 · ${esc(label)}
         <span class="roster-save-status" data-save-status></span></div>
-      <button type="button" class="roster-search-trigger" data-act="open-roster-search">🔍 搜姓名/拼音/首字母，添加球员</button>
+      <button type="button" class="roster-search-trigger" data-act="open-roster-search">🔍 添加球员</button>
     </div>
     <div class="roster-cols">
       ${POS.map(p => `
@@ -1286,9 +1278,9 @@ function renderRosterSearchResults() {
 
 function matchRowHtml(m, catId) {
   return `<tr data-id="${m.id}">
-    <td><input class="m-date" value="${esc(m.match_date)}" placeholder="May 16" /></td>
-    <td><input class="m-time" value="${esc(m.match_time || '')}" placeholder="14:00" /></td>
-    <td><input class="m-opp" value="${esc(m.opponent_name)}" placeholder="对手名字" /></td>
+    <td><input class="m-date" value="${esc(m.match_date)}" /></td>
+    <td><input class="m-time" value="${esc(m.match_time || '')}" /></td>
+    <td><input class="m-opp" value="${esc(m.opponent_name)}" /></td>
     <td><input class="m-ds score" type="number" min="0" value="${m.davis_score}" /></td>
     <td>:</td>
     <td><input class="m-os score" type="number" min="0" value="${m.opponent_score}" /></td>
@@ -1300,12 +1292,12 @@ function matchRowHtml(m, catId) {
 }
 function newMatchRowHtml(catId) {
   return `<tr data-new="${catId}">
-    <td><input class="m-date" placeholder="May 16" /></td>
-    <td><input class="m-time" placeholder="14:00（可空）" /></td>
-    <td><input class="m-opp" placeholder="对手名字" /></td>
-    <td><input class="m-ds score" type="number" min="0" placeholder="0" /></td>
+    <td><input class="m-date" /></td>
+    <td><input class="m-time" /></td>
+    <td><input class="m-opp" /></td>
+    <td><input class="m-ds score" type="number" min="0" /></td>
     <td>:</td>
-    <td><input class="m-os score" type="number" min="0" placeholder="0" /></td>
+    <td><input class="m-os score" type="number" min="0" /></td>
     <td class="mtx-actions"><button class="btn sm" data-act="add-match" data-cat="${catId}">添加</button></td>
   </tr>`;
 }
@@ -1322,16 +1314,16 @@ function categoryCardHtml(cat, isOpen) {
         <div class="field"><label>场地</label><input class="c-venue" value="${esc(cat.venue || '')}" /></div>
         <div class="field"><label>赛程说明</label><input class="c-schedule" value="${esc(cat.schedule || '')}" /></div>
       </div>
-      <div class="field"><label>说明（还没有逐场比分时显示的一句话，比如"赛程待定"）</label><input class="c-note" value="${esc(cat.note || '')}" /></div>
+      <div class="field"><label>说明</label><input class="c-note" value="${esc(cat.note || '')}" /></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn ghost sm" data-act="save-cat" data-id="${cat.id}">保存赛事信息</button>
-        <button class="btn danger sm" data-act="del-cat" data-id="${cat.id}">删除这个赛事</button>
+        <button class="btn danger sm" data-act="del-cat" data-id="${cat.id}">删除该赛事</button>
       </div>
 
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
-        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '这个赛事的球员名单（留空的话，网站上会自动显示这支队伍其它赛事名单里出现过的球员）', `/content/category-roster/${cat.id}`)}
+        ${rosterBoardHtml('catroster_' + cat.id, cat.roster, '该赛事球员', `/content/category-roster/${cat.id}`)}
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空这份专属名单</button>
+          <button class="btn ghost sm" data-act="clear-cat-roster" data-id="${cat.id}">清空此名单</button>
         </div>
       </div>
 
@@ -1382,13 +1374,13 @@ function teamBlockHtml(t) {
     <div class="team-subcard">
       <div class="row2">
         <div class="field"><label>队伍名称</label><input class="t-label" value="${esc(t.label)}" /></div>
-        <div class="field"><label>说明（这支队伍这赛季完全没数据时的一句话，比如"本赛季暂无预备队"）</label><input class="t-note" value="${esc(t.note || '')}" /></div>
+        <div class="field"><label>说明</label><input class="t-note" value="${esc(t.note || '')}" /></div>
       </div>
       <button class="btn ghost sm" data-act="save-team" data-id="${t.id}">保存队伍信息</button>
     </div>
 
     <div class="team-subcard" style="margin-top:16px">
-      <div class="hint" style="margin-bottom:10px">赛事（每个学期参加的不一定一样，用模版快速加，或者自己起名字）</div>
+      <div class="hint" style="margin-bottom:10px">赛事</div>
       ${addEventRowHtml(t)}
       ${t.categories.length ? t.categories.map(cat => categoryCardHtml(cat, cat.id === openId)).join('') : '<div class="empty">还没有添加赛事，点上面加一个吧</div>'}
     </div>
@@ -2571,7 +2563,7 @@ $('btnPublishSeason').onclick = () => {
   const label = (bySeason[curSeasonId] && bySeason[curSeasonId].season.label) || curSeasonId;
   confirmModal(
     `确认发布「${label}」这一个赛季？`,
-    '只会重新生成 seasons.js 里这一个赛季的数据，其它赛季维持它们各自上一次发布时的样子。这一步本身没法撤销，不过内容还留在后台，改错了可以再改、再发一次。',
+    '',
     () => doPublish($('btnPublishSeason'), `/content/publish-season/${encodeURIComponent(curSeasonId)}`),
     '确认发布', 'ok'
   );

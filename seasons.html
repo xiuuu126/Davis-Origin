@@ -564,7 +564,7 @@
     function categoryRosterHtml(roster) {
       var html = '<div class="roster-col-title">球员名单</div>';
       if (rosterObjTotal(roster) === 0) {
-        return html + '<div class="archive-empty-note">名单还没整理。</div>';
+        return html + '<div class="archive-empty-note">该赛事暂无球员名单。</div>';
       }
       html += POSITION_ORDER.filter(function(p) { return (roster[p] || []).length > 0; }).map(function(p) {
         var players = roster[p] || [];
@@ -633,7 +633,7 @@
     // 每个赛事板块（北加联/华体会/贺岁杯）都是独立一份：自己的球员名单 + 自己的比赛结果
     function categorySectionHtml(cat, fallbackRoster) {
       if (!cat) return '';
-      var roster = cat.roster || fallbackRoster || {};
+      var roster = cat.roster || {};
       var hasMatches = cat.matches && cat.matches.length;
       var hasRoster = rosterObjTotal(roster) > 0;
       if (!hasMatches && !cat.note && !hasRoster) return '';
