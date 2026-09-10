@@ -669,6 +669,54 @@
   </div>
 </div>
 
+<!-- 新增荣誉弹窗 -->
+<div class="modal-bg" id="mNewHonorBg">
+  <div class="modal">
+    <h3>新增荣誉</h3>
+    <div class="row2">
+      <div class="field"><label for="nhYear">年份/名次标签</label><input type="text" id="nhYear" placeholder="比如&quot;2024 · Champion&quot;" /></div>
+      <div class="field"><label for="nhTier">档次</label><select id="nhTier">
+        <option value="gold">金（第一档）</option>
+        <option value="silver">银（第二档）</option>
+        <option value="bronze">铜（第三档）</option>
+      </select></div>
+    </div>
+    <div class="field"><label for="nhTitle">标题</label><input type="text" id="nhTitle" placeholder="比如&quot;北加联 · 冠军&quot;" /></div>
+    <div class="row2">
+      <div class="field"><label for="nhEvent">赛事</label><input type="text" id="nhEvent" /></div>
+      <div class="field"><label for="nhRank">名次</label><input type="text" id="nhRank" placeholder="比如&quot;冠军 · 1st&quot;" /></div>
+    </div>
+    <div class="field"><label for="nhSubEn">英文副标题（可选）</label><input type="text" id="nhSubEn" /></div>
+    <div class="modal-actions">
+      <button class="btn ghost full" id="nhCancel" type="button">取消</button>
+      <button class="btn full" id="nhSave" type="button">创建</button>
+    </div>
+    <div class="modal-err" id="nhErr"></div>
+  </div>
+</div>
+
+<!-- 新增年份分组弹窗 -->
+<div class="modal-bg" id="mNewHistYearBg">
+  <div class="modal">
+    <h3>新增年份分组</h3>
+    <div class="row3">
+      <div class="field"><label for="nyLabel">年份</label><input type="text" id="nyLabel" placeholder="比如&quot;2026&quot;或&quot;NOW&quot;" /></div>
+      <div class="field"><label for="nyTag">年份小标签（可选）</label><input type="text" id="nyTag" placeholder="比如&quot;高光&quot;" /></div>
+      <div class="field"><label for="nyTier">年份数字颜色</label><select id="nyTier">
+        <option value="">默认（蓝）</option>
+        <option value="gold">金</option>
+        <option value="silver">银</option>
+      </select></div>
+    </div>
+    <div class="field"><label class="chk-line"><input type="checkbox" id="nySpecial" /><span>这是"NOW"特殊分组（收官那一条的样式）</span></label></div>
+    <div class="modal-actions">
+      <button class="btn ghost full" id="nyCancel" type="button">取消</button>
+      <button class="btn full" id="nySave" type="button">创建</button>
+    </div>
+    <div class="modal-err" id="nyErr"></div>
+  </div>
+</div>
+
 <!-- 通用确认弹窗 -->
 <div class="modal-bg" id="mConfirmBg">
   <div class="modal" style="max-width:360px">
@@ -1869,16 +1917,42 @@ function wireHonorCard(bodyEl, h) {
   };
 }
 
-$('btnAddHonor').onclick = async () => {
-  const btn = $('btnAddHonor');
+$('btnAddHonor').onclick = () => {
+  $('nhYear').value = ''; $('nhTier').value = 'gold'; $('nhTitle').value = '';
+  $('nhEvent').value = ''; $('nhRank').value = ''; $('nhSubEn').value = '';
+  $('nhErr').textContent = '';
+  $('mNewHonorBg').classList.add('on');
+};
+$('nhCancel').onclick = () => $('mNewHonorBg').classList.remove('on');
+$('nhSave').onclick = async () => {
+  const title = $('nhTitle').value.trim();
+  if (!title) { $('nhErr').textContent = '标题不能为空'; return; }
+  const btn = $('nhSave');
   btn.disabled = true;
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> 创建中…';
   try {
-    const d = await api('/content/honors', { method: 'POST', body: JSON.stringify({ title: '新的荣誉' }) });
+    const d = await api('/content/honors', { method: 'POST', body: JSON.stringify({ title }) });
+    await api(`/content/honors/${d.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        yearLabel: $('nhYear').value.trim(),
+        subEn: $('nhSubEn').value.trim(),
+        tier: $('nhTier').value,
+        eventName: $('nhEvent').value.trim(),
+        rankLabel: $('nhRank').value.trim(),
+      }),
+    });
+    $('mNewHonorBg').classList.remove('on');
     honorsOpenId = d.id;
     await reload();
-    toast('已新建，展开编辑');
-  } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; }
+    toast('已新建');
+  } catch (e) {
+    $('nhErr').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 };
 
 /* ===================== 经典赛事回放 ===================== */
@@ -2235,16 +2309,40 @@ function wireHistItemCard(bodyEl, it, y) {
   };
 }
 
-$('btnAddHistYear').onclick = async () => {
-  const btn = $('btnAddHistYear');
+$('btnAddHistYear').onclick = () => {
+  $('nyLabel').value = ''; $('nyTag').value = ''; $('nyTier').value = ''; $('nySpecial').checked = false;
+  $('nyErr').textContent = '';
+  $('mNewHistYearBg').classList.add('on');
+};
+$('nyCancel').onclick = () => $('mNewHistYearBg').classList.remove('on');
+$('nySave').onclick = async () => {
+  const yearLabel = $('nyLabel').value.trim();
+  if (!yearLabel) { $('nyErr').textContent = '年份不能为空'; return; }
+  const btn = $('nySave');
   btn.disabled = true;
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> 创建中…';
   try {
-    const d = await api('/content/history-years', { method: 'POST', body: JSON.stringify({ yearLabel: '新的一年' }) });
+    const d = await api('/content/history-years', { method: 'POST', body: JSON.stringify({ yearLabel }) });
+    await api(`/content/history-years/${d.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        yearLabel,
+        yearTag: $('nyTag').value.trim(),
+        tier: $('nyTier').value,
+        special: $('nySpecial').checked ? 'now' : '',
+      }),
+    });
+    $('mNewHistYearBg').classList.remove('on');
     histYearOpenId = d.id;
     await reload();
-    toast('已新建，展开编辑');
-  } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; }
+    toast('已新建');
+  } catch (e) {
+    $('nyErr').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 };
 
 /* ===================== 故事 ===================== */
