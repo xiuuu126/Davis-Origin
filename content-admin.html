@@ -170,6 +170,12 @@
   .modal .sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6}
   .modal-actions{display:flex;gap:10px;margin-top:22px}
   .modal-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
+  .na-preview{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg-soft);
+    max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+  .na-preview-row{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.5}
+  .na-preview-tag{flex:0 0 auto;padding:2px 7px;border-radius:5px;background:var(--accent-soft);
+    color:var(--accent);font-weight:700;font-size:11px;white-space:nowrap}
+  .na-preview-text{color:var(--ink-soft);white-space:pre-wrap;word-break:break-word}
 
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
@@ -306,6 +312,22 @@
 </style>
 </head>
 <body>
+<datalist id="eyebrowOptions">
+  <option value="北加州足联杯 · 战报"></option>
+  <option value="加州华人大学生校际杯 · 战报"></option>
+  <option value="校际杯 · 大名单"></option>
+  <option value="校际杯 · 一队大名单"></option>
+  <option value="北美湾区贺岁杯 · 出征 / 送别"></option>
+  <option value="北美湾区贺岁杯 · 大名单"></option>
+  <option value="预备队 · 赛季总结"></option>
+  <option value="招新 · 加入我们"></option>
+  <option value="出征前 · 写给兄弟们"></option>
+  <option value="训练剪影 · 油画风"></option>
+  <option value="短动态"></option>
+  <option value="预告"></option>
+  <option value="赛事预告"></option>
+  <option value="一个时代的落幕"></option>
+</datalist>
 
 <!-- LOGIN -->
 <div class="login-screen" id="loginScreen">
@@ -408,7 +430,6 @@
             <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，然后去"预览"标签页发布。</div></div>
           </div>
           <div class="add-event-row">
-            <input type="text" id="newArtTitle" placeholder="新文章标题…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft);font-size:13.5px" />
             <button class="btn sm" id="btnAddArticle">+ 新建文章</button>
           </div>
           <div id="newsList"></div>
@@ -614,6 +635,39 @@
       <button class="btn full" id="nsSave" type="button">创建</button>
     </div>
     <div class="modal-err" id="nsErr"></div>
+  </div>
+</div>
+
+<!-- 新建文章弹窗 -->
+<div class="modal-bg" id="mNewArtBg">
+  <div class="modal" style="max-width:640px">
+    <h3>新建文章</h3>
+    <div class="sub">把整篇文章一股脑粘贴进下面的框里，点"一键解析"自动拆成段落——空一行分段；哪段想做成引用样式，就把那一整段用「」或""括起来。标题另外填在下面（解析完会自动带一个建议，可以改）。解析完先看一眼下面的预览，创建之后还能继续逐块编辑、加图片。</div>
+
+    <div class="field">
+      <label for="naRaw">整篇文章原文</label>
+      <textarea id="naRaw" rows="9" placeholder="把文章全文粘贴进来，段落之间空一行；想做成引用的整段用「」或""括起来"></textarea>
+    </div>
+    <div class="modal-actions" style="margin-top:0;margin-bottom:18px">
+      <button class="btn ghost full" id="naParse" type="button">一键解析</button>
+    </div>
+
+    <div class="row2">
+      <div class="field"><label for="naTitle">标题</label><input type="text" id="naTitle" placeholder="解析后自动带建议，也可以自己填" /></div>
+      <div class="field"><label for="naEyebrow">小标签（eyebrow，可选）</label><input type="text" id="naEyebrow" list="eyebrowOptions" placeholder="比如&quot;赛事预告&quot;" /></div>
+    </div>
+    <div class="field"><label for="naDate">发布日期</label><input type="date" id="naDate" /></div>
+
+    <div class="field" id="naPreviewWrap" style="display:none">
+      <label>解析结果预览（<span id="naPreviewCount">0</span> 块）</label>
+      <div id="naPreview" class="na-preview"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost full" id="naCancel" type="button">取消</button>
+      <button class="btn full" id="naSave" type="button">创建文章</button>
+    </div>
+    <div class="modal-err" id="naErr"></div>
   </div>
 </div>
 
@@ -1458,7 +1512,7 @@ function newsArticleBodyHtml(a) {
   return `
     <div class="row2">
       <div class="field"><label>标题</label><input class="a-title" value="${esc(a.title)}" /></div>
-      <div class="field"><label>小标签（eyebrow，比如"赛事预告"）</label><input class="a-eyebrow" value="${esc(a.eyebrow || '')}" /></div>
+      <div class="field"><label>小标签（eyebrow，比如"赛事预告"——点右侧小箭头可以从以前用过的里选，也可以自己打新的）</label><input class="a-eyebrow" list="eyebrowOptions" value="${esc(a.eyebrow || '')}" /></div>
     </div>
     <div class="row3">
       <div class="field"><label>发布日期</label><input class="a-date" type="date" value="${esc(a.pub_date || '')}" /></div>
@@ -2424,21 +2478,110 @@ $('rsInput').addEventListener('keydown', e => {
   }
   else if (e.key === 'Escape') { closeRosterSearch(); }
 });
-/* ===================== 新闻：新建 + 展开状态记忆 ===================== */
-$('btnAddArticle').onclick = async () => {
-  const input = $('newArtTitle');
-  const title = input.value.trim();
-  if (!title) { toast('先填个标题', true); return; }
-  const btn = $('btnAddArticle');
+/* ===================== 新闻：一键解析粘贴的原文 + 弹窗新建 + 展开状态记忆 ===================== */
+// 把粘贴进来的一整篇文章拆成标题（可选）+ 正文块：先按空行分段，没有空行就按单行分段；
+// 第一段如果很短、又不像一句完整的话（不以句号/问号/感叹号/省略号结尾），当成标题候选摘出来；
+// 哪段整段被「」/""/“”/『』包住，就拆成引用块（去掉外面的引号）；其余段落里第一段当"导语"，
+// 后面的都是普通段落。这只是个起点，解析完的预览、以及创建后的正式编辑区都能再手动调整。
+function parseArticleDump(raw) {
+  const text = String(raw || '').replace(/\r\n/g, '\n').trim();
+  if (!text) return { title: '', blocks: [] };
+
+  let paras = text.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+  if (paras.length <= 1) paras = text.split('\n').map(s => s.trim()).filter(Boolean);
+
+  let title = '';
+  if (paras.length > 1) {
+    const first = paras[0];
+    const looksLikeTitle = first.length > 0 && first.length <= 40 && !/[。！？…]$/.test(first);
+    if (looksLikeTitle) { title = first; paras = paras.slice(1); }
+  }
+
+  const QUOTE_PAIRS = [['「', '」'], ['『', '』'], ['"', '"'], ['\u201c', '\u201d']];
+  const blocks = paras.map((p, i) => {
+    for (const [open, close] of QUOTE_PAIRS) {
+      if (p.startsWith(open) && p.endsWith(close) && p.length > open.length + close.length) {
+        return { type: 'quote', text: p.slice(open.length, p.length - close.length).trim() };
+      }
+    }
+    return { type: i === 0 ? 'lead' : 'p', text: p };
+  });
+
+  return { title, blocks };
+}
+
+const NA_TYPE_LABEL = { lead: '导语', p: '段落', quote: '引用' };
+function naRenderPreview(parsed) {
+  const wrap = $('naPreviewWrap'), box = $('naPreview'), countEl = $('naPreviewCount');
+  if (!parsed.blocks.length) { wrap.style.display = 'none'; box.innerHTML = ''; countEl.textContent = '0'; return; }
+  box.innerHTML = parsed.blocks.map(b => {
+    const label = NA_TYPE_LABEL[b.type] || b.type;
+    const preview = b.text.length > 60 ? b.text.slice(0, 60) + '…' : b.text;
+    return `<div class="na-preview-row"><span class="na-preview-tag">${esc(label)}</span><span class="na-preview-text">${esc(preview)}</span></div>`;
+  }).join('');
+  countEl.textContent = String(parsed.blocks.length);
+  wrap.style.display = '';
+}
+function todayLocalISO() {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+let naParsedBlocks = [];
+function openNewArticle() {
+  $('naRaw').value = ''; $('naTitle').value = ''; $('naEyebrow').value = '';
+  $('naDate').value = todayLocalISO();
+  naParsedBlocks = [];
+  naRenderPreview({ blocks: [] });
+  $('naErr').textContent = '';
+  $('mNewArtBg').classList.add('on');
+}
+$('btnAddArticle').onclick = openNewArticle;
+$('naCancel').onclick = () => $('mNewArtBg').classList.remove('on');
+$('naParse').onclick = () => {
+  const parsed = parseArticleDump($('naRaw').value);
+  if (!parsed.blocks.length) { $('naErr').textContent = '还没粘贴内容，或者解析不出段落'; return; }
+  $('naErr').textContent = '';
+  if (parsed.title && !$('naTitle').value.trim()) $('naTitle').value = parsed.title;
+  naParsedBlocks = parsed.blocks;
+  naRenderPreview(parsed);
+};
+$('naSave').onclick = async () => {
+  if (!naParsedBlocks.length && $('naRaw').value.trim()) {
+    const parsed = parseArticleDump($('naRaw').value);
+    naParsedBlocks = parsed.blocks;
+    if (parsed.title && !$('naTitle').value.trim()) $('naTitle').value = parsed.title;
+    naRenderPreview(parsed);
+  }
+  const title = $('naTitle').value.trim();
+  if (!title) { $('naErr').textContent = '标题不能为空'; return; }
+  const btn = $('naSave');
   btn.disabled = true;
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> 创建中…';
   try {
     const d = await api('/content/news', { method: 'POST', body: JSON.stringify({ title }) });
-    input.value = '';
+    const eyebrow = $('naEyebrow').value.trim();
+    const pubDate = $('naDate').value;
+    if (eyebrow || pubDate) {
+      await api(`/content/news/${d.id}`, { method: 'PUT', body: JSON.stringify({ eyebrow, pubDate }) });
+    }
+    if (naParsedBlocks.length) {
+      await api(`/content/news/${d.id}/blocks`, {
+        method: 'PUT',
+        body: JSON.stringify({ blocks: naParsedBlocks.map(b => ({ type: b.type, text: b.text, image: '', icon: '📷', caption: '' })) }),
+      });
+    }
+    $('mNewArtBg').classList.remove('on');
     newsOpenId = d.id;
     await reload();
-    toast('已新建，展开编辑正文和图片');
-  } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; }
+    toast('已新建，接着往下检查内容、加图片');
+  } catch (e) {
+    $('naErr').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 };
 // <details> 的 toggle 事件不冒泡，但在祖先节点上用捕获阶段（第三个参数 true）监听仍然收得到，
 // 记住当前展开的是哪篇，这样加/删/挪块触发的局部重渲染、或者排序触发的整体 reload 都不会把它收起来。

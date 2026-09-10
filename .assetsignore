@@ -1,0 +1,12 @@
+# 这些不要发布到 davisorigin.com
+# Cloudflare 构建时会把整个仓库 clone 下来，不写这个文件的话 .git 会被公开
+.git
+.git/**
+.gitignore
+.DS_Store
+**/.DS_Store
+.wrangler
+.wrangler/**
+worker
+worker/**
+*.md

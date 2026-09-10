@@ -1,0 +1,21 @@
+# 后端源码不要传上去（仓库是 public 的）
+worker/
+
+# wrangler 本地缓存，里面有账号 ID
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
+
+# 系统垃圾
+.DS_Store
+**/.DS_Store
+
+# 早就不用了，被 D1 取代
+data/
+
+# 给自己看的笔记，不用上线
+文案清单.md
+DEPLOY.md
+AGENTS.md
