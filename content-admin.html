@@ -615,17 +615,16 @@
 <div class="modal-bg" id="mSeasonBg">
   <div class="modal">
     <h3>新建赛季</h3>
-    <div class="sub">新赛季会自动建好一队/预备队两个空壳；赛事不会自动建，去"名单与比赛"里按需添加（可以用常见模版，也可以自己起名字）。</div>
     <div class="field">
-      <label for="nsId">赛季 ID（如 26-27，建好之后不能改）</label>
-      <input type="text" id="nsId" placeholder="26-27" />
+      <label for="nsId">赛季 ID（不可修改）</label>
+      <input type="text" id="nsId" />
     </div>
     <div class="field">
       <label for="nsLabel">赛季名称</label>
-      <input type="text" id="nsLabel" placeholder="26-27 赛季" />
+      <input type="text" id="nsLabel" />
     </div>
     <div class="field">
-      <label class="chk-line"><input type="checkbox" id="nsCurrent" /><span>设为当前赛季（首页显示这一届）</span></label>
+      <label class="chk-line"><input type="checkbox" id="nsCurrent" /><span>设为当前赛季</span></label>
     </div>
     <div class="modal-actions">
       <button class="btn ghost full" id="nsCancel" type="button">取消</button>
@@ -1028,8 +1027,17 @@ function renderSeasonTab(bySeason) {
   );
 }
 
+function guessSeasonId() {
+  const now = new Date();
+  const startYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  const a = String(startYear).slice(-2), b = String(startYear + 1).slice(-2);
+  return `${a}-${b}`;
+}
 function openNewSeason() {
-  $('nsId').value = ''; $('nsLabel').value = ''; $('nsCurrent').checked = false; $('nsErr').textContent = '';
+  const guess = guessSeasonId();
+  $('nsId').value = ''; $('nsId').placeholder = guess;
+  $('nsLabel').value = ''; $('nsLabel').placeholder = `${guess} 赛季`;
+  $('nsCurrent').checked = false; $('nsErr').textContent = '';
   $('mSeasonBg').classList.add('on');
 }
 $('nsCancel').onclick = () => $('mSeasonBg').classList.remove('on');
