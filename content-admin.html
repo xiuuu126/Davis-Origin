@@ -751,7 +751,7 @@
 
 <!-- 通用确认弹窗 -->
 <div class="modal-bg" id="mConfirmBg">
-  <div class="modal" style="max-width:360px">
+  <div class="modal">
     <h3 id="cfTitle">确定吗？</h3>
     <div class="sub" id="cfSub"></div>
     <div class="modal-actions">
@@ -1018,7 +1018,7 @@ function renderSeasonTab(bySeason) {
   };
   $('btnDelSeason').onclick = () => confirmModal(
     '删除赛季「' + s.label + '」？',
-    '这个赛季底下的球队、名单、比赛全部会一起删掉，删完发布一次才会在网站上生效，删错了也没法撤销。',
+    '',
     async () => {
       await api(`/content/seasons/${encodeURIComponent(s.id)}`, { method: 'DELETE' });
       curSeasonId = null;
@@ -1477,7 +1477,7 @@ function renderContentTab(bySeason) {
   ));
 
   area.querySelectorAll('[data-act="clear-cat-roster"]').forEach(btn => btn.onclick = () => confirmModal(
-    '清空这个赛事的专属名单？', '如果这支队伍其它赛事配了专属名单，清空后会自动汇总显示那些球员；如果哪个赛事都没配，清空后这里就没有球员了，需要重新搜索添加。',
+    '清空这个赛事的专属名单？', '',
     async () => {
       await api(`/content/category-roster/${btn.dataset.id}`, { method: 'PUT', body: JSON.stringify({ roster: { gk: [], def: [], mid: [], fwd: [] } }) });
       await reload(); toast('已清空');
