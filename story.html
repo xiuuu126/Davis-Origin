@@ -112,25 +112,71 @@
   .story-body p:nth-child(5) { animation-delay: .55s; }
   .story-body p:nth-child(6) { animation-delay: .65s; }
   .story-body p:last-child { margin-bottom: 0; }
+  .story-body p.lead::first-letter {
+    float: left;
+    font-family: "Songti SC", "Noto Serif SC", "STSong", SimSun, Georgia, serif;
+    font-size: 66px;
+    font-weight: 900;
+    line-height: 0.78;
+    color: var(--accent);
+    padding: 6px 10px 0 0;
+  }
+  .story-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 52px 0 40px;
+    opacity: 0;
+    animation: fadeUp .8s ease .3s forwards;
+  }
+  .story-divider::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.55;
+  }
   .story-quote {
-    margin: 48px 0;
-    padding: 32px 36px;
+    position: relative;
+    overflow: hidden;
+    margin: 0 0 48px;
+    padding: 40px 44px 36px;
     background: var(--card);
-    border-radius: 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
     border-left: 4px solid var(--accent);
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 23px;
+    font-weight: 700;
     color: var(--ink);
-    line-height: 1.45;
+    line-height: 1.5;
     letter-spacing: -0.005em;
-    box-shadow: 0 10px 24px rgba(13, 18, 36, 0.04);
+    box-shadow: 0 14px 32px rgba(13, 18, 36, 0.06);
     opacity: 0;
     transform: translateY(20px);
     animation: fadeUp .8s ease .8s forwards;
   }
+  .story-quote::before {
+    content: '\201C';
+    position: absolute;
+    top: -18px;
+    left: 20px;
+    font-size: 96px;
+    font-weight: 900;
+    font-family: Georgia, "Songti SC", serif;
+    color: var(--accent-soft);
+    line-height: 1;
+    z-index: 0;
+  }
+  .story-quote-text {
+    position: relative;
+    z-index: 1;
+  }
   .story-quote cite {
+    position: relative;
+    z-index: 1;
     display: block;
-    margin-top: 14px;
+    margin-top: 16px;
     font-size: 12px;
     color: var(--muted);
     letter-spacing: 0.15em;
@@ -160,8 +206,10 @@
     .page-hero { padding: 56px 22px 32px; }
     .page-lede { font-size: 15px; }
     main.story-page { padding: 48px 22px 64px; font-size: 16px; }
-    .story-body p.lead { font-size: 20px; }
-    .story-quote { padding: 24px 22px; font-size: 19px; margin: 36px 0; }
+    .story-body p.lead::first-letter { font-size: 46px; padding: 4px 8px 0 0; }
+    .story-divider { margin: 36px 0 28px; }
+    .story-quote { padding: 26px 22px 22px; font-size: 19px; margin: 0 0 36px; }
+    .story-quote::before { font-size: 64px; top: -10px; left: 14px; }
   }
 </style>
 </head>
@@ -216,11 +264,16 @@ function renderStory() {
     body.innerHTML = '<p>正文还在整理中。</p>';
     return;
   }
-  body.innerHTML = blocks.map(b => (
-    b.type === 'quote'
-      ? `<div class="story-quote">${liteMdToHtml(b.text)}${b.cite ? `<cite>${escHtml(b.cite)}</cite>` : ''}</div>`
-      : `<p>${liteMdToHtml(b.text)}</p>`
-  )).join('');
+  let leadUsed = false;
+  body.innerHTML = blocks.map((b, i) => {
+    if (b.type === 'quote') {
+      const divider = i > 0 ? '<div class="story-divider" aria-hidden="true"></div>' : '';
+      return `${divider}<div class="story-quote"><div class="story-quote-text">${liteMdToHtml(b.text)}</div>${b.cite ? `<cite>${escHtml(b.cite)}</cite>` : ''}</div>`;
+    }
+    const cls = !leadUsed ? ' class="lead"' : '';
+    leadUsed = true;
+    return `<p${cls}>${liteMdToHtml(b.text)}</p>`;
+  }).join('');
 }
 renderStory();
 </script>
