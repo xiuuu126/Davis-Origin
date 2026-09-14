@@ -412,7 +412,8 @@ function escHtml(s) {
 function liteMdInline(text) {
   return escHtml(text)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/_([^_]+)_/g, '<em>$1</em>');
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    .replace(/\{\{c:(#[0-9a-fA-F]{3,8})\}\}([\s\S]*?)\{\{\/c\}\}/g, '<span style="color:$1">$2</span>');
 }
 function descToHtml(desc) {
   return String(desc || '').split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)

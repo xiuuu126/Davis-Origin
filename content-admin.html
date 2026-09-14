@@ -151,6 +151,18 @@
   .order-row .updown button:hover{border-color:var(--accent);color:var(--accent)}
   .order-row .updown button:disabled{opacity:.35;cursor:not-allowed}
 
+  /* 拖动排序：☰ 手柄拖拽换位置，SortableJS 负责位移动画；新闻/荣誉/回放/
+   * 经历年份&条目/正文块，各个可排序列表统一用这一套样式。 */
+  .drag-handle{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;
+    font-size:15px;line-height:1;color:var(--muted);padding:4px 7px;border-radius:6px;flex-shrink:0}
+  .drag-handle:hover{color:var(--accent);background:var(--accent-soft)}
+  .drag-handle:active{cursor:grabbing}
+  .drag-tools{display:flex;align-items:center;gap:6px}
+  .block-row-hd .drag-tools{margin-left:auto}
+  .sortable-ghost{opacity:.35}
+  .sortable-chosen{box-shadow:0 10px 24px rgba(13,18,36,.16)}
+  .sortable-drag{opacity:.95}
+
   .toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);background:var(--ink);
     color:#fff;padding:12px 22px;border-radius:10px;font-size:13.5px;font-weight:500;opacity:0;
     pointer-events:none;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:200;
@@ -291,6 +303,8 @@
     color:var(--ink-soft);font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
   .fmt-btn:hover{border-color:var(--accent);color:var(--accent)}
   .fmt-btn[data-fmt="italic"]{font-style:italic}
+  .fmt-color{width:26px;height:26px;padding:1px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+  .fmt-hint{font-size:11.5px;color:var(--muted);display:flex;align-items:center;margin-left:2px}
   .block-row-hd .updown button{width:26px;height:26px;border:1px solid var(--line);background:#fff;
     border-radius:6px;cursor:pointer;color:var(--ink-soft)}
   .block-row-hd .updown button:hover{border-color:var(--accent);color:var(--accent)}
@@ -768,6 +782,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.3/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 <script>
 if (location.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
   location.replace('https://' + location.host + location.pathname + location.search + location.hash);
@@ -893,6 +908,22 @@ async function api(path, opts = {}) {
   }
   if (!res.ok) throw new Error(data?.error || ('HTTP ' + res.status));
   return data;
+}
+
+/* ===================== 拖动排序 ===================== */
+// 列表用"☰"手柄拖拽换位置（SortableJS），带位移动画。container 每次整块重新渲染
+// 之后都要重新调用一次（旧实例会先销毁），onReorder(evt) 里自己决定怎么持久化新顺序。
+function initDragSort(container, onReorder) {
+  if (!container || typeof Sortable === 'undefined') return;
+  if (container._sortable) { container._sortable.destroy(); container._sortable = null; }
+  container._sortable = new Sortable(container, {
+    handle: '.drag-handle',
+    animation: 180,
+    onEnd: (evt) => {
+      if (evt.oldIndex === evt.newIndex) return;
+      Promise.resolve(onReorder(evt)).catch(e => toast(e.message, true));
+    },
+  });
 }
 
 const POS = ['gk', 'def', 'mid', 'fwd'];
@@ -1566,11 +1597,30 @@ document.addEventListener('click', (e) => {
   if (!ta) return;
   applyTextFormat(ta, btn.dataset.fmt === 'bold' ? '**' : '_');
 });
+let fmtColorSel = null;
+document.addEventListener('mousedown', (e) => {
+  const inp = e.target.closest('.fmt-color');
+  if (!inp) return;
+  const row = inp.closest('.block-row');
+  const ta = row && row.querySelector('textarea.blk-text, textarea.sblk-text');
+  if (ta) fmtColorSel = { ta, start: ta.selectionStart, end: ta.selectionEnd };
+});
+document.addEventListener('change', (e) => {
+  const inp = e.target.closest('.fmt-color');
+  if (!inp || !fmtColorSel) return;
+  const { ta, start, end } = fmtColorSel;
+  fmtColorSel = null;
+  if (start === end) { toast('先选中要改颜色的文字', true); return; }
+  const val = ta.value;
+  const newVal = val.slice(0, start) + `{{c:${inp.value}}}` + val.slice(start, end) + '{{/c}}' + val.slice(end);
+  ta.value = newVal;
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+});
 
 function thumbHtml(cls, path, icon, w, h) {
-  return `<div style="position:relative;width:${w}px;height:${h}px;flex-shrink:0">
-    <div class="${cls} empty" style="position:absolute;inset:0">${esc(icon || '📷')}</div>
-    ${path ? `<img class="${cls}" style="position:absolute;inset:0" src="${esc(path)}" onerror="this.style.display='none'" />` : ''}
+  return `<div style="display:grid;width:${w}px;height:${h}px;flex-shrink:0">
+    <div class="${cls} empty" style="grid-area:1/1;width:100%;height:100%">${esc(icon || '📷')}</div>
+    ${path ? `<img class="${cls}" style="grid-area:1/1;width:100%;height:100%;object-fit:cover" src="${esc(path)}" onerror="this.style.display='none'" />` : ''}
   </div>`;
 }
 
@@ -1587,13 +1637,17 @@ function blockRowHtml(b, i, total) {
   const fmtToolbar = `<div class="fmt-toolbar">
     <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
     <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
+    <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
+    <span class="fmt-hint">B 加粗 · I 斜体 · 调色板改文字颜色 —— 先选中文字再点</span>
   </div>`;
   const body = isImg
     ? `<div class="block-img-row">
         ${thumbHtml('block-thumb', b.image, b.icon, 64, 48)}
         <input type="file" accept="image/*" class="blk-upload-input" style="display:none" />
         <button type="button" class="btn ghost sm" data-act="blk-upload-trigger">上传图片</button>
-        <input type="text" class="blk-caption" placeholder="说明文字（图片占位框上显示，比如&quot;名单封面&quot;）" value="${esc(b.caption || '')}"
+        <button type="button" class="btn ghost sm" data-act="blk-remove">移除</button>
+        <button type="button" class="btn danger sm" data-act="blk-photo-del">删除照片</button>
+        <input type="text" class="blk-caption" placeholder="说明文字" value="${esc(b.caption || '')}"
           style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
       </div>`
     : b.type === 'list'
@@ -1602,10 +1656,9 @@ function blockRowHtml(b, i, total) {
   return `<div class="block-row" data-idx="${i}">
     <div class="block-row-hd">
       <select class="blk-type">${typeOpts}</select>
-      <div class="updown">
-        <button type="button" data-act="blk-up" ${i === 0 ? 'disabled' : ''}>↑</button>
-        <button type="button" data-act="blk-down" ${i === total - 1 ? 'disabled' : ''}>↓</button>
-        <button type="button" class="btn danger sm" data-act="blk-del" style="margin-left:4px">删除</button>
+      <div class="drag-tools">
+        <span class="drag-handle" title="拖动排序">☰</span>
+        <button type="button" class="btn danger sm" data-act="blk-del">删除</button>
       </div>
     </div>
     ${body}
@@ -1636,8 +1689,10 @@ function newsArticleBodyHtml(a) {
         <span class="cover-thumb-wrap">${thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48)}</span>
         <input type="file" accept="image/*" class="cover-upload-input" style="display:none" />
         <button type="button" class="btn ghost sm" data-act="cover-upload-trigger">上传封面图</button>
+        <button type="button" class="btn ghost sm" data-act="cover-remove">移除</button>
+        <button type="button" class="btn danger sm" data-act="cover-photo-del">删除照片</button>
         <select class="a-cover-shape">${coverShapeOptionsHtml(a.cover_shape)}</select>
-        <input type="text" class="a-cover-caption" placeholder="说明文字（占位框上显示，比如&quot;封面照片&quot;）" value="${esc(a.cover_caption || '')}"
+        <input type="text" class="a-cover-caption" placeholder="说明文字" value="${esc(a.cover_caption || '')}"
           style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
       </div>
       <div class="hint cover-path-hint">${a.cover_image ? esc(a.cover_image) : '还没上传，网站上先显示占位框'}</div>
@@ -1672,10 +1727,7 @@ function newsArticleCardHtml(a, idx, total) {
   return `<details class="cat-card" data-art="${a.id}" ${newsOpenId === a.id ? 'open' : ''}>
     <summary>
       <div class="cs-left">
-        <div class="updown" onclick="event.preventDefault()">
-          <button type="button" data-act="art-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-act="art-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
-        </div>
+        <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(a.title)}</b>
         <span class="hint" style="margin:0">${esc(a.pub_date || '')}</span>
       </div>
@@ -1698,6 +1750,10 @@ async function uploadNewsImage(file) {
   const dataBase64 = await fileToBase64(file);
   const d = await api('/content/news-image', { method: 'POST', body: JSON.stringify({ filename: file.name, dataBase64 }) });
   return d.path;
+}
+async function deleteNewsImage(path) {
+  if (!path) return;
+  await api('/content/news-image', { method: 'DELETE', body: JSON.stringify({ path }) });
 }
 
 // 正文块的增/删/挪/换类型/传图，只重画 .blocks-editor 这一小块（不碰标题/日期/
@@ -1734,21 +1790,34 @@ function wireBlocksEditor(bodyEl, a) {
     const i = Number(sel.closest('.block-row').dataset.idx);
     sel.onchange = () => { draft[i].type = sel.value; refreshBlocksEditor(a.id); };
   });
-  editor.querySelectorAll('[data-act="blk-up"]').forEach(btn => btn.onclick = () => {
-    const i = Number(btn.closest('.block-row').dataset.idx);
-    if (i > 0) { [draft[i - 1], draft[i]] = [draft[i], draft[i - 1]]; refreshBlocksEditor(a.id); }
-  });
-  editor.querySelectorAll('[data-act="blk-down"]').forEach(btn => btn.onclick = () => {
-    const i = Number(btn.closest('.block-row').dataset.idx);
-    if (i < draft.length - 1) { [draft[i + 1], draft[i]] = [draft[i], draft[i + 1]]; refreshBlocksEditor(a.id); }
-  });
   editor.querySelectorAll('[data-act="blk-del"]').forEach(btn => btn.onclick = () => {
     const i = Number(btn.closest('.block-row').dataset.idx);
     draft.splice(i, 1);
     refreshBlocksEditor(a.id);
   });
+  initDragSort(editor.querySelector('.blocks-list'), (evt) => {
+    const [moved] = draft.splice(evt.oldIndex, 1);
+    draft.splice(evt.newIndex, 0, moved);
+    refreshBlocksEditor(a.id);
+  });
   editor.querySelectorAll('[data-act="blk-upload-trigger"]').forEach(btn => btn.onclick = () => {
     btn.closest('.block-row').querySelector('.blk-upload-input').click();
+  });
+  editor.querySelectorAll('[data-act="blk-remove"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    draft[i].image = '';
+    refreshBlocksEditor(a.id);
+  });
+  editor.querySelectorAll('[data-act="blk-photo-del"]').forEach(btn => btn.onclick = () => {
+    const i = Number(btn.closest('.block-row').dataset.idx);
+    const imgPath = draft[i].image;
+    if (!imgPath) { toast('还没有上传照片', true); return; }
+    confirmModal('删除这张照片？', '', async () => {
+      try { await deleteNewsImage(imgPath); } catch (e) { toast(e.message, true); return; }
+      draft[i].image = '';
+      refreshBlocksEditor(a.id);
+      toast('已删除');
+    });
   });
   editor.querySelectorAll('.blk-upload-input').forEach(inp => {
     inp.onchange = async () => {
@@ -1775,6 +1844,28 @@ function wireArticleBody(bodyEl, a) {
 
   const coverBtn = bodyEl.querySelector('[data-act="cover-upload-trigger"]');
   if (coverBtn) coverBtn.onclick = () => bodyEl.querySelector('.cover-upload-input').click();
+  const coverRemoveBtn = bodyEl.querySelector('[data-act="cover-remove"]');
+  if (coverRemoveBtn) coverRemoveBtn.onclick = () => {
+    a.cover_image = '';
+    const wrap = bodyEl.querySelector('.cover-thumb-wrap');
+    if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
+    const hint = bodyEl.querySelector('.cover-path-hint');
+    if (hint) hint.textContent = '还没上传，网站上先显示占位框';
+  };
+  const coverPhotoDelBtn = bodyEl.querySelector('[data-act="cover-photo-del"]');
+  if (coverPhotoDelBtn) coverPhotoDelBtn.onclick = () => {
+    const imgPath = a.cover_image;
+    if (!imgPath) { toast('还没有上传照片', true); return; }
+    confirmModal('删除这张照片？', '', async () => {
+      try { await deleteNewsImage(imgPath); } catch (e) { toast(e.message, true); return; }
+      a.cover_image = '';
+      const wrap = bodyEl.querySelector('.cover-thumb-wrap');
+      if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
+      const hint = bodyEl.querySelector('.cover-path-hint');
+      if (hint) hint.textContent = '还没上传，网站上先显示占位框';
+      toast('已删除');
+    });
+  };
   const coverInput = bodyEl.querySelector('.cover-upload-input');
   if (coverInput) coverInput.onchange = async () => {
     const file = coverInput.files && coverInput.files[0];
@@ -1857,20 +1948,12 @@ function renderNewsTab() {
     if (a) wireArticleBody(det.querySelector('.cat-card-body'), a);
   });
 
-  const moveArticle = (dir) => async (btn) => {
-    const det = btn.closest('details[data-art]');
-    const id = Number(det.dataset.art);
-    const idx = sorted.findIndex(x => x.id === id);
-    const swapWith = idx + dir;
-    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
-    const order = sorted.map(x => x.id);
-    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
-    newsOpenId = id;
-    try { await api('/content/news-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
-    catch (e) { toast(e.message, true); }
-  };
-  list.querySelectorAll('[data-act="art-up"]').forEach(btn => btn.onclick = () => moveArticle(-1)(btn));
-  list.querySelectorAll('[data-act="art-down"]').forEach(btn => btn.onclick = () => moveArticle(1)(btn));
+  initDragSort(list, async (evt) => {
+    newsOpenId = Number(evt.item.dataset.art);
+    const order = Array.from(list.querySelectorAll('details[data-art]')).map(det => Number(det.dataset.art));
+    await api('/content/news-order', { method: 'PUT', body: JSON.stringify({ order }) });
+    await reload();
+  });
 }
 
 /* ===================== 荣誉 ===================== */
@@ -1878,10 +1961,7 @@ function honorCardHtml(h, idx, total) {
   return `<details class="cat-card" data-honor="${h.id}" ${honorsOpenId === h.id ? 'open' : ''}>
     <summary>
       <div class="cs-left">
-        <div class="updown" onclick="event.preventDefault()">
-          <button type="button" data-act="honor-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-act="honor-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
-        </div>
+        <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(h.title || '（还没填标题）')}</b>
         <span class="hint" style="margin:0">${esc(h.year_label || '')}</span>
       </div>
@@ -1924,20 +2004,12 @@ function renderHonorsTab() {
     if (h) wireHonorCard(det.querySelector('.cat-card-body'), h);
   });
 
-  const move = dir => async (btn) => {
-    const det = btn.closest('details[data-honor]');
-    const id = Number(det.dataset.honor);
-    const idx = sorted.findIndex(x => x.id === id);
-    const swapWith = idx + dir;
-    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
-    const order = sorted.map(x => x.id);
-    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
-    honorsOpenId = id;
-    try { await api('/content/honors-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
-    catch (e) { toast(e.message, true); }
-  };
-  list.querySelectorAll('[data-act="honor-up"]').forEach(btn => btn.onclick = () => move(-1)(btn));
-  list.querySelectorAll('[data-act="honor-down"]').forEach(btn => btn.onclick = () => move(1)(btn));
+  initDragSort(list, async (evt) => {
+    honorsOpenId = Number(evt.item.dataset.honor);
+    const order = Array.from(list.querySelectorAll('details[data-honor]')).map(det => Number(det.dataset.honor));
+    await api('/content/honors-order', { method: 'PUT', body: JSON.stringify({ order }) });
+    await reload();
+  });
 }
 
 function wireHonorCard(bodyEl, h) {
@@ -2025,10 +2097,7 @@ function videoCardHtml(v, idx, total) {
   return `<details class="cat-card" data-video="${v.id}" ${videosOpenId === v.id ? 'open' : ''}>
     <summary>
       <div class="cs-left">
-        <div class="updown" onclick="event.preventDefault()">
-          <button type="button" data-act="video-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-act="video-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
-        </div>
+        <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(v.team_left || 'Davis Origin')} vs ${esc(v.team_right || '（还没填对手）')}</b>
         <span class="hint" style="margin:0">${esc(v.tournament || '')}</span>
       </div>
@@ -2076,20 +2145,12 @@ function renderVideosTab() {
     if (v) wireVideoCard(det.querySelector('.cat-card-body'), v);
   });
 
-  const move = dir => async (btn) => {
-    const det = btn.closest('details[data-video]');
-    const id = Number(det.dataset.video);
-    const idx = sorted.findIndex(x => x.id === id);
-    const swapWith = idx + dir;
-    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
-    const order = sorted.map(x => x.id);
-    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
-    videosOpenId = id;
-    try { await api('/content/videos-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
-    catch (e) { toast(e.message, true); }
-  };
-  list.querySelectorAll('[data-act="video-up"]').forEach(btn => btn.onclick = () => move(-1)(btn));
-  list.querySelectorAll('[data-act="video-down"]').forEach(btn => btn.onclick = () => move(1)(btn));
+  initDragSort(list, async (evt) => {
+    videosOpenId = Number(evt.item.dataset.video);
+    const order = Array.from(list.querySelectorAll('details[data-video]')).map(det => Number(det.dataset.video));
+    await api('/content/videos-order', { method: 'PUT', body: JSON.stringify({ order }) });
+    await reload();
+  });
 }
 
 function wireVideoCard(bodyEl, v) {
@@ -2184,10 +2245,7 @@ function histItemCardHtml(it, idx, total) {
   return `<details class="cat-card" data-hist-item="${it.id}" ${histItemOpenId === it.id ? 'open' : ''}>
     <summary>
       <div class="cs-left">
-        <div class="updown" onclick="event.preventDefault()">
-          <button type="button" data-act="item-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-act="item-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
-        </div>
+        <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(it.title || '（还没填标题）')}</b>
         <span class="hint" style="margin:0">${esc(it.date_label || '')}</span>
       </div>
@@ -2225,10 +2283,7 @@ function histYearCardHtml(y, idx, total) {
   return `<details class="cat-card" data-hist-year="${y.id}" ${histYearOpenId === y.id ? 'open' : ''}>
     <summary>
       <div class="cs-left">
-        <div class="updown" onclick="event.preventDefault()">
-          <button type="button" data-act="year-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-act="year-down" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
-        </div>
+        <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(y.year_label || '（还没填年份）')}</b>
         <span class="hint" style="margin:0">${esc(y.year_tag || '')}</span>
       </div>
@@ -2269,20 +2324,12 @@ function renderHistoryTab() {
     if (y) wireHistYearCard(det.querySelector('.cat-card-body'), y);
   });
 
-  const moveYear = dir => async (btn) => {
-    const det = btn.closest('details[data-hist-year]');
-    const id = Number(det.dataset.histYear);
-    const idx = sorted.findIndex(x => x.id === id);
-    const swapWith = idx + dir;
-    if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return;
-    const order = sorted.map(x => x.id);
-    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
-    histYearOpenId = id;
-    try { await api('/content/history-years-order', { method: 'PUT', body: JSON.stringify({ order }) }); await reload(); }
-    catch (e) { toast(e.message, true); }
-  };
-  list.querySelectorAll('[data-act="year-up"]').forEach(btn => btn.onclick = () => moveYear(-1)(btn));
-  list.querySelectorAll('[data-act="year-down"]').forEach(btn => btn.onclick = () => moveYear(1)(btn));
+  initDragSort(list, async (evt) => {
+    histYearOpenId = Number(evt.item.dataset.histYear);
+    const order = Array.from(list.querySelectorAll('details[data-hist-year]')).map(det => Number(det.dataset.histYear));
+    await api('/content/history-years-order', { method: 'PUT', body: JSON.stringify({ order }) });
+    await reload();
+  });
 }
 
 function wireHistYearCard(bodyEl, y) {
@@ -2343,21 +2390,14 @@ function wireHistYearCard(bodyEl, y) {
     const it = items.find(x => x.id === iid);
     if (it) wireHistItemCard(det.querySelector('.cat-card-body'), it, y);
   });
-  const moveItem = dir => async (btn) => {
-    const det = btn.closest('details[data-hist-item]');
-    const id = Number(det.dataset.histItem);
-    const idx = items.findIndex(x => x.id === id);
-    const swapWith = idx + dir;
-    if (idx < 0 || swapWith < 0 || swapWith >= items.length) return;
-    const order = items.map(x => x.id);
-    [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+  const itemsListEl = bodyEl.querySelector('.hist-items-list');
+  initDragSort(itemsListEl, async (evt) => {
     histYearOpenId = y.id;
-    histItemOpenId = id;
-    try { await api('/content/history-items-order', { method: 'PUT', body: JSON.stringify({ yearId: y.id, order }) }); await reload(); }
-    catch (e) { toast(e.message, true); }
-  };
-  bodyEl.querySelectorAll('[data-act="item-up"]').forEach(btn => btn.onclick = () => moveItem(-1)(btn));
-  bodyEl.querySelectorAll('[data-act="item-down"]').forEach(btn => btn.onclick = () => moveItem(1)(btn));
+    histItemOpenId = Number(evt.item.dataset.histItem);
+    const order = Array.from(itemsListEl.querySelectorAll('details[data-hist-item]')).map(det => Number(det.dataset.histItem));
+    await api('/content/history-items-order', { method: 'PUT', body: JSON.stringify({ yearId: y.id, order }) });
+    await reload();
+  });
 }
 
 function wireHistItemCard(bodyEl, it, y) {
@@ -2454,15 +2494,16 @@ function storyBlockRowHtml(b, i, total) {
         <option value="p" ${!isQuote ? 'selected' : ''}>正文段落</option>
         <option value="quote" ${isQuote ? 'selected' : ''}>引用</option>
       </select>
-      <div class="updown">
-        <button type="button" data-act="sblk-up" ${i === 0 ? 'disabled' : ''}>↑</button>
-        <button type="button" data-act="sblk-down" ${i === total - 1 ? 'disabled' : ''}>↓</button>
-        <button type="button" class="btn danger sm" data-act="sblk-del" style="margin-left:4px">删除</button>
+      <div class="drag-tools">
+        <span class="drag-handle" title="拖动排序">☰</span>
+        <button type="button" class="btn danger sm" data-act="sblk-del">删除</button>
       </div>
     </div>
     <div class="fmt-toolbar">
       <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
       <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
+      <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
+      <span class="fmt-hint">B 加粗 · I 斜体 · 调色板改文字颜色 —— 先选中文字再点</span>
     </div>
     <textarea class="sblk-text" rows="${isQuote ? 2 : 3}">${esc(b.text || '')}</textarea>
     ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
@@ -2500,17 +2541,14 @@ function wireStoryBlocksEditor() {
     const i = Number(sel.closest('.block-row').dataset.idx);
     sel.onchange = () => { storyDraft[i].type = sel.value; refreshStoryEditor(); };
   });
-  editor.querySelectorAll('[data-act="sblk-up"]').forEach(btn => btn.onclick = () => {
-    const i = Number(btn.closest('.block-row').dataset.idx);
-    if (i > 0) { [storyDraft[i - 1], storyDraft[i]] = [storyDraft[i], storyDraft[i - 1]]; refreshStoryEditor(); }
-  });
-  editor.querySelectorAll('[data-act="sblk-down"]').forEach(btn => btn.onclick = () => {
-    const i = Number(btn.closest('.block-row').dataset.idx);
-    if (i < storyDraft.length - 1) { [storyDraft[i + 1], storyDraft[i]] = [storyDraft[i], storyDraft[i + 1]]; refreshStoryEditor(); }
-  });
   editor.querySelectorAll('[data-act="sblk-del"]').forEach(btn => btn.onclick = () => {
     const i = Number(btn.closest('.block-row').dataset.idx);
     storyDraft.splice(i, 1);
+    refreshStoryEditor();
+  });
+  initDragSort(editor.querySelector('.blocks-list'), (evt) => {
+    const [moved] = storyDraft.splice(evt.oldIndex, 1);
+    storyDraft.splice(evt.newIndex, 0, moved);
     refreshStoryEditor();
   });
 }
@@ -2614,7 +2652,7 @@ $('btnPublishSeason').onclick = () => {
 };
 $('btnPublishNews').onclick = () => confirmModal(
   '确认发布新闻？',
-  '会把后台现在保存的所有新闻文章重新生成 news-data.js 并推到网站上，几分钟内生效。不会影响赛季/荣誉/经历/故事。',
+  '',
   () => doPublish($('btnPublishNews'), '/content/publish-news'),
   '确认发布', 'ok'
 );
