@@ -118,6 +118,7 @@
   .honor-card.gold { animation-delay: .2s; }
   .honor-card.silver { animation-delay: .35s; }
   .honor-card.bronze { animation-delay: .5s; }
+  .honor-card.none { animation-delay: .2s; }
   .honor-card::before {
     content: '';
     position: absolute;
@@ -132,6 +133,9 @@
   .honor-card.bronze::before {
     background: linear-gradient(180deg, var(--bronze) 0%, var(--bronze-soft) 100%);
   }
+  .honor-card.none::before {
+    background: var(--line);
+  }
   .honor-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 24px 48px rgba(13, 18, 36, 0.08);
@@ -139,6 +143,7 @@
   .honor-card.gold:hover { border-color: var(--gold); }
   .honor-card.silver:hover { border-color: var(--silver); }
   .honor-card.bronze:hover { border-color: var(--bronze); }
+  .honor-card.none:hover { border-color: var(--muted); }
   .honor-card:hover::before { width: 8px; }
   .honor-medal {
     width: 64px; height: 64px;
@@ -159,6 +164,10 @@
   .honor-card.bronze .honor-medal {
     background: linear-gradient(135deg, var(--bronze) 0%, var(--bronze-soft) 100%);
     box-shadow: 0 8px 16px rgba(160, 100, 46, 0.25);
+  }
+  .honor-card.none .honor-medal {
+    background: var(--ink-soft);
+    box-shadow: 0 8px 16px rgba(10, 14, 26, 0.15);
   }
   .honor-year {
     font-size: 12px;
@@ -276,7 +285,7 @@ function renderHonors() {
     return;
   }
   grid.innerHTML = honors.map((h, i) => `
-    <article class="honor-card ${h.tier === 'silver' ? 'silver' : h.tier === 'bronze' ? 'bronze' : 'gold'}">
+    <article class="honor-card ${h.tier === 'silver' ? 'silver' : h.tier === 'bronze' ? 'bronze' : h.tier === 'none' ? 'none' : 'gold'}">
       <div class="honor-medal">${i + 1}</div>
       <div class="honor-year">${escHtml(h.yearLabel)}</div>
       <h2 class="honor-title">${escHtml(h.title)}</h2>

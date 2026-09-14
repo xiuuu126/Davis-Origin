@@ -299,8 +299,8 @@
   .block-row-hd select{padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12.5px;font-weight:600;color:var(--ink-soft)}
   .block-row-hd .updown{display:flex;gap:4px;margin-left:auto}
   .fmt-toolbar{display:flex;gap:4px;margin-bottom:6px}
-  .fmt-btn{width:26px;height:26px;border:1px solid var(--line);border-radius:6px;background:var(--bg-soft);
-    color:var(--ink-soft);font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .fmt-btn{height:26px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg-soft);
+    color:var(--ink-soft);font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap}
   .fmt-btn:hover{border-color:var(--accent);color:var(--accent)}
   .fmt-btn[data-fmt="italic"]{font-style:italic}
   .fmt-color{width:26px;height:26px;padding:1px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
@@ -563,7 +563,7 @@
       <section class="panel on" id="tab-story-content">
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">正文段落</div><div class="card-sub">从上到下依次显示；支持 **加粗** 和 _斜体_。改完记得点下面"保存"，然后去"预览"标签页发布。</div></div>
+            <div><div class="card-title">正文段落</div></div>
           </div>
           <div class="blocks-editor">
             <div class="blocks-list" id="storyBlocksList"></div>
@@ -700,6 +700,7 @@
         <option value="gold">金（第一档）</option>
         <option value="silver">银（第二档）</option>
         <option value="bronze">铜（第三档）</option>
+        <option value="none">不显示</option>
       </select></div>
     </div>
     <div class="field"><label for="nhTitle">标题</label><input type="text" id="nhTitle" /></div>
@@ -1669,15 +1670,14 @@ function blockRowHtml(b, i, total) {
     `<option value="${k}" ${b.type === k ? 'selected' : ''}>${label}</option>`).join('');
   const isImg = IMAGE_BLOCK_TYPES.has(b.type);
   const fmtToolbar = `<div class="fmt-toolbar">
-    <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
-    <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
+    <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B 加粗</button>
+    <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I 斜体</button>
     <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
     <span class="fmt-color-label">调色板</span>
     <span class="fmt-color-confirm" hidden>
       <button type="button" class="fmt-color-ok" title="应用颜色">✓</button>
       <button type="button" class="fmt-color-cancel" title="取消">✕</button>
     </span>
-    <span class="fmt-hint">B加粗 I斜体</span>
   </div>`;
   const body = isImg
     ? `<div class="block-img-row">
@@ -2004,15 +2004,16 @@ function honorCardHtml(h, idx, total) {
         <b>${esc(h.title || '（还没填标题）')}</b>
         <span class="hint" style="margin:0">${esc(h.year_label || '')}</span>
       </div>
-      <div class="cs-right"><span class="hint" style="margin:0">${h.tier === 'silver' ? '银' : h.tier === 'bronze' ? '铜' : '金'}</span><span class="cs-caret"></span></div>
+      <div class="cs-right"><span class="hint" style="margin:0">${h.tier === 'silver' ? '银' : h.tier === 'bronze' ? '铜' : h.tier === 'none' ? '不显示' : '金'}</span><span class="cs-caret"></span></div>
     </summary>
     <div class="cat-card-body">
       <div class="row2">
         <div class="field"><label>年份/名次标签</label><input class="h-year" value="${esc(h.year_label || '')}" /></div>
         <div class="field"><label>档次</label><select class="h-tier">
-          <option value="gold" ${h.tier !== 'silver' && h.tier !== 'bronze' ? 'selected' : ''}>金（第一档）</option>
+          <option value="gold" ${h.tier !== 'silver' && h.tier !== 'bronze' && h.tier !== 'none' ? 'selected' : ''}>金（第一档）</option>
           <option value="silver" ${h.tier === 'silver' ? 'selected' : ''}>银（第二档）</option>
           <option value="bronze" ${h.tier === 'bronze' ? 'selected' : ''}>铜（第三档）</option>
+          <option value="none" ${h.tier === 'none' ? 'selected' : ''}>不显示</option>
         </select></div>
       </div>
       <div class="row2">
@@ -2539,15 +2540,14 @@ function storyBlockRowHtml(b, i, total) {
       </div>
     </div>
     <div class="fmt-toolbar">
-      <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
-      <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
+      <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B 加粗</button>
+      <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I 斜体</button>
       <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
       <span class="fmt-color-label">调色板</span>
       <span class="fmt-color-confirm" hidden>
         <button type="button" class="fmt-color-ok" title="应用颜色">✓</button>
         <button type="button" class="fmt-color-cancel" title="取消">✕</button>
       </span>
-      <span class="fmt-hint">B加粗 I斜体</span>
     </div>
     <textarea class="sblk-text" rows="${isQuote ? 2 : 3}">${esc(b.text || '')}</textarea>
     ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
