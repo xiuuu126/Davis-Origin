@@ -13,7 +13,7 @@ window.NEWS_DATA = {
       "location": "",
       "author": "戴维斯原点足球俱乐部",
       "cover": {
-        "image": "assets/news/1789358211172-截屏2026-09-13-23-56-27.png",
+        "image": "",
         "icon": "📷",
         "caption": "我是谁",
         "shape": "default"
