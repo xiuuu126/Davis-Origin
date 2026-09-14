@@ -1323,7 +1323,7 @@ function categoryCardHtml(cat, isOpen) {
         <div class="field"><label>赛程说明</label><input class="c-schedule" value="${esc(cat.schedule || '')}" /></div>
       </div>
       <div class="field"><label>说明</label><input class="c-note" value="${esc(cat.note || '')}" /></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
         <button class="btn ghost sm" data-act="save-cat" data-id="${cat.id}">保存赛事信息</button>
         <button class="btn danger sm" data-act="del-cat" data-id="${cat.id}">删除该赛事</button>
       </div>
@@ -1390,7 +1390,7 @@ function teamBlockHtml(t) {
     <div class="team-subcard" style="margin-top:16px">
       <div class="hint" style="margin-bottom:10px">赛事</div>
       ${addEventRowHtml(t)}
-      ${t.categories.length ? t.categories.map(cat => categoryCardHtml(cat, cat.id === openId)).join('') : '<div class="empty">还没有添加赛事，点上面加一个吧</div>'}
+      ${t.categories.length ? t.categories.map(cat => categoryCardHtml(cat, cat.id === openId)).join('') : '<div class="empty">还没有添加赛事</div>'}
     </div>
   </div>`;
 }
@@ -1480,7 +1480,7 @@ function renderContentTab(bySeason) {
   });
 
   area.querySelectorAll('[data-act="del-cat"]').forEach(btn => btn.onclick = () => confirmModal(
-    '删除这个赛事？', '这个赛事底下的比赛和专属名单会一起删掉，删完发布一次才会在网站上消失，删错了也没法撤销。',
+    '删除这个赛事？', '',
     async () => { await api(`/content/category/${btn.dataset.id}`, { method: 'DELETE' }); await reload(); toast('已删除'); }
   ));
 
