@@ -286,6 +286,11 @@
   .block-row-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .block-row-hd select{padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12.5px;font-weight:600;color:var(--ink-soft)}
   .block-row-hd .updown{display:flex;gap:4px;margin-left:auto}
+  .fmt-toolbar{display:flex;gap:4px;margin-bottom:6px}
+  .fmt-btn{width:26px;height:26px;border:1px solid var(--line);border-radius:6px;background:var(--bg-soft);
+    color:var(--ink-soft);font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .fmt-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .fmt-btn[data-fmt="italic"]{font-style:italic}
   .block-row-hd .updown button{width:26px;height:26px;border:1px solid var(--line);background:#fff;
     border-radius:6px;cursor:pointer;color:var(--ink-soft)}
   .block-row-hd .updown button:hover{border-color:var(--accent);color:var(--accent)}
@@ -298,9 +303,9 @@
     object-fit:cover;flex-shrink:0}
   .block-thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
   .add-block-row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
-  .cover-thumb{width:88px;height:64px;border-radius:10px;background:#e9e6de;border:1px solid var(--line);
+  .cover-thumb{width:64px;height:48px;border-radius:8px;background:#e9e6de;border:1px solid var(--line);
     object-fit:cover;flex-shrink:0}
-  .cover-thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px}
+  .cover-thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
   .art-save-bar{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:16px;
     padding-top:16px;border-top:1px solid var(--line)}
 
@@ -426,7 +431,7 @@
       <section class="panel on" id="tab-news-content">
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">新闻列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序；点一条展开编辑正文、图片。改完记得点每篇文章自己的"保存"，然后去"预览"标签页发布。</div></div>
+            <div><div class="card-title">新闻列表</div></div>
             <button class="btn" id="btnAddArticle">+ 新建文章</button>
           </div>
           <div id="newsList"></div>
@@ -437,18 +442,17 @@
         <div class="publish-banner">
           <div>
             <div class="p-main">发布新闻</div>
-            <div class="p-sub">新闻是整个板块一起发布的，不像赛季能一个一个单独发；跟"赛季"板块的发布互不影响。</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn ghost" id="btnPreviewNews">生成预览</button>
             <button class="btn" id="btnPublishNews">发布新闻</button>
           </div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份新闻内容，直接还原出 news.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+            <div><div class="card-title">发布前预览</div></div>
+            <button class="btn ghost" id="btnPreviewNews">生成预览</button>
           </div>
-          <div id="previewBoxNews"><div class="hint">点上面"生成预览"看看结果。</div></div>
+          <div id="previewBoxNews"></div>
         </div>
       </section>
     </section>
@@ -474,18 +478,17 @@
         <div class="publish-banner">
           <div>
             <div class="p-main">发布荣誉</div>
-            <div class="p-sub">跟"赛季""新闻"互不影响，各自独立发布。</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn ghost" id="btnPreviewHonors">生成预览</button>
             <button class="btn" id="btnPublishHonors">发布荣誉</button>
           </div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份荣誉内容，直接还原出 honors.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+            <div><div class="card-title">发布前预览</div></div>
+            <button class="btn ghost" id="btnPreviewHonors">生成预览</button>
           </div>
-          <div id="previewBoxHonors"><div class="hint">点上面"生成预览"看看结果。</div></div>
+          <div id="previewBoxHonors"></div>
         </div>
       </section>
     </section>
@@ -511,18 +514,17 @@
         <div class="publish-banner">
           <div>
             <div class="p-main">发布经历</div>
-            <div class="p-sub">跟"赛季""新闻""荣誉"互不影响，各自独立发布。</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn ghost" id="btnPreviewHistory">生成预览</button>
             <button class="btn" id="btnPublishHistory">发布经历</button>
           </div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份时间线内容，直接还原出 history.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+            <div><div class="card-title">发布前预览</div></div>
+            <button class="btn ghost" id="btnPreviewHistory">生成预览</button>
           </div>
-          <div id="previewBoxHistory"><div class="hint">点上面"生成预览"看看结果。</div></div>
+          <div id="previewBoxHistory"></div>
         </div>
       </section>
     </section>
@@ -556,18 +558,17 @@
         <div class="publish-banner">
           <div>
             <div class="p-main">发布故事</div>
-            <div class="p-sub">跟"赛季""新闻""荣誉""经历"互不影响，各自独立发布。</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn ghost" id="btnPreviewStory">生成预览</button>
             <button class="btn" id="btnPublishStory">发布故事</button>
           </div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份正文，直接还原出 story.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+            <div><div class="card-title">发布前预览</div></div>
+            <button class="btn ghost" id="btnPreviewStory">生成预览</button>
           </div>
-          <div id="previewBoxStory"><div class="hint">点上面"生成预览"看看结果。</div></div>
+          <div id="previewBoxStory"></div>
         </div>
       </section>
     </section>
@@ -593,18 +594,17 @@
         <div class="publish-banner">
           <div>
             <div class="p-main">发布经典赛事</div>
-            <div class="p-sub">跟"赛季""新闻""荣誉""经历""故事"互不影响，各自独立发布。</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn ghost" id="btnPreviewVideos">生成预览</button>
             <button class="btn" id="btnPublishVideos">发布经典赛事</button>
           </div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">发布前预览</div><div class="card-sub">用后台现在保存的这份回放列表，直接还原出 videos.html 真实的样子（不会真的发布，网站上暂时看不到这份预览）</div></div>
+            <div><div class="card-title">发布前预览</div></div>
+            <button class="btn ghost" id="btnPreviewVideos">生成预览</button>
           </div>
-          <div id="previewBoxVideos"><div class="hint">点上面"生成预览"看看结果。</div></div>
+          <div id="previewBoxVideos"></div>
         </div>
       </section>
     </section>
@@ -638,11 +638,10 @@
 <div class="modal-bg" id="mNewArtBg">
   <div class="modal" style="max-width:640px">
     <h3>新建文章</h3>
-    <div class="sub">把整篇文章一股脑粘贴进下面的框里，点"一键解析"自动拆成段落——空一行分段；哪段想做成引用样式，就把那一整段用「」或""括起来。标题另外填在下面（解析完会自动带一个建议，可以改）。解析完先看一眼下面的预览，创建之后还能继续逐块编辑、加图片。</div>
 
     <div class="field">
-      <label for="naRaw">整篇文章原文</label>
-      <textarea id="naRaw" rows="9" placeholder="把文章全文粘贴进来，段落之间空一行；想做成引用的整段用「」或""括起来"></textarea>
+      <label for="naRaw">文章原文</label>
+      <textarea id="naRaw" rows="9"></textarea>
     </div>
     <div class="modal-actions" style="margin-top:0;margin-bottom:18px">
       <button class="btn ghost full" id="naParse" type="button">一键解析</button>
@@ -650,7 +649,7 @@
 
     <div class="row2">
       <div class="field"><label for="naTitle">标题</label><input type="text" id="naTitle" placeholder="解析后自动带建议，也可以自己填" /></div>
-      <div class="field"><label for="naEyebrow">小标签（eyebrow，可选）</label><input type="text" id="naEyebrow" list="eyebrowOptions" placeholder="比如&quot;赛事预告&quot;" /></div>
+      <div class="field"><label for="naEyebrow">小标签（可选）</label><input type="text" id="naEyebrow" list="eyebrowOptions" /></div>
     </div>
     <div class="field"><label for="naDate">发布日期</label><input type="date" id="naDate" /></div>
 
@@ -807,8 +806,8 @@ let NEWS = [];                        // /content/news 的文章列表（含每�
 let newsBlockDrafts = new Map();      // 文章 id -> 正文分块的编辑中副本（加/删/挪块不用等服务器就先本地更新，点"保存"才真正提交）
 let newsOpenId = null;                // 当前展开编辑的是哪篇文章，重新渲染列表时保持展开
 const BLOCK_TYPE_LABEL = {
-  lead: '导语（开头大字）', p: '正文段落', quote: '引用', list: '项目列表（一行一条）',
-  image: '配图 4:3', image_wide: '通栏大图 16:9', image_square: '方图 1:1（如二维码）', image_portrait: '竖图 3:4',
+  lead: '导语', p: '正文段落', quote: '引用', list: '项目列表',
+  image: '配图 4:3', image_wide: '通栏大图 16:9', image_square: '方图 1:1', image_portrait: '竖图 3:4',
 };
 const IMAGE_BLOCK_TYPES = new Set(['image', 'image_wide', 'image_square', 'image_portrait']);
 
@@ -1539,6 +1538,35 @@ function renderContentTab(bySeason) {
 
 // 封面图/配图缩略图：占位图标一直垫在下面，图片加载失败就让 <img> 隐藏，占位图标自然露出来——
 // 跟 news.html 正式页面上占位框的做法（figureHtml + onerror）是同一个思路，缩略图版本更简单一点。
+function applyTextFormat(textarea, marker) {
+  const start = textarea.selectionStart, end = textarea.selectionEnd;
+  const val = textarea.value;
+  const selected = val.slice(start, end);
+  const before = val.slice(0, start), after = val.slice(end);
+  const mLen = marker.length;
+  const alreadyWrapped = before.slice(-mLen) === marker && after.slice(0, mLen) === marker;
+  let newVal, newStart, newEnd;
+  if (alreadyWrapped) {
+    newVal = before.slice(0, before.length - mLen) + selected + after.slice(mLen);
+    newStart = start - mLen; newEnd = end - mLen;
+  } else {
+    newVal = before + marker + selected + marker + after;
+    newStart = start + mLen; newEnd = end + mLen;
+  }
+  textarea.value = newVal;
+  textarea.focus();
+  textarea.setSelectionRange(newStart, newEnd);
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+}
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.fmt-btn');
+  if (!btn) return;
+  const row = btn.closest('.block-row');
+  const ta = row && row.querySelector('textarea.blk-text, textarea.sblk-text');
+  if (!ta) return;
+  applyTextFormat(ta, btn.dataset.fmt === 'bold' ? '**' : '_');
+});
+
 function thumbHtml(cls, path, icon, w, h) {
   return `<div style="position:relative;width:${w}px;height:${h}px;flex-shrink:0">
     <div class="${cls} empty" style="position:absolute;inset:0">${esc(icon || '📷')}</div>
@@ -1556,6 +1584,10 @@ function blockRowHtml(b, i, total) {
   const typeOpts = Object.entries(BLOCK_TYPE_LABEL).map(([k, label]) =>
     `<option value="${k}" ${b.type === k ? 'selected' : ''}>${label}</option>`).join('');
   const isImg = IMAGE_BLOCK_TYPES.has(b.type);
+  const fmtToolbar = `<div class="fmt-toolbar">
+    <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
+    <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
+  </div>`;
   const body = isImg
     ? `<div class="block-img-row">
         ${thumbHtml('block-thumb', b.image, b.icon, 64, 48)}
@@ -1565,8 +1597,8 @@ function blockRowHtml(b, i, total) {
           style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
       </div>`
     : b.type === 'list'
-      ? `<textarea class="blk-text" rows="3" placeholder="一行一条">${esc(b.text || '')}</textarea>`
-      : `<textarea class="blk-text" rows="${b.type === 'quote' ? 2 : 3}" placeholder="支持 **加粗** 和 _斜体_">${esc(b.text || '')}</textarea>`;
+      ? `<textarea class="blk-text" rows="3">${esc(b.text || '')}</textarea>`
+      : `${fmtToolbar}<textarea class="blk-text" rows="${b.type === 'quote' ? 2 : 3}">${esc(b.text || '')}</textarea>`;
   return `<div class="block-row" data-idx="${i}">
     <div class="block-row-hd">
       <select class="blk-type">${typeOpts}</select>
@@ -1591,7 +1623,7 @@ function newsArticleBodyHtml(a) {
   return `
     <div class="row2">
       <div class="field"><label>标题</label><input class="a-title" value="${esc(a.title)}" /></div>
-      <div class="field"><label>小标签（eyebrow，比如"赛事预告"——点右侧小箭头可以从以前用过的里选，也可以自己打新的）</label><input class="a-eyebrow" list="eyebrowOptions" value="${esc(a.eyebrow || '')}" /></div>
+      <div class="field"><label>小标签（可选）</label><input class="a-eyebrow" list="eyebrowOptions" value="${esc(a.eyebrow || '')}" /></div>
     </div>
     <div class="row3">
       <div class="field"><label>发布日期</label><input class="a-date" type="date" value="${esc(a.pub_date || '')}" /></div>
@@ -1601,7 +1633,7 @@ function newsArticleBodyHtml(a) {
     <div class="field">
       <label>封面图</label>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <span class="cover-thumb-wrap">${thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 88, 64)}</span>
+        <span class="cover-thumb-wrap">${thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48)}</span>
         <input type="file" accept="image/*" class="cover-upload-input" style="display:none" />
         <button type="button" class="btn ghost sm" data-act="cover-upload-trigger">上传封面图</button>
         <select class="a-cover-shape">${coverShapeOptionsHtml(a.cover_shape)}</select>
@@ -1750,7 +1782,7 @@ function wireArticleBody(bodyEl, a) {
     try {
       a.cover_image = await uploadNewsImage(file);
       const wrap = bodyEl.querySelector('.cover-thumb-wrap');
-      if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 88, 64);
+      if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
       const hint = bodyEl.querySelector('.cover-path-hint');
       if (hint) hint.textContent = a.cover_image;
       toast('封面图已上传');
@@ -2428,7 +2460,11 @@ function storyBlockRowHtml(b, i, total) {
         <button type="button" class="btn danger sm" data-act="sblk-del" style="margin-left:4px">删除</button>
       </div>
     </div>
-    <textarea class="sblk-text" rows="${isQuote ? 2 : 3}" placeholder="支持 **加粗** 和 _斜体_">${esc(b.text || '')}</textarea>
+    <div class="fmt-toolbar">
+      <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
+      <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
+    </div>
+    <textarea class="sblk-text" rows="${isQuote ? 2 : 3}">${esc(b.text || '')}</textarea>
     ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
       style="margin-top:8px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />` : ''}
   </div>`;
@@ -2701,7 +2737,7 @@ $('btnAddArticle').onclick = openNewArticle;
 $('naCancel').onclick = () => $('mNewArtBg').classList.remove('on');
 $('naParse').onclick = () => {
   const parsed = parseArticleDump($('naRaw').value);
-  if (!parsed.blocks.length) { $('naErr').textContent = '还没粘贴内容，或者解析不出段落'; return; }
+  if (!parsed.blocks.length) { $('naErr').textContent = '解析失败'; return; }
   $('naErr').textContent = '';
   if (parsed.title && !$('naTitle').value.trim()) $('naTitle').value = parsed.title;
   naParsedBlocks = parsed.blocks;
