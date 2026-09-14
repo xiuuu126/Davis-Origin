@@ -305,6 +305,16 @@
   .fmt-btn[data-fmt="italic"]{font-style:italic}
   .fmt-color{width:26px;height:26px;padding:1px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
   .fmt-hint{font-size:11.5px;color:var(--muted);display:flex;align-items:center;margin-left:2px}
+  .fmt-color-label{font-size:11.5px;color:var(--muted);display:flex;align-items:center}
+  .fmt-color-confirm{display:inline-flex;gap:3px}
+  .fmt-color-confirm[hidden]{display:none}
+  .fmt-color-ok,.fmt-color-cancel{width:22px;height:22px;border:1px solid var(--line);border-radius:6px;
+    background:#fff;cursor:pointer;font-size:12px;font-weight:700;line-height:1;
+    display:flex;align-items:center;justify-content:center}
+  .fmt-color-ok{color:var(--ok);border-color:var(--ok)}
+  .fmt-color-ok:hover{background:var(--ok);color:#fff}
+  .fmt-color-cancel{color:var(--danger);border-color:var(--danger)}
+  .fmt-color-cancel:hover{background:var(--danger);color:#fff}
   .block-row-hd .updown button{width:26px;height:26px;border:1px solid var(--line);background:#fff;
     border-radius:6px;cursor:pointer;color:var(--ink-soft)}
   .block-row-hd .updown button:hover{border-color:var(--accent);color:var(--accent)}
@@ -481,7 +491,7 @@
       <section class="panel on" id="tab-honors-content">
         <div class="card">
           <div class="card-head">
-            <div><div class="card-title">荣誉列表</div><div class="card-sub">上下箭头调整在网站上的排列顺序（越靠前越先展示）；点一条展开编辑。改完记得点每条自己的"保存"，然后去"预览"标签页发布。</div></div>
+            <div><div class="card-title">荣誉列表</div></div>
             <button class="btn" id="btnAddHonor">+ 新增荣誉</button>
           </div>
           <div id="honorsList"></div>
@@ -685,17 +695,17 @@
   <div class="modal">
     <h3>新增荣誉</h3>
     <div class="row2">
-      <div class="field"><label for="nhYear">年份/名次标签</label><input type="text" id="nhYear" placeholder="比如&quot;2024 · Champion&quot;" /></div>
+      <div class="field"><label for="nhYear">年份/名次标签</label><input type="text" id="nhYear" /></div>
       <div class="field"><label for="nhTier">档次</label><select id="nhTier">
         <option value="gold">金（第一档）</option>
         <option value="silver">银（第二档）</option>
         <option value="bronze">铜（第三档）</option>
       </select></div>
     </div>
-    <div class="field"><label for="nhTitle">标题</label><input type="text" id="nhTitle" placeholder="比如&quot;北加联 · 冠军&quot;" /></div>
+    <div class="field"><label for="nhTitle">标题</label><input type="text" id="nhTitle" /></div>
     <div class="row2">
       <div class="field"><label for="nhEvent">赛事</label><input type="text" id="nhEvent" /></div>
-      <div class="field"><label for="nhRank">名次</label><input type="text" id="nhRank" placeholder="比如&quot;冠军 · 1st&quot;" /></div>
+      <div class="field"><label for="nhRank">名次</label><input type="text" id="nhRank" /></div>
     </div>
     <div class="field"><label for="nhSubEn">英文副标题（可选）</label><input type="text" id="nhSubEn" /></div>
     <div class="modal-actions">
@@ -1597,24 +1607,48 @@ document.addEventListener('click', (e) => {
   if (!ta) return;
   applyTextFormat(ta, btn.dataset.fmt === 'bold' ? '**' : '_');
 });
-let fmtColorSel = null;
+// 调色板：选中文字 → 挑颜色 → 弹出「✓确认/✕取消」，点确认才真的改，
+// 改的时候用 execCommand('insertText', ...) 而不是直接改 textarea.value，
+// 这样改完能直接按 Ctrl+Z 撤销（原生 undo 栈只认得到用户输入/execCommand 这类操作）。
+let fmtColorSel = null; // { ta, start, end, hex, toolbar } —— 选好颜色、等着点确认/取消的待定状态
 document.addEventListener('mousedown', (e) => {
   const inp = e.target.closest('.fmt-color');
   if (!inp) return;
+  document.querySelectorAll('.fmt-color-confirm').forEach(el => { el.hidden = true; });
+  fmtColorSel = null;
   const row = inp.closest('.block-row');
   const ta = row && row.querySelector('textarea.blk-text, textarea.sblk-text');
-  if (ta) fmtColorSel = { ta, start: ta.selectionStart, end: ta.selectionEnd };
+  if (ta) fmtColorSel = { ta, start: ta.selectionStart, end: ta.selectionEnd, toolbar: inp.closest('.fmt-toolbar') };
 });
 document.addEventListener('change', (e) => {
   const inp = e.target.closest('.fmt-color');
   if (!inp || !fmtColorSel) return;
-  const { ta, start, end } = fmtColorSel;
+  if (fmtColorSel.start === fmtColorSel.end) { toast('先选中要改颜色的文字', true); fmtColorSel = null; return; }
+  fmtColorSel.hex = inp.value;
+  const confirmBox = fmtColorSel.toolbar && fmtColorSel.toolbar.querySelector('.fmt-color-confirm');
+  if (confirmBox) confirmBox.hidden = false;
+});
+document.addEventListener('click', (e) => {
+  const okBtn = e.target.closest('.fmt-color-ok');
+  const cancelBtn = e.target.closest('.fmt-color-cancel');
+  if (!okBtn && !cancelBtn) return;
+  const pending = fmtColorSel;
+  const toolbar = e.target.closest('.fmt-toolbar');
+  const confirmBox = toolbar && toolbar.querySelector('.fmt-color-confirm');
+  if (okBtn && pending) {
+    const { ta, start, end, hex } = pending;
+    ta.focus();
+    ta.setSelectionRange(start, end);
+    const wrapped = `{{c:${hex}}}${ta.value.slice(start, end)}{{/c}}`;
+    const applied = document.execCommand && document.execCommand('insertText', false, wrapped);
+    if (!applied) {
+      const val = ta.value;
+      ta.value = val.slice(0, start) + wrapped + val.slice(end);
+    }
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }
   fmtColorSel = null;
-  if (start === end) { toast('先选中要改颜色的文字', true); return; }
-  const val = ta.value;
-  const newVal = val.slice(0, start) + `{{c:${inp.value}}}` + val.slice(start, end) + '{{/c}}' + val.slice(end);
-  ta.value = newVal;
-  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  if (confirmBox) confirmBox.hidden = true;
 });
 
 function thumbHtml(cls, path, icon, w, h) {
@@ -1638,7 +1672,12 @@ function blockRowHtml(b, i, total) {
     <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
     <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
     <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
-    <span class="fmt-hint">B 加粗 · I 斜体 · 调色板改文字颜色 —— 先选中文字再点</span>
+    <span class="fmt-color-label">调色板</span>
+    <span class="fmt-color-confirm" hidden>
+      <button type="button" class="fmt-color-ok" title="应用颜色">✓</button>
+      <button type="button" class="fmt-color-cancel" title="取消">✕</button>
+    </span>
+    <span class="fmt-hint">B加粗 I斜体</span>
   </div>`;
   const body = isImg
     ? `<div class="block-img-row">
@@ -1969,7 +2008,7 @@ function honorCardHtml(h, idx, total) {
     </summary>
     <div class="cat-card-body">
       <div class="row2">
-        <div class="field"><label>年份/名次标签（比如"2024 · Champion"）</label><input class="h-year" value="${esc(h.year_label || '')}" /></div>
+        <div class="field"><label>年份/名次标签</label><input class="h-year" value="${esc(h.year_label || '')}" /></div>
         <div class="field"><label>档次</label><select class="h-tier">
           <option value="gold" ${h.tier !== 'silver' && h.tier !== 'bronze' ? 'selected' : ''}>金（第一档）</option>
           <option value="silver" ${h.tier === 'silver' ? 'selected' : ''}>银（第二档）</option>
@@ -1977,12 +2016,12 @@ function honorCardHtml(h, idx, total) {
         </select></div>
       </div>
       <div class="row2">
-        <div class="field"><label>标题（比如"北加联 · 冠军"）</label><input class="h-title" value="${esc(h.title || '')}" /></div>
+        <div class="field"><label>标题</label><input class="h-title" value="${esc(h.title || '')}" /></div>
         <div class="field"><label>英文副标题</label><input class="h-suben" value="${esc(h.sub_en || '')}" /></div>
       </div>
       <div class="row2">
         <div class="field"><label>赛事</label><input class="h-event" value="${esc(h.event_name || '')}" /></div>
-        <div class="field"><label>名次（比如"冠军 · 1st"）</label><input class="h-rank" value="${esc(h.rank_label || '')}" /></div>
+        <div class="field"><label>名次</label><input class="h-rank" value="${esc(h.rank_label || '')}" /></div>
       </div>
       <div class="art-save-bar">
         <button class="btn danger sm" data-act="del-honor" type="button">删除</button>
@@ -2503,7 +2542,12 @@ function storyBlockRowHtml(b, i, total) {
       <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B</button>
       <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I</button>
       <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
-      <span class="fmt-hint">B 加粗 · I 斜体 · 调色板改文字颜色 —— 先选中文字再点</span>
+      <span class="fmt-color-label">调色板</span>
+      <span class="fmt-color-confirm" hidden>
+        <button type="button" class="fmt-color-ok" title="应用颜色">✓</button>
+        <button type="button" class="fmt-color-cancel" title="取消">✕</button>
+      </span>
+      <span class="fmt-hint">B加粗 I斜体</span>
     </div>
     <textarea class="sblk-text" rows="${isQuote ? 2 : 3}">${esc(b.text || '')}</textarea>
     ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
