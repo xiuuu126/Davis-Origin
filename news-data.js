@@ -15,7 +15,7 @@ window.NEWS_DATA = {
       "cover": {
         "image": "assets/news/1789358211172-截屏2026-09-13-23-56-27.png",
         "icon": "📷",
-        "caption": "封面照片",
+        "caption": "我是谁",
         "shape": "default"
       },
       "blocks": [
