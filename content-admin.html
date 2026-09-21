@@ -224,18 +224,25 @@
 
   /* 折叠式赛事卡片 */
   .cat-card{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:#fff;overflow:hidden}
-  .cat-card summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;
+  .cat-card summary, .cat-card .cs-row{list-style:none;cursor:pointer;padding:14px 18px;display:flex;
     justify-content:space-between;align-items:center;gap:10px;user-select:none}
   .cat-card summary::-webkit-details-marker{display:none}
-  .cat-card summary .cs-left{display:flex;align-items:center;gap:10px;min-width:0}
-  .cat-card summary .cs-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .cat-card summary .cs-left, .cat-card .cs-row .cs-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .cat-card summary .cs-right, .cat-card .cs-row .cs-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .cat-card summary .cs-caret{width:9px;height:9px;border-right:2px solid var(--muted);
     border-bottom:2px solid var(--muted);transform:rotate(-45deg);flex-shrink:0;transition:transform .18s}
   .cat-card[open] summary .cs-caret{transform:rotate(45deg)}
-  .cat-card summary b{font-size:17px}
-  .cat-card summary .hint{margin:0}
+  .cat-card summary b, .cat-card .cs-row b{font-size:17px}
+  .cat-card summary .hint, .cat-card .cs-row .hint{margin:0}
   .cat-card-body{padding:0 18px 18px}
   .cat-card-hd{margin-bottom:0}
+
+  /* 新闻：点一条进它自己的编辑页（不再是列表里原地展开），右上角一个返回列表 */
+  .row-del-btn{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:#fff;
+    color:var(--danger);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .row-del-btn:hover{background:var(--danger-soft);border-color:var(--danger)}
+  .news-edit-hd{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .news-edit-hd b{font-size:17px}
 
   /* 添加赛事 */
   .add-event-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
@@ -830,7 +837,7 @@ let curTeamKey = 'first';    // 当前"名单与比赛"tab 里选的是一队还
 /* ===================== 新闻 ===================== */
 let NEWS = [];                        // /content/news 的文章列表（含每篇的 blocks）
 let newsBlockDrafts = new Map();      // 文章 id -> 正文分块的编辑中副本（加/删/挪块不用等服务器就先本地更新，点"保存"才真正提交）
-let newsOpenId = null;                // 当前展开编辑的是哪篇文章，重新渲染列表时保持展开
+let newsOpenId = null;                // 当前进入编辑页的是哪篇文章（null = 显示列表），重新渲染时保持
 const BLOCK_TYPE_LABEL = {
   lead: '导语', p: '正文段落', quote: '引用', list: '项目列表',
   image: '配图 4:3', image_wide: '通栏大图 16:9', image_square: '方图 1:1', image_portrait: '竖图 3:4',
@@ -1762,18 +1769,28 @@ function blocksListInnerHtml(draft) {
   return draft.length ? draft.map((b, i) => blockRowHtml(b, i, draft.length)).join('') : '<div class="empty">还没有内容，下面加一块吧</div>';
 }
 
-function newsArticleCardHtml(a, idx, total) {
-  return `<details class="cat-card" data-art="${a.id}" ${newsOpenId === a.id ? 'open' : ''}>
-    <summary>
+function newsArticleRowHtml(a) {
+  return `<div class="cat-card" data-art="${a.id}">
+    <div class="cs-row">
       <div class="cs-left">
         <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(a.title)}</b>
         <span class="hint" style="margin:0">${esc(a.pub_date || '')}</span>
       </div>
-      <div class="cs-right"><span class="hint" style="margin:0">${(a.blocks || []).length} 块</span><span class="cs-caret"></span></div>
-    </summary>
+      <div class="cs-right">
+        <button type="button" class="row-del-btn" data-act="del-article-row" title="删除这篇文章">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+function newsArticleEditPageHtml(a) {
+  return `<div class="cat-card" data-art="${a.id}">
+    <div class="news-edit-hd">
+      <button type="button" class="btn ghost sm" data-act="news-back">← 返回列表</button>
+      <b>${esc(a.title)}</b>
+    </div>
     <div class="cat-card-body">${newsArticleBodyHtml(a)}</div>
-  </details>`;
+  </div>`;
 }
 
 function fileToBase64(file) {
@@ -1800,7 +1817,7 @@ async function deleteNewsImage(path) {
 function refreshBlocksEditor(artId) {
   const a = NEWS.find(x => x.id === artId);
   if (!a) return;
-  const bodyEl = document.querySelector(`#newsList details[data-art="${artId}"] > .cat-card-body`);
+  const bodyEl = document.querySelector(`#newsList .cat-card[data-art="${artId}"] > .cat-card-body`);
   if (!bodyEl) return;
   const draft = newsBlockDrafts.get(artId) || [];
   const listEl = bodyEl.querySelector('.blocks-list');
@@ -1977,19 +1994,49 @@ function renderNewsTab() {
   const list = $('newsList');
   if (!list) return;
   const sorted = NEWS.slice().sort((a, b) => (b.sort_order - a.sort_order) || (b.id - a.id));
+
+  // newsOpenId 有值、且指向一篇还存在的文章，就打开它自己的编辑页（不再是列表里展开一条），
+  // 没有的话就显示列表——点一条进编辑页，点"返回列表"或删掉/保存之后都回到列表。
+  const editing = newsOpenId != null ? sorted.find(x => x.id === newsOpenId) : null;
+  if (editing) {
+    list.innerHTML = newsArticleEditPageHtml(editing);
+    const backBtn = list.querySelector('[data-act="news-back"]');
+    if (backBtn) backBtn.onclick = () => { newsOpenId = null; renderNewsTab(); };
+    wireArticleBody(list.querySelector('.cat-card-body'), editing);
+    return;
+  }
+
   list.innerHTML = sorted.length
-    ? sorted.map((a, i) => newsArticleCardHtml(a, i, sorted.length)).join('')
+    ? sorted.map(a => newsArticleRowHtml(a)).join('')
     : '<div class="empty">还没有文章，上面加一篇吧</div>';
 
-  list.querySelectorAll('details[data-art]').forEach(det => {
-    const artId = Number(det.dataset.art);
-    const a = sorted.find(x => x.id === artId);
-    if (a) wireArticleBody(det.querySelector('.cat-card-body'), a);
+  list.querySelectorAll('.cat-card[data-art]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-article-row"]')) return;
+      newsOpenId = Number(row.dataset.art);
+      renderNewsTab();
+    });
+  });
+  list.querySelectorAll('[data-act="del-article-row"]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-art]').dataset.art);
+    const a = sorted.find(x => x.id === id);
+    if (!a) return;
+    confirmModal(
+      `删除文章「${a.title}」？`,
+      '',
+      async () => {
+        await api(`/content/news/${id}`, { method: 'DELETE' });
+        newsBlockDrafts.delete(id);
+        if (newsOpenId === id) newsOpenId = null;
+        await reload();
+        toast('已删除');
+      }
+    );
   });
 
   initDragSort(list, async (evt) => {
-    newsOpenId = Number(evt.item.dataset.art);
-    const order = Array.from(list.querySelectorAll('details[data-art]')).map(det => Number(det.dataset.art));
+    const order = Array.from(list.querySelectorAll('.cat-card[data-art]')).map(el => Number(el.dataset.art));
     await api('/content/news-order', { method: 'PUT', body: JSON.stringify({ order }) });
     await reload();
   });
@@ -2862,15 +2909,6 @@ $('naSave').onclick = async () => {
     btn.textContent = original;
   }
 };
-// <details> 的 toggle 事件不冒泡，但在祖先节点上用捕获阶段（第三个参数 true）监听仍然收得到，
-// 记住当前展开的是哪篇，这样加/删/挪块触发的局部重渲染、或者排序触发的整体 reload 都不会把它收起来。
-$('newsList').addEventListener('toggle', e => {
-  if (!(e.target instanceof HTMLElement) || !e.target.matches('details[data-art]')) return;
-  const id = Number(e.target.dataset.art);
-  if (e.target.open) newsOpenId = id;
-  else if (newsOpenId === id) newsOpenId = null;
-}, true);
-
 /* ===================== 大板块切换 ===================== */
 document.querySelectorAll('.module-btn').forEach(btn => btn.onclick = () => {
   curModule = btn.dataset.module;
