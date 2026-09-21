@@ -337,6 +337,11 @@
   .cover-thumb{width:64px;height:48px;border-radius:8px;background:#e9e6de;border:1px solid var(--line);
     object-fit:cover;flex-shrink:0}
   .cover-thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
+  /* 清除缩略图占位框的内边距，避免溢出 */
+  .block-thumb.empty,
+  .cover-thumb.empty {
+    padding: 0;
+  }
   .art-save-bar{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:16px;
     padding-top:16px;border-top:1px solid var(--line)}
 
