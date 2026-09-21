@@ -6,8 +6,8 @@
 window.SEASON_DATA = {
   "seasons": [
     {
-      "id": "1",
-      "label": "1",
+      "id": "22",
+      "label": "22",
       "current": false,
       "lede": "",
       "highlights": [],
@@ -17,28 +17,7 @@ window.SEASON_DATA = {
         "mid": [],
         "fwd": []
       },
-      "matches": {
-        "league": {
-          "label": "北加联",
-          "order": 1,
-          "matches": []
-        },
-        "jiaoji": {
-          "label": "校际杯",
-          "order": 2,
-          "matches": []
-        },
-        "xinnian": {
-          "label": "贺岁杯",
-          "order": 3,
-          "matches": []
-        },
-        "huati": {
-          "label": "华体会",
-          "order": 4,
-          "matches": []
-        }
-      },
+      "matches": {},
       "teams": {
         "first": {
           "label": "一队",
@@ -48,28 +27,7 @@ window.SEASON_DATA = {
             "mid": [],
             "fwd": []
           },
-          "matches": {
-            "league": {
-              "label": "北加联",
-              "order": 1,
-              "matches": []
-            },
-            "jiaoji": {
-              "label": "校际杯",
-              "order": 2,
-              "matches": []
-            },
-            "xinnian": {
-              "label": "贺岁杯",
-              "order": 3,
-              "matches": []
-            },
-            "huati": {
-              "label": "华体会",
-              "order": 4,
-              "matches": []
-            }
-          },
+          "matches": {},
           "note": "暂无数据"
         },
         "reserve": {
@@ -80,28 +38,7 @@ window.SEASON_DATA = {
             "mid": [],
             "fwd": []
           },
-          "matches": {
-            "league": {
-              "label": "北加联",
-              "order": 1,
-              "matches": []
-            },
-            "jiaoji": {
-              "label": "校际杯",
-              "order": 2,
-              "matches": []
-            },
-            "xinnian": {
-              "label": "贺岁杯",
-              "order": 3,
-              "matches": []
-            },
-            "huati": {
-              "label": "华体会",
-              "order": 4,
-              "matches": []
-            }
-          },
+          "matches": {},
           "note": "暂无数据"
         }
       }
