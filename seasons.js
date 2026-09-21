@@ -8,7 +8,7 @@ window.SEASON_DATA = {
     {
       "id": "26-27",
       "label": "26-27 赛季",
-      "current": false,
+      "current": true,
       "placeholder": true,
       "lede": "新赛季刚开始，训练已经启动，比赛安排还在整理中。",
       "highlights": [
