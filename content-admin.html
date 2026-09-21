@@ -1694,7 +1694,7 @@ function blockRowHtml(b, i, total) {
         <button type="button" class="btn ghost sm" data-act="blk-remove">移除</button>
         <button type="button" class="btn danger sm" data-act="blk-photo-del">删除照片</button>
         <input type="text" class="blk-caption" placeholder="说明文字" value="${esc(b.caption || '')}"
-          style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
+          style="flex:1;min-width:160px;max-width:340px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
       </div>`
     : b.type === 'list'
       ? `<textarea class="blk-text" rows="3">${esc(b.text || '')}</textarea>`
@@ -1739,7 +1739,7 @@ function newsArticleBodyHtml(a) {
         <button type="button" class="btn danger sm" data-act="cover-photo-del">删除照片</button>
         <select class="a-cover-shape">${coverShapeOptionsHtml(a.cover_shape)}</select>
         <input type="text" class="a-cover-caption" placeholder="说明文字" value="${esc(a.cover_caption || '')}"
-          style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
+          style="flex:1;min-width:160px;max-width:340px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
       </div>
       <div class="hint cover-path-hint">${a.cover_image ? esc(a.cover_image) : '还没上传，网站上先显示占位框'}</div>
     </div>
