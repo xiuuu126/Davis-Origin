@@ -6,47 +6,9 @@
 window.SEASON_DATA = {
   "seasons": [
     {
-      "id": "22",
-      "label": "22",
-      "current": false,
-      "lede": "",
-      "highlights": [],
-      "roster": {
-        "gk": [],
-        "def": [],
-        "mid": [],
-        "fwd": []
-      },
-      "matches": {},
-      "teams": {
-        "first": {
-          "label": "一队",
-          "roster": {
-            "gk": [],
-            "def": [],
-            "mid": [],
-            "fwd": []
-          },
-          "matches": {},
-          "note": "暂无数据"
-        },
-        "reserve": {
-          "label": "预备队",
-          "roster": {
-            "gk": [],
-            "def": [],
-            "mid": [],
-            "fwd": []
-          },
-          "matches": {},
-          "note": "暂无数据"
-        }
-      }
-    },
-    {
       "id": "26-27",
       "label": "26-27 赛季",
-      "current": true,
+      "current": false,
       "placeholder": true,
       "lede": "新赛季刚开始，训练已经启动，比赛安排还在整理中。",
       "highlights": [
@@ -59,19 +21,9 @@ window.SEASON_DATA = {
         "fwd": []
       },
       "matches": {
-        "jiaoji": {
-          "label": "校际杯",
-          "order": 2,
-          "matches": []
-        },
         "huati": {
           "label": "华体会",
           "order": 4,
-          "matches": []
-        },
-        "xinnian": {
-          "label": "贺岁杯",
-          "order": 3,
           "matches": []
         },
         "custom_3t04": {
@@ -79,9 +31,19 @@ window.SEASON_DATA = {
           "order": 7291,
           "matches": []
         },
+        "xinnian": {
+          "label": "贺岁杯",
+          "order": 3,
+          "matches": []
+        },
         "league": {
           "label": "北加联",
           "order": 1,
+          "matches": []
+        },
+        "jiaoji": {
+          "label": "校际杯",
+          "order": 2,
           "matches": []
         }
       },
@@ -95,24 +57,19 @@ window.SEASON_DATA = {
             "fwd": []
           },
           "matches": {
-            "jiaoji": {
-              "label": "校际杯",
-              "order": 2,
-              "matches": []
-            },
             "huati": {
               "label": "华体会",
               "order": 4,
               "matches": []
             },
-            "xinnian": {
-              "label": "贺岁杯",
-              "order": 3,
-              "matches": []
-            },
             "custom_3t04": {
               "label": "1",
               "order": 7291,
+              "matches": []
+            },
+            "xinnian": {
+              "label": "贺岁杯",
+              "order": 3,
               "matches": []
             },
             "league": {
