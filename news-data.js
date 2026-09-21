@@ -48,7 +48,7 @@ window.NEWS_DATA = {
           "caption": ""
         },
         {
-          "type": "image_square",
+          "type": "image_portrait",
           "image": "assets/news/1790034798591-截屏2026-09-13-23-56-27.png",
           "icon": "📷",
           "caption": ""
