@@ -2597,17 +2597,26 @@ function renderNewsTab() {
 }
 
 /* ===================== 荣誉 ===================== */
-function honorCardHtml(h, idx, total) {
-  return `<details class="cat-card" data-honor="${h.id}" ${honorsOpenId === h.id ? 'open' : ''}>
-    <summary>
+function honorRowHtml(h) {
+  const hidden = !!h.is_hidden;
+  return `<div class="cat-card${hidden ? ' art-hidden' : ''}" data-honor="${h.id}">
+    <div class="cs-row">
       <div class="cs-left">
         <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(h.title || '（还没填标题）')}</b>
         <span class="hint" style="margin:0">${esc(h.year_label || '')}</span>
+        ${hidden ? '<span class="hint" style="margin:0;color:var(--danger)">已隐藏</span>' : ''}
       </div>
-      <div class="cs-right"><span class="hint" style="margin:0">${h.tier === 'silver' ? '银' : h.tier === 'bronze' ? '铜' : h.tier === 'none' ? '不显示' : '金'}</span><span class="cs-caret"></span></div>
-    </summary>
-    <div class="cat-card-body">
+      <div class="cs-right">
+        <button type="button" class="row-hide-btn" data-act="hide-honor-row"
+          title="${hidden ? '取消隐藏（网站上重新显示）' : '隐藏（网站上不显示，不会删除）'}">${hidden ? '🚫' : '👁'}</button>
+        <button type="button" class="row-del-btn" data-act="del-honor-row" title="删除这条荣誉">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+function honorBodyHtml(h) {
+  return `
       <div class="row2">
         <div class="field"><label>年份/名次标签</label><input class="h-year" value="${esc(h.year_label || '')}" /></div>
         <div class="field"><label>档次</label><select class="h-tier">
@@ -2628,26 +2637,72 @@ function honorCardHtml(h, idx, total) {
       <div class="art-save-bar">
         <button class="btn danger sm" data-act="del-honor" type="button">删除</button>
         <button class="btn" data-act="save-honor" type="button">保存</button>
-      </div>
+      </div>`;
+}
+function honorEditPageHtml(h) {
+  return `<div class="cat-card" data-honor="${h.id}">
+    <div class="news-edit-hd">
+      <button type="button" class="btn ghost sm" data-act="honor-back">← 返回列表</button>
+      <b>${esc(h.title || '（还没填标题）')}</b>
     </div>
-  </details>`;
+    <div class="cat-card-body">${honorBodyHtml(h)}</div>
+  </div>`;
 }
 
 function renderHonorsTab() {
   const list = $('honorsList');
   if (!list) return;
   const sorted = HONORS.slice().sort((a, b) => (b.sort_order - a.sort_order) || (b.id - a.id));
-  list.innerHTML = sorted.length ? sorted.map((h, i) => honorCardHtml(h, i, sorted.length)).join('') : '<div class="empty">还没有荣誉，上面加一条吧</div>';
 
-  list.querySelectorAll('details[data-honor]').forEach(det => {
-    const hid = Number(det.dataset.honor);
-    const h = sorted.find(x => x.id === hid);
-    if (h) wireHonorCard(det.querySelector('.cat-card-body'), h);
+  const editing = honorsOpenId != null ? sorted.find(x => x.id === honorsOpenId) : null;
+  if (editing) {
+    list.innerHTML = honorEditPageHtml(editing);
+    const backBtn = list.querySelector('[data-act="honor-back"]');
+    if (backBtn) backBtn.onclick = () => { honorsOpenId = null; renderHonorsTab(); };
+    wireHonorCard(list.querySelector('.cat-card-body'), editing);
+    return;
+  }
+
+  list.innerHTML = sorted.length ? sorted.map(h => honorRowHtml(h)).join('') : '<div class="empty">还没有荣誉，上面加一条吧</div>';
+
+  list.querySelectorAll('.cat-card[data-honor]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-honor-row"]') || e.target.closest('[data-act="hide-honor-row"]')) return;
+      honorsOpenId = Number(row.dataset.honor);
+      renderHonorsTab();
+    });
+  });
+  list.querySelectorAll('[data-act="del-honor-row"]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-honor]').dataset.honor);
+    const h = sorted.find(x => x.id === id);
+    if (!h) return;
+    confirmModal(`删除荣誉「${h.title}」？`, '', async () => {
+      await api(`/content/honors/${id}`, { method: 'DELETE' });
+      if (honorsOpenId === id) honorsOpenId = null;
+      await reload();
+      toast('已删除');
+    });
+  });
+  list.querySelectorAll('[data-act="hide-honor-row"]').forEach(btn => btn.onclick = async (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-honor]').dataset.honor);
+    const h = sorted.find(x => x.id === id);
+    if (!h) return;
+    const nextHidden = !h.is_hidden;
+    btn.disabled = true;
+    try {
+      await api(`/content/honors/${id}`, { method: 'PUT', body: JSON.stringify({ isHidden: nextHidden }) });
+      await reload();
+      toast(nextHidden ? '已隐藏，下次发布荣誉后网站上就看不到了' : '已取消隐藏，下次发布荣誉后网站上会重新出现');
+    } catch (err) {
+      toast(err.message, true);
+      btn.disabled = false;
+    }
   });
 
   initDragSort(list, async (evt) => {
-    honorsOpenId = Number(evt.item.dataset.honor);
-    const order = Array.from(list.querySelectorAll('details[data-honor]')).map(det => Number(det.dataset.honor));
+    const order = Array.from(list.querySelectorAll('.cat-card[data-honor]')).map(el => Number(el.dataset.honor));
     await api('/content/honors-order', { method: 'PUT', body: JSON.stringify({ order }) });
     await reload();
   });
@@ -2694,7 +2749,6 @@ function wireHonorCard(bodyEl, h) {
     }
   };
 }
-
 $('btnAddHonor').onclick = () => {
   $('nhYear').value = ''; $('nhTier').value = 'gold'; $('nhTitle').value = '';
   $('nhEvent').value = ''; $('nhRank').value = ''; $('nhSubEn').value = '';
@@ -2734,17 +2788,26 @@ $('nhSave').onclick = async () => {
 };
 
 /* ===================== 经典赛事回放 ===================== */
-function videoCardHtml(v, idx, total) {
-  return `<details class="cat-card" data-video="${v.id}" ${videosOpenId === v.id ? 'open' : ''}>
-    <summary>
+function videoRowHtml(v) {
+  const hidden = !!v.is_hidden;
+  return `<div class="cat-card${hidden ? ' art-hidden' : ''}" data-video="${v.id}">
+    <div class="cs-row">
       <div class="cs-left">
         <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(v.team_left || 'Davis Origin')} vs ${esc(v.team_right || '（还没填对手）')}</b>
         <span class="hint" style="margin:0">${esc(v.tournament || '')}</span>
+        ${hidden ? '<span class="hint" style="margin:0;color:var(--danger)">已隐藏</span>' : ''}
       </div>
-      <div class="cs-right"><span class="hint" style="margin:0">${esc(v.score_left || '—')}:${esc(v.score_right || '—')}</span><span class="cs-caret"></span></div>
-    </summary>
-    <div class="cat-card-body">
+      <div class="cs-right">
+        <button type="button" class="row-hide-btn" data-act="hide-video-row"
+          title="${hidden ? '取消隐藏（网站上重新显示）' : '隐藏（网站上不显示，不会删除）'}">${hidden ? '🚫' : '👁'}</button>
+        <button type="button" class="row-del-btn" data-act="del-video-row" title="删除这条回放记录">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+function videoBodyHtml(v) {
+  return `
       <div class="row2">
         <div class="field"><label>赛事名称（比如"2026 加州华人大学生校际杯 · LA"）</label><input class="v-tournament" value="${esc(v.tournament || '')}" /></div>
         <div class="field"><label>日期标签（比如"2026 / 03"）</label><input class="v-date" value="${esc(v.match_date || '')}" /></div>
@@ -2769,26 +2832,72 @@ function videoCardHtml(v, idx, total) {
       <div class="art-save-bar">
         <button class="btn danger sm" data-act="del-video" type="button">删除</button>
         <button class="btn" data-act="save-video" type="button">保存</button>
-      </div>
+      </div>`;
+}
+function videoEditPageHtml(v) {
+  return `<div class="cat-card" data-video="${v.id}">
+    <div class="news-edit-hd">
+      <button type="button" class="btn ghost sm" data-act="video-back">← 返回列表</button>
+      <b>${esc(v.team_left || 'Davis Origin')} vs ${esc(v.team_right || '（还没填对手）')}</b>
     </div>
-  </details>`;
+    <div class="cat-card-body">${videoBodyHtml(v)}</div>
+  </div>`;
 }
 
 function renderVideosTab() {
   const list = $('videosList');
   if (!list) return;
   const sorted = VIDEOS.slice().sort((a, b) => (b.sort_order - a.sort_order) || (b.id - a.id));
-  list.innerHTML = sorted.length ? sorted.map((v, i) => videoCardHtml(v, i, sorted.length)).join('') : '<div class="empty">还没有回放记录，上面加一条吧</div>';
 
-  list.querySelectorAll('details[data-video]').forEach(det => {
-    const vid = Number(det.dataset.video);
-    const v = sorted.find(x => x.id === vid);
-    if (v) wireVideoCard(det.querySelector('.cat-card-body'), v);
+  const editing = videosOpenId != null ? sorted.find(x => x.id === videosOpenId) : null;
+  if (editing) {
+    list.innerHTML = videoEditPageHtml(editing);
+    const backBtn = list.querySelector('[data-act="video-back"]');
+    if (backBtn) backBtn.onclick = () => { videosOpenId = null; renderVideosTab(); };
+    wireVideoCard(list.querySelector('.cat-card-body'), editing);
+    return;
+  }
+
+  list.innerHTML = sorted.length ? sorted.map(v => videoRowHtml(v)).join('') : '<div class="empty">还没有回放记录，上面加一条吧</div>';
+
+  list.querySelectorAll('.cat-card[data-video]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-video-row"]') || e.target.closest('[data-act="hide-video-row"]')) return;
+      videosOpenId = Number(row.dataset.video);
+      renderVideosTab();
+    });
+  });
+  list.querySelectorAll('[data-act="del-video-row"]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-video]').dataset.video);
+    const v = sorted.find(x => x.id === id);
+    if (!v) return;
+    confirmModal(`删除这条回放记录（${v.team_left || 'Davis Origin'} vs ${v.team_right || ''}）？`, '', async () => {
+      await api(`/content/videos/${id}`, { method: 'DELETE' });
+      if (videosOpenId === id) videosOpenId = null;
+      await reload();
+      toast('已删除');
+    });
+  });
+  list.querySelectorAll('[data-act="hide-video-row"]').forEach(btn => btn.onclick = async (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-video]').dataset.video);
+    const v = sorted.find(x => x.id === id);
+    if (!v) return;
+    const nextHidden = !v.is_hidden;
+    btn.disabled = true;
+    try {
+      await api(`/content/videos/${id}`, { method: 'PUT', body: JSON.stringify({ isHidden: nextHidden }) });
+      await reload();
+      toast(nextHidden ? '已隐藏，下次发布经典赛事后网站上就看不到了' : '已取消隐藏，下次发布经典赛事后网站上会重新出现');
+    } catch (err) {
+      toast(err.message, true);
+      btn.disabled = false;
+    }
   });
 
   initDragSort(list, async (evt) => {
-    videosOpenId = Number(evt.item.dataset.video);
-    const order = Array.from(list.querySelectorAll('details[data-video]')).map(det => Number(det.dataset.video));
+    const order = Array.from(list.querySelectorAll('.cat-card[data-video]')).map(el => Number(el.dataset.video));
     await api('/content/videos-order', { method: 'PUT', body: JSON.stringify({ order }) });
     await reload();
   });
@@ -2836,7 +2945,6 @@ function wireVideoCard(bodyEl, v) {
     }
   };
 }
-
 $('btnAddVideo').onclick = () => {
   $('nvTournament').value = ''; $('nvDate').value = '';
   $('nvTeamLeft').value = 'Davis Origin'; $('nvTeamRight').value = '';
@@ -2882,17 +2990,22 @@ $('nvSave').onclick = async () => {
 };
 
 /* ===================== 经历（时间线） ===================== */
-function histItemCardHtml(it, idx, total) {
-  return `<details class="cat-card" data-hist-item="${it.id}" ${histItemOpenId === it.id ? 'open' : ''}>
-    <summary>
+function histItemRowHtml(it) {
+  return `<div class="cat-card" data-hist-item="${it.id}">
+    <div class="cs-row">
       <div class="cs-left">
         <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(it.title || '（还没填标题）')}</b>
         <span class="hint" style="margin:0">${esc(it.date_label || '')}</span>
       </div>
-      <div class="cs-right"><span class="cs-caret"></span></div>
-    </summary>
-    <div class="cat-card-body">
+      <div class="cs-right">
+        <button type="button" class="row-del-btn" data-act="del-item-row" title="删除这条">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+function histItemBodyHtml(it) {
+  return `
       <div class="row2">
         <div class="field"><label>日期/阶段标签（比如"2026 · 05 · 23"或"三年前"）</label><input class="i-date" value="${esc(it.date_label || '')}" /></div>
         <div class="field"><label>标题</label><input class="i-title" value="${esc(it.title || '')}" /></div>
@@ -2914,23 +3027,43 @@ function histItemCardHtml(it, idx, total) {
       <div class="art-save-bar">
         <button class="btn danger sm" data-act="del-item" type="button">删除这条</button>
         <button class="btn" data-act="save-item" type="button">保存</button>
-      </div>
+      </div>`;
+}
+function histItemEditPageHtml(it) {
+  return `<div class="cat-card" data-hist-item="${it.id}">
+    <div class="news-edit-hd">
+      <button type="button" class="btn ghost sm" data-act="hist-item-back">← 返回条目列表</button>
+      <b>${esc(it.title || '（还没填标题）')}</b>
     </div>
-  </details>`;
+    <div class="cat-card-body">${histItemBodyHtml(it)}</div>
+  </div>`;
 }
 
-function histYearCardHtml(y, idx, total) {
-  const items = (y.items || []).slice().sort((a, b) => a.sort_order - b.sort_order);
-  return `<details class="cat-card" data-hist-year="${y.id}" ${histYearOpenId === y.id ? 'open' : ''}>
-    <summary>
+function histYearRowHtml(y) {
+  const items = (y.items || []);
+  return `<div class="cat-card" data-hist-year="${y.id}">
+    <div class="cs-row">
       <div class="cs-left">
         <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(y.year_label || '（还没填年份）')}</b>
         <span class="hint" style="margin:0">${esc(y.year_tag || '')}</span>
       </div>
-      <div class="cs-right"><span class="hint" style="margin:0">${items.length} 条</span><span class="cs-caret"></span></div>
-    </summary>
-    <div class="cat-card-body">
+      <div class="cs-right">
+        <span class="hint" style="margin:0">${items.length} 条</span>
+        <button type="button" class="row-del-btn" data-act="del-year-row" title="删除这个年份分组">🗑</button>
+      </div>
+    </div>
+  </div>`;
+}
+function histYearBodyHtml(y) {
+  const items = (y.items || []).slice().sort((a, b) => a.sort_order - b.sort_order);
+  const editingItem = histItemOpenId != null ? items.find(x => x.id === histItemOpenId) : null;
+  const itemsSection = editingItem
+    ? histItemEditPageHtml(editingItem)
+    : `<div class="hint" style="margin:18px 0 10px">这一年的具体条目（${items.length} 条）</div>
+      <div class="add-event-row"><button class="btn ghost sm" type="button" data-act="add-item">+ 新增条目</button></div>
+      <div class="hist-items-list">${items.length ? items.map(it => histItemRowHtml(it)).join('') : '<div class="empty">这一年还没有条目</div>'}</div>`;
+  return `
       <div class="row3">
         <div class="field"><label>年份（比如"2026"或"NOW"）</label><input class="y-label" value="${esc(y.year_label || '')}" /></div>
         <div class="field"><label>年份小标签（比如"高光"）</label><input class="y-tag" value="${esc(y.year_tag || '')}" /></div>
@@ -2946,28 +3079,65 @@ function histYearCardHtml(y, idx, total) {
         <button class="btn" data-act="save-year" type="button">保存年份信息</button>
       </div>
 
-      <div class="hint" style="margin:18px 0 10px">这一年的具体条目（${items.length} 条）</div>
-      <div class="add-event-row"><button class="btn ghost sm" type="button" data-act="add-item">+ 新增条目</button></div>
-      <div class="hist-items-list">${items.length ? items.map((it, i) => histItemCardHtml(it, i, items.length)).join('') : '<div class="empty">这一年还没有条目</div>'}</div>
+      ${itemsSection}`;
+}
+function histYearEditPageHtml(y) {
+  return `<div class="cat-card" data-hist-year="${y.id}">
+    <div class="news-edit-hd">
+      <button type="button" class="btn ghost sm" data-act="hist-year-back">← 返回列表</button>
+      <b>${esc(y.year_label || '（还没填年份）')}</b>
     </div>
-  </details>`;
+    <div class="cat-card-body">${histYearBodyHtml(y)}</div>
+  </div>`;
+}
+
+function refreshHistYearBody(y) {
+  const list = $('historyList');
+  if (!list) return;
+  const bodyEl = list.querySelector(`.cat-card[data-hist-year="${y.id}"] > .cat-card-body`);
+  if (!bodyEl) return;
+  bodyEl.innerHTML = histYearBodyHtml(y);
+  wireHistYearCard(bodyEl, y);
 }
 
 function renderHistoryTab() {
   const list = $('historyList');
   if (!list) return;
   const sorted = HISTORY_YEARS.slice().sort((a, b) => a.sort_order - b.sort_order);
-  list.innerHTML = sorted.length ? sorted.map((y, i) => histYearCardHtml(y, i, sorted.length)).join('') : '<div class="empty">还没有年份分组，上面加一个吧</div>';
 
-  list.querySelectorAll('details[data-hist-year]').forEach(det => {
-    const yid = Number(det.dataset.histYear);
-    const y = sorted.find(x => x.id === yid);
-    if (y) wireHistYearCard(det.querySelector('.cat-card-body'), y);
+  const editing = histYearOpenId != null ? sorted.find(x => x.id === histYearOpenId) : null;
+  if (editing) {
+    list.innerHTML = histYearEditPageHtml(editing);
+    const backBtn = list.querySelector('[data-act="hist-year-back"]');
+    if (backBtn) backBtn.onclick = () => { histYearOpenId = null; histItemOpenId = null; renderHistoryTab(); };
+    wireHistYearCard(list.querySelector('.cat-card-body'), editing);
+    return;
+  }
+
+  list.innerHTML = sorted.length ? sorted.map(y => histYearRowHtml(y)).join('') : '<div class="empty">还没有年份分组，上面加一个吧</div>';
+
+  list.querySelectorAll('.cat-card[data-hist-year]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-year-row"]')) return;
+      histYearOpenId = Number(row.dataset.histYear);
+      renderHistoryTab();
+    });
+  });
+  list.querySelectorAll('[data-act="del-year-row"]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-hist-year]').dataset.histYear);
+    const y = sorted.find(x => x.id === id);
+    if (!y) return;
+    confirmModal(`删除年份分组「${y.year_label}」？`, '', async () => {
+      await api(`/content/history-years/${id}`, { method: 'DELETE' });
+      if (histYearOpenId === id) { histYearOpenId = null; histItemOpenId = null; }
+      await reload();
+      toast('已删除');
+    });
   });
 
   initDragSort(list, async (evt) => {
-    histYearOpenId = Number(evt.item.dataset.histYear);
-    const order = Array.from(list.querySelectorAll('details[data-hist-year]')).map(det => Number(det.dataset.histYear));
+    const order = Array.from(list.querySelectorAll('.cat-card[data-hist-year]')).map(el => Number(el.dataset.histYear));
     await api('/content/history-years-order', { method: 'PUT', body: JSON.stringify({ order }) });
     await reload();
   });
@@ -2980,7 +3150,7 @@ function wireHistYearCard(bodyEl, y) {
     '连同底下所有条目一起删除，没法恢复；网站上要等下次点"发布经历"才会真的消失。',
     async () => {
       await api(`/content/history-years/${y.id}`, { method: 'DELETE' });
-      if (histYearOpenId === y.id) histYearOpenId = null;
+      if (histYearOpenId === y.id) { histYearOpenId = null; histItemOpenId = null; }
       await reload();
       toast('已删除');
     }
@@ -3012,6 +3182,16 @@ function wireHistYearCard(bodyEl, y) {
     }
   };
 
+  const items = (y.items || []).slice().sort((a, b) => a.sort_order - b.sort_order);
+  const editingItem = histItemOpenId != null ? items.find(x => x.id === histItemOpenId) : null;
+
+  if (editingItem) {
+    const backBtn = bodyEl.querySelector('[data-act="hist-item-back"]');
+    if (backBtn) backBtn.onclick = () => { histItemOpenId = null; refreshHistYearBody(y); };
+    wireHistItemCard(bodyEl.querySelector('.cat-card-body'), editingItem, y);
+    return;
+  }
+
   const addBtn = bodyEl.querySelector('[data-act="add-item"]');
   if (addBtn) addBtn.onclick = async () => {
     addBtn.disabled = true;
@@ -3025,20 +3205,34 @@ function wireHistYearCard(bodyEl, y) {
     finally { addBtn.disabled = false; }
   };
 
-  const items = (y.items || []).slice().sort((a, b) => a.sort_order - b.sort_order);
-  bodyEl.querySelectorAll('details[data-hist-item]').forEach(det => {
-    const iid = Number(det.dataset.histItem);
-    const it = items.find(x => x.id === iid);
-    if (it) wireHistItemCard(det.querySelector('.cat-card-body'), it, y);
-  });
   const itemsListEl = bodyEl.querySelector('.hist-items-list');
-  initDragSort(itemsListEl, async (evt) => {
-    histYearOpenId = y.id;
-    histItemOpenId = Number(evt.item.dataset.histItem);
-    const order = Array.from(itemsListEl.querySelectorAll('details[data-hist-item]')).map(det => Number(det.dataset.histItem));
-    await api('/content/history-items-order', { method: 'PUT', body: JSON.stringify({ yearId: y.id, order }) });
-    await reload();
-  });
+  if (itemsListEl) {
+    itemsListEl.querySelectorAll('.cat-card[data-hist-item]').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-item-row"]')) return;
+        histItemOpenId = Number(row.dataset.histItem);
+        refreshHistYearBody(y);
+      });
+    });
+    itemsListEl.querySelectorAll('[data-act="del-item-row"]').forEach(btn => btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = Number(btn.closest('.cat-card[data-hist-item]').dataset.histItem);
+      const it = items.find(x => x.id === id);
+      if (!it) return;
+      confirmModal(`删除条目「${it.title}」？`, '', async () => {
+        await api(`/content/history-items/${id}`, { method: 'DELETE' });
+        if (histItemOpenId === id) histItemOpenId = null;
+        histYearOpenId = y.id;
+        await reload();
+        toast('已删除');
+      });
+    });
+    initDragSort(itemsListEl, async (evt) => {
+      const order = Array.from(itemsListEl.querySelectorAll('.cat-card[data-hist-item]')).map(el => Number(el.dataset.histItem));
+      await api('/content/history-items-order', { method: 'PUT', body: JSON.stringify({ yearId: y.id, order }) });
+      await reload();
+    });
+  }
 }
 
 function wireHistItemCard(bodyEl, it, y) {
@@ -3086,7 +3280,6 @@ function wireHistItemCard(bodyEl, it, y) {
     }
   };
 }
-
 $('btnAddHistYear').onclick = () => {
   $('nyLabel').value = ''; $('nyTag').value = ''; $('nyTier').value = ''; $('nySpecial').checked = false;
   $('nyErr').textContent = '';
