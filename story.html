@@ -136,6 +136,15 @@
     animation: letterPull 1.05s cubic-bezier(.2, .7, .2, 1) both;
   }
 
+  .letter-logo {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    object-fit: contain;
+    opacity: .92;
+  }
   .letter-heading { margin-bottom: 1.75rem; }
   .letter-eyebrow {
     display: block;
@@ -194,8 +203,6 @@
     font-size: inherit;
     line-height: inherit;
   }
-  .story-body > * + * { margin-top: var(--letter-line); }
-
   /* 引用直接排在信纸上，不再使用独立卡片或大引号。 */
   .story-body .story-quote {
     background: transparent;
@@ -213,6 +220,24 @@
     letter-spacing: .03em;
     text-align: right;
     color: var(--ink-soft);
+  }
+
+  /* 普通正文：只有首行缩进，后续换行仍从左边开始 */
+  .story-body > p {
+    margin: 0;
+    text-indent: 2em;
+  }
+
+  /* 引用前空一整行，与信纸横线间距一致 */
+  .story-body > .story-quote {
+    margin: var(--letter-line) 0 0;
+    text-indent: 0;
+  }
+
+  /* 引用内容和署名不继承首行缩进 */
+  .story-body > .story-quote > p,
+  .story-body > .story-quote > cite {
+    text-indent: 0;
   }
 
   /* 后层：信封背面和打开的信封盖，位于信纸下面。 */
@@ -309,6 +334,7 @@
       padding: 2rem .75rem 3.5rem;
     }
     .letter-paper { padding: 1.625rem 1.375rem 0; }
+    .letter-logo { top: 1.125rem; right: 1.25rem; width: 1.75rem; height: 1.75rem; }
     .letter-heading { margin-bottom: 1.25rem; }
     .letter-heading h2 { font-size: 1.5625rem; }
     .story-body { font-size: 1rem; }
@@ -371,6 +397,7 @@
     <div class="letter-envelope-back" aria-hidden="true"></div>
 
     <article class="letter-paper" id="storyPaper" aria-labelledby="letterTitle">
+      <img class="letter-logo" src="assets/logo.png" alt="Davis Origin Logo" />
       <header class="letter-heading">
         <span class="letter-eyebrow">DAVIS ORIGIN</span>
         <h2 id="letterTitle">我们的故事</h2>
