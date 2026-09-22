@@ -327,9 +327,39 @@
   .fmt-btn:hover{border-color:var(--accent);color:var(--accent)}
   .fmt-btn[data-fmt="italic"]{font-style:italic}
   .fmt-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .fmt-color{width:26px;height:26px;padding:1px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+  .fmt-color-btn{gap:6px}
+  .fmt-color-swatch{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.18);flex-shrink:0}
   .fmt-hint{font-size:11.5px;color:var(--muted);display:flex;align-items:center;margin-left:2px}
-  .fmt-color-label{font-size:11.5px;color:var(--muted);display:flex;align-items:center}
+  .color-popover{position:absolute;z-index:150;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:14px;box-shadow:0 26px 60px rgba(13,18,36,.22);width:236px;
+    box-sizing:border-box;transform:scale(.85);opacity:0;pointer-events:none;
+    transition:transform .16s cubic-bezier(.2,.9,.3,1.25),opacity .12s}
+  .color-popover.on{transform:scale(1);opacity:1;pointer-events:auto}
+  .cp-swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+  .cp-swatch{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer;padding:0}
+  .cp-swatch.selected{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
+  .cp-more{display:block;width:100%;text-align:left;padding:4px 2px;border:none;background:none;
+    color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
+  .cp-more:hover{text-decoration:underline}
+  .cp-back{display:block;background:none;border:none;color:var(--accent);font-size:12.5px;
+    font-weight:600;cursor:pointer;padding:0 0 10px;text-align:left}
+  .cp-back:hover{text-decoration:underline}
+  .cp-sv{position:relative;width:100%;height:120px;border-radius:8px;cursor:crosshair;margin-bottom:10px;
+    border:1px solid var(--line);touch-action:none;
+    background-image:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0))}
+  .cp-sv-thumb{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;
+    box-shadow:0 0 0 1px rgba(0,0,0,.4),0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%);pointer-events:none}
+  .cp-hue{position:relative;width:100%;height:14px;border-radius:7px;cursor:pointer;margin-bottom:10px;
+    touch-action:none;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border:1px solid var(--line)}
+  .cp-hue-thumb{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;
+    border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 1px 4px rgba(0,0,0,.3);
+    transform:translate(-50%,-50%);pointer-events:none}
+  .cp-fields{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:6px}
+  .cp-field{display:flex;flex-direction:column;gap:3px;font-size:10.5px;color:var(--muted);font-weight:600}
+  .cp-field input{width:100%;box-sizing:border-box;padding:6px 7px;border:1px solid var(--line);
+    border-radius:6px;font-size:12.5px;background:#fff;text-align:center}
+  .cp-field input:focus{outline:none;border-color:var(--accent)}
+  .cp-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
   .block-row-hd .updown button{width:26px;height:26px;border:1px solid var(--line);background:#fff;
     border-radius:6px;cursor:pointer;color:var(--ink-soft)}
   .block-row-hd .updown button:hover{border-color:var(--accent);color:var(--accent)}
@@ -834,6 +864,30 @@
 <div class="roster-search-panel" id="rsPanel">
   <input type="text" id="rsInput" class="rs-input" autocomplete="off" />
   <div class="rs-results" id="rsResults"></div>
+</div>
+
+<!-- 文字颜色弹层：工具栏第三个按钮点开，常用色 + "更多颜色…"（渐变色板/色相条/HEX/RGB）；
+     只有点"确认"才真的把颜色套到原先选中的文字上，取消/Esc/点外面都不生效、颜色不变。 -->
+<div class="color-popover" id="colorPopover">
+  <div class="cp-view" id="cpCommonView">
+    <div class="cp-swatches" id="cpSwatches"></div>
+    <button type="button" class="cp-more" data-act="cp-more">更多颜色…</button>
+  </div>
+  <div class="cp-view" id="cpAdvancedView" hidden>
+    <button type="button" class="cp-back" data-act="cp-back">← 常用颜色</button>
+    <div class="cp-sv" id="cpSv"><div class="cp-sv-thumb" id="cpSvThumb"></div></div>
+    <div class="cp-hue" id="cpHue"><div class="cp-hue-thumb" id="cpHueThumb"></div></div>
+    <div class="cp-fields">
+      <label class="cp-field">HEX<input type="text" id="cpHex" maxlength="7" autocomplete="off" /></label>
+      <label class="cp-field">R<input type="text" id="cpR" maxlength="3" autocomplete="off" /></label>
+      <label class="cp-field">G<input type="text" id="cpG" maxlength="3" autocomplete="off" /></label>
+      <label class="cp-field">B<input type="text" id="cpB" maxlength="3" autocomplete="off" /></label>
+    </div>
+  </div>
+  <div class="cp-footer">
+    <button type="button" class="btn ghost sm" id="cpCancel">取消</button>
+    <button type="button" class="btn sm" id="cpConfirm">确认</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1751,6 +1805,7 @@ document.addEventListener('mousedown', (e) => {
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('.fmt-btn');
   if (!btn) return;
+  if (btn.classList.contains('fmt-color-btn')) { openColorPopover(btn); return; }
   const row = btn.closest('.block-row');
   const editor = row && row.querySelector('.rich-edit');
   if (!editor) return;
@@ -1760,28 +1815,229 @@ document.addEventListener('click', (e) => {
   syncFmtToolbarState(editor);
 });
 
-// 颜色：mousedown 时先记住当前选区（原生颜色选择器一弹出，编辑区的焦点/选区大概率
-// 会丢），input 事件（拖色板的时候就在连续触发，不用等松手的 change）里先把选区恢复
-// 回去再执行 foreColor——选完颜色立刻看到效果，不用像以前那样再点一下"确认"。
-let fmtColorRange = null;
-document.addEventListener('mousedown', (e) => {
-  const inp = e.target.closest('.fmt-color');
-  if (!inp) return;
+/* ===================== 颜色选择弹层 =====================
+ * 点工具栏第三个按钮，在按钮正下方弹出一个小面板：常用色 + "更多颜色…"（渐变色板 +
+ * 色相条 + HEX/RGB）。挑色过程中（点常用色、拖渐变区/色相条、改 HEX/RGB）只更新
+ * colorPopoverCtx 里的"待确认颜色"和弹层自己的预览，完全不碰编辑区、不碰草稿——
+ * 只有点"确认"才用一开始记下来的原始选区把颜色真的套上去；点"取消"/按 Esc/点弹层
+ * 外面则整个作废，文字颜色保持原样。全站共用一份弹层 DOM，谁触发就把当时的编辑器/
+ * 选区/按钮记到 colorPopoverCtx 上。 */
+const COLOR_PRESETS = [
+  { hex: '#000000', label: '黑色' },
+  { hex: '#374151', label: '深灰' },
+  { hex: '#9ca3af', label: '灰色' },
+  { hex: '#dc2626', label: '红色' },
+  { hex: '#f97316', label: '橙色' },
+  { hex: '#eab308', label: '黄色' },
+  { hex: '#16a34a', label: '绿色' },
+  { hex: '#2563eb', label: '蓝色' },
+  { hex: '#7c3aed', label: '紫色' },
+  { hex: '#1e3a8a', label: '主题蓝' },
+];
+$('cpSwatches').innerHTML = COLOR_PRESETS.map(c =>
+  `<button type="button" class="cp-swatch" data-color="${c.hex}" title="${c.label}" style="background:${c.hex}"></button>`
+).join('');
+
+function hexToRgb(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function rgbToHexStr(r, g, b) {
+  return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+}
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s: max === 0 ? 0 : d / max, v: max };
+}
+function hsvToRgb(h, s, v) {
+  const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+  let r, g, b;
+  if (h < 60) { r = c; g = x; b = 0; }
+  else if (h < 120) { r = x; g = c; b = 0; }
+  else if (h < 180) { r = 0; g = c; b = x; }
+  else if (h < 240) { r = 0; g = x; b = c; }
+  else if (h < 300) { r = x; g = 0; b = c; }
+  else { r = c; g = 0; b = x; }
+  return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
+}
+
+let colorPopoverCtx = null; // { editor, btn, range, hex, hsv } —— 只有点"确认"才会用上
+let cpDragMode = null; // 'sv' | 'hue' | null：鼠标/触控在渐变区/色相条上按住拖动的状态
+
+function highlightSelectedPreset(hex) {
+  $('cpSwatches').querySelectorAll('.cp-swatch').forEach(b => {
+    b.classList.toggle('selected', b.dataset.color.toLowerCase() === String(hex || '').toLowerCase());
+  });
+}
+function updateColorAdvancedUi(hsv, rgb, hex) {
+  $('cpSv').style.backgroundColor = `hsl(${hsv.h},100%,50%)`;
+  $('cpSvThumb').style.left = (hsv.s * 100) + '%';
+  $('cpSvThumb').style.top = ((1 - hsv.v) * 100) + '%';
+  $('cpHueThumb').style.left = (hsv.h / 360 * 100) + '%';
+  // 正在打字的那个输入框不要跟着回写，不然光标/输入会被打断；其它没在打字的都实时同步。
+  const active = document.activeElement;
+  if (active !== $('cpHex')) $('cpHex').value = hex;
+  if (active !== $('cpR')) $('cpR').value = Math.round(rgb.r);
+  if (active !== $('cpG')) $('cpG').value = Math.round(rgb.g);
+  if (active !== $('cpB')) $('cpB').value = Math.round(rgb.b);
+}
+// 不管是点常用色、拖渐变区/色相条，还是改 HEX/RGB 输入框，都走这一个入口：只更新
+// colorPopoverCtx.hex（待确认颜色）和弹层里的各种预览，不碰编辑区、不碰草稿。
+function setColorPopoverColor(hex) {
+  if (!colorPopoverCtx) return;
+  const rgb = hexToRgb(hex);
+  if (!rgb) return;
+  const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+  colorPopoverCtx.hex = hex.toLowerCase();
+  colorPopoverCtx.hsv = hsv;
+  updateColorAdvancedUi(hsv, rgb, colorPopoverCtx.hex);
+  highlightSelectedPreset(colorPopoverCtx.hex);
+}
+
+function positionColorPopover(triggerEl) {
+  const panel = $('colorPopover');
+  const rect = triggerEl.getBoundingClientRect();
+  const width = 236;
+  let left = rect.left;
+  if (left + width > window.innerWidth - 16) left = window.innerWidth - 16 - width;
+  if (left < 16) left = 16;
+  panel.style.left = (left + window.scrollX) + 'px';
+  panel.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+}
+function closeColorPopover() {
+  $('colorPopover').classList.remove('on');
+  colorPopoverCtx = null;
+  cpDragMode = null;
+}
+// 点工具栏第三个按钮才会走到这——先确认当前确实选中了一段文字（选区丢了/是空的就
+// 没法确认要改谁的颜色），把编辑器、按钮、原始选区一起存进 colorPopoverCtx，
+// 面板默认回到"常用颜色"视图、从这个按钮当前显示的颜色开始挑。
+function openColorPopover(btn) {
+  const row = btn.closest('.block-row');
+  const editor = row && row.querySelector('.rich-edit');
   const sel = window.getSelection();
-  fmtColorRange = (sel && sel.rangeCount && richEditorOf(sel.anchorNode)) ? sel.getRangeAt(0).cloneRange() : null;
+  if (!editor || !sel || !sel.rangeCount || sel.getRangeAt(0).collapsed || richEditorOf(sel.anchorNode) !== editor) {
+    toast('先选中要改颜色的文字', true);
+    return;
+  }
+  const range = sel.getRangeAt(0).cloneRange();
+  const swatch = btn.querySelector('.fmt-color-swatch');
+  const startHex = colorToHex(swatch && swatch.style.backgroundColor) || '#1e3a8a';
+  colorPopoverCtx = { editor, btn, range };
+  $('cpAdvancedView').hidden = true;
+  $('cpCommonView').hidden = false;
+  setColorPopoverColor(startHex);
+  positionColorPopover(btn);
+  $('colorPopover').classList.add('on');
+}
+
+$('cpSwatches').addEventListener('click', (e) => {
+  const sw = e.target.closest('.cp-swatch');
+  if (sw && colorPopoverCtx) setColorPopoverColor(sw.dataset.color);
 });
-document.addEventListener('input', (e) => {
-  const inp = e.target.closest('.fmt-color');
-  if (!inp || !fmtColorRange) return;
-  const editor = richEditorOf(fmtColorRange.startContainer);
-  if (!editor) return;
-  if (fmtColorRange.collapsed) { toast('先选中要改颜色的文字', true); return; }
+$('colorPopover').querySelector('[data-act="cp-more"]').onclick = () => {
+  $('cpCommonView').hidden = true;
+  $('cpAdvancedView').hidden = false;
+};
+$('colorPopover').querySelector('[data-act="cp-back"]').onclick = () => {
+  $('cpAdvancedView').hidden = true;
+  $('cpCommonView').hidden = false;
+};
+
+function svPointToFraction(e) {
+  const rect = $('cpSv').getBoundingClientRect();
+  const x = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+  const y = Math.min(Math.max((e.clientY - rect.top) / rect.height, 0), 1);
+  return { s: x, v: 1 - y };
+}
+function applyHsvPatch(patch) {
+  if (!colorPopoverCtx || !colorPopoverCtx.hsv) return;
+  const hsv = Object.assign({}, colorPopoverCtx.hsv, patch);
+  const rgb = hsvToRgb(hsv.h, hsv.s, hsv.v);
+  setColorPopoverColor(rgbToHexStr(rgb.r, rgb.g, rgb.b));
+}
+$('cpSv').addEventListener('pointerdown', (e) => {
+  if (!colorPopoverCtx) return;
+  e.preventDefault();
+  cpDragMode = 'sv';
+  applyHsvPatch(svPointToFraction(e));
+  $('cpSv').setPointerCapture(e.pointerId);
+});
+$('cpSv').addEventListener('pointermove', (e) => {
+  if (cpDragMode !== 'sv') return;
+  applyHsvPatch(svPointToFraction(e));
+});
+$('cpSv').addEventListener('pointerup', () => { cpDragMode = null; });
+$('cpHue').addEventListener('pointerdown', (e) => {
+  if (!colorPopoverCtx) return;
+  e.preventDefault();
+  cpDragMode = 'hue';
+  const rect = $('cpHue').getBoundingClientRect();
+  applyHsvPatch({ h: Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1) * 360 });
+  $('cpHue').setPointerCapture(e.pointerId);
+});
+$('cpHue').addEventListener('pointermove', (e) => {
+  if (cpDragMode !== 'hue') return;
+  const rect = $('cpHue').getBoundingClientRect();
+  applyHsvPatch({ h: Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1) * 360 });
+});
+$('cpHue').addEventListener('pointerup', () => { cpDragMode = null; });
+
+$('cpHex').addEventListener('input', (e) => {
+  if (!colorPopoverCtx) return;
+  const v = e.target.value.trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{6}$/.test(v)) setColorPopoverColor('#' + v);
+});
+['cpR', 'cpG', 'cpB'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    if (!colorPopoverCtx) return;
+    const clamp = (v) => Math.min(255, Math.max(0, Number(v) || 0));
+    setColorPopoverColor(rgbToHexStr(clamp($('cpR').value), clamp($('cpG').value), clamp($('cpB').value)));
+  });
+});
+
+$('cpCancel').onclick = () => closeColorPopover();
+$('cpConfirm').onclick = () => {
+  if (!colorPopoverCtx || !colorPopoverCtx.hex) { closeColorPopover(); return; }
+  const { editor, range, btn, hex } = colorPopoverCtx;
   const sel = window.getSelection();
   sel.removeAllRanges();
-  sel.addRange(fmtColorRange);
+  sel.addRange(range);
   editor.focus();
-  document.execCommand('foreColor', false, inp.value);
+  document.execCommand('foreColor', false, hex);
   editor.dispatchEvent(new Event('input', { bubbles: true }));
+  const swatch = btn.querySelector('.fmt-color-swatch');
+  if (swatch) swatch.style.background = hex;
+  closeColorPopover();
+};
+// 点弹层外面关掉（跟添加球员那个搜索面板是同一套逻辑），点触发按钮本身不算"外面"。
+document.addEventListener('click', (e) => {
+  const panel = $('colorPopover');
+  if (!panel.classList.contains('on')) return;
+  if (panel.contains(e.target)) return;
+  if (e.target.closest('.fmt-color-btn')) return;
+  closeColorPopover();
+}, true);
+window.addEventListener('scroll', () => {
+  const panel = $('colorPopover');
+  if (!panel.classList.contains('on')) return;
+  const r = panel.getBoundingClientRect();
+  if (r.bottom < 0 || r.top > window.innerHeight) closeColorPopover();
+}, true);
+window.addEventListener('resize', () => { if ($('colorPopover').classList.contains('on')) closeColorPopover(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('colorPopover').classList.contains('on')) closeColorPopover();
 });
 
 // Cmd/Ctrl+B、Cmd/Ctrl+I；回车统一按 <br> 换行（不让浏览器自己开 div/p，不然
@@ -1846,8 +2102,7 @@ function blockRowHtml(b, i, total) {
   const fmtToolbar = `<div class="fmt-toolbar">
     <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B 加粗</button>
     <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I 斜体</button>
-    <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
-    <span class="fmt-color-label">调色板</span>
+    <button type="button" class="fmt-btn fmt-color-btn" title="文字颜色"><span class="fmt-color-swatch" style="background:#1e3a8a"></span>调色板</button>
   </div>`;
   const body = isImg
     ? `<div class="block-img-row">
@@ -2888,8 +3143,7 @@ function storyBlockRowHtml(b, i, total) {
     <div class="fmt-toolbar">
       <button type="button" class="fmt-btn" data-fmt="bold" title="加粗">B 加粗</button>
       <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I 斜体</button>
-      <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
-      <span class="fmt-color-label">调色板</span>
+      <button type="button" class="fmt-btn fmt-color-btn" title="文字颜色"><span class="fmt-color-swatch" style="background:#1e3a8a"></span>调色板</button>
     </div>
     <div class="sblk-text rich-edit"${isQuote ? ' style="min-height:54px"' : ''} contenteditable="true">${liteMdToHtml(b.text || '')}</div>
     ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
