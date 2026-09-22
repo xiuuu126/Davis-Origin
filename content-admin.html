@@ -321,29 +321,24 @@
   .block-row-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .block-row-hd select{padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12.5px;font-weight:600;color:var(--ink-soft)}
   .block-row-hd .updown{display:flex;gap:4px;margin-left:auto}
-  .fmt-toolbar{display:flex;gap:4px;margin-bottom:6px}
+  .fmt-toolbar{display:flex;gap:4px;margin-bottom:6px;align-items:center}
   .fmt-btn{height:26px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg-soft);
     color:var(--ink-soft);font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap}
   .fmt-btn:hover{border-color:var(--accent);color:var(--accent)}
   .fmt-btn[data-fmt="italic"]{font-style:italic}
+  .fmt-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
   .fmt-color{width:26px;height:26px;padding:1px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
   .fmt-hint{font-size:11.5px;color:var(--muted);display:flex;align-items:center;margin-left:2px}
   .fmt-color-label{font-size:11.5px;color:var(--muted);display:flex;align-items:center}
-  .fmt-color-confirm{display:inline-flex;gap:3px}
-  .fmt-color-confirm[hidden]{display:none}
-  .fmt-color-ok,.fmt-color-cancel{width:22px;height:22px;border:1px solid var(--line);border-radius:6px;
-    background:#fff;cursor:pointer;font-size:12px;font-weight:700;line-height:1;
-    display:flex;align-items:center;justify-content:center}
-  .fmt-color-ok{color:var(--ok);border-color:var(--ok)}
-  .fmt-color-ok:hover{background:var(--ok);color:#fff}
-  .fmt-color-cancel{color:var(--danger);border-color:var(--danger)}
-  .fmt-color-cancel:hover{background:var(--danger);color:#fff}
   .block-row-hd .updown button{width:26px;height:26px;border:1px solid var(--line);background:#fff;
     border-radius:6px;cursor:pointer;color:var(--ink-soft)}
   .block-row-hd .updown button:hover{border-color:var(--accent);color:var(--accent)}
   .block-row-hd .updown button:disabled{opacity:.35;cursor:not-allowed}
   .block-row textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;
     background:#fff;font-size:13.5px;line-height:1.6;resize:vertical}
+  .block-row .rich-edit{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;font-size:13.5px;line-height:1.6;min-height:78px;white-space:pre-wrap;overflow-wrap:break-word;cursor:text}
+  .block-row .rich-edit:focus{outline:none;border-color:var(--accent)}
   .block-row textarea:focus{outline:none;border-color:var(--accent)}
   .block-img-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .block-thumb{width:64px;height:48px;border-radius:8px;background:#e9e6de;border:1px solid var(--line);
@@ -1632,76 +1627,200 @@ function renderContentTab(bySeason) {
 
 // 封面图/配图缩略图：占位图标一直垫在下面，图片加载失败就让 <img> 隐藏，占位图标自然露出来——
 // 跟 news.html 正式页面上占位框的做法（figureHtml + onerror）是同一个思路，缩略图版本更简单一点。
-function applyTextFormat(textarea, marker) {
-  const start = textarea.selectionStart, end = textarea.selectionEnd;
-  const val = textarea.value;
-  const selected = val.slice(start, end);
-  const before = val.slice(0, start), after = val.slice(end);
-  const mLen = marker.length;
-  const alreadyWrapped = before.slice(-mLen) === marker && after.slice(0, mLen) === marker;
-  let newVal, newStart, newEnd;
-  if (alreadyWrapped) {
-    newVal = before.slice(0, before.length - mLen) + selected + after.slice(mLen);
-    newStart = start - mLen; newEnd = end - mLen;
-  } else {
-    newVal = before + marker + selected + marker + after;
-    newStart = start + mLen; newEnd = end + mLen;
-  }
-  textarea.value = newVal;
-  textarea.focus();
-  textarea.setSelectionRange(newStart, newEnd);
-  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+/* ===================== 富文本编辑（正文加粗/斜体/变色） =====================
+ * 存储格式没变，还是 **加粗**／_斜体_／{{c:#hex}}文字{{/c}} 这套标记——跟 news.html／
+ * story.html 发布页用的是同一份 liteMdToHtml，后台编辑区初次显示、保存后重新打开、
+ * 网站发布出来，三处看到的样式必须对得上。跟以前最大的不同：编辑区不再是 textarea +
+ * 手动插入标记符号，换成 contenteditable 所见即所得——工具栏直接调
+ * document.execCommand，效果立即显示；原生撤销/重做、中文输入法拼字，都走浏览器
+ * 自己的编辑栈，我们不用手动管，也不能在拼字过程中插手。 */
+
+// 跟 news.html / story.html 里的 liteMdToHtml 是同一份逻辑，必须保持一致。
+function liteMdToHtml(text) {
+  return esc(text)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    .replace(/\{\{c:(#[0-9a-fA-F]{3,8})\}\}([\s\S]*?)\{\{\/c\}\}/g, '<span style="color:$1">$2</span>')
+    .replace(/\n/g, '<br>');
 }
+
+function colorToHex(color) {
+  if (!color) return null;
+  const hexM = String(color).match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6,8})$/);
+  if (hexM) return '#' + hexM[1].toLowerCase();
+  const rgbM = String(color).match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (rgbM) return '#' + [1, 2, 3].map(i => Number(rgbM[i]).toString(16).padStart(2, '0')).join('');
+  return null;
+}
+
+function richEditorOf(node) {
+  if (!node) return null;
+  const el = node.nodeType === 1 ? node : node.parentElement;
+  return el && el.closest ? el.closest('.rich-edit') : null;
+}
+
+// contenteditable 里的 DOM -> 存储用的标记文本，跟 liteMdToHtml 是反向操作：
+// <br>/换行的 div、p 都当换行处理；<b>/<strong>、<i>/<em>、带颜色的 <span>/<font>
+// 分别包一层 **、_、{{c:#hex}}...{{/c}}，可以互相嵌套叠加，跟网站发布页的解析规则对齐。
+const RICH_BLOCK_TAGS = new Set(['DIV', 'P']);
+function htmlToMarkerText(root) {
+  function walk(node) {
+    let out = '';
+    node.childNodes.forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) { out += child.nodeValue; return; }
+      if (child.nodeType !== Node.ELEMENT_NODE) return;
+      const tag = child.tagName;
+      if (tag === 'BR') { out += '\n'; return; }
+      if (RICH_BLOCK_TAGS.has(tag)) {
+        const inner = walk(child);
+        if (out && !out.endsWith('\n')) out += '\n';
+        out += inner;
+        return;
+      }
+      let inner = walk(child);
+      if (!inner) return;
+      if (tag === 'B' || tag === 'STRONG') inner = '**' + inner + '**';
+      else if (tag === 'I' || tag === 'EM') inner = '_' + inner + '_';
+      else if (tag === 'SPAN' || tag === 'FONT') {
+        const hex = colorToHex(tag === 'FONT' ? child.getAttribute('color') : child.style.color);
+        if (hex) inner = `{{c:${hex}}}${inner}{{/c}}`;
+      }
+      out += inner;
+    });
+    return out;
+  }
+  return walk(root);
+}
+
+// 粘贴进来的富文本不能直接信任：只留加粗/斜体/颜色/换行，别的标签（script、图片、
+// 链接……）一律展开成纯内容或者直接丢掉，保留下来的标签也把其它属性全部清空。
+const RICH_DROP_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'IMG', 'VIDEO', 'AUDIO']);
+const RICH_LINEBREAK_TAGS = new Set(['DIV', 'P', 'LI', 'TR', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+function sanitizeInlineHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  function clean(parent) {
+    Array.from(parent.childNodes).forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) return;
+      if (child.nodeType !== Node.ELEMENT_NODE) { parent.removeChild(child); return; }
+      clean(child);
+      const tag = child.tagName;
+      if (RICH_DROP_TAGS.has(tag)) { parent.removeChild(child); return; }
+      if (tag === 'BR') return;
+      if (tag === 'B' || tag === 'STRONG' || tag === 'I' || tag === 'EM') {
+        Array.from(child.attributes).forEach(a => child.removeAttribute(a.name));
+        return;
+      }
+      if (tag === 'SPAN' || tag === 'FONT') {
+        const hex = colorToHex(tag === 'FONT' ? child.getAttribute('color') : child.style.color);
+        Array.from(child.attributes).forEach(a => child.removeAttribute(a.name));
+        if (hex) { child.setAttribute('style', `color:${hex}`); return; }
+      }
+      if (RICH_LINEBREAK_TAGS.has(tag) && child.nextSibling) parent.insertBefore(document.createElement('br'), child.nextSibling);
+      while (child.firstChild) parent.insertBefore(child.firstChild, child);
+      parent.removeChild(child);
+    });
+  }
+  clean(tmp);
+  return tmp.innerHTML;
+}
+
+// 工具栏加粗/斜体按钮高亮当前选区的格式状态。
+function syncFmtToolbarState(editor) {
+  const toolbar = editor.previousElementSibling;
+  if (!toolbar || !toolbar.classList || !toolbar.classList.contains('fmt-toolbar')) return;
+  let bold = false, italic = false;
+  try { bold = document.queryCommandState('bold'); italic = document.queryCommandState('italic'); } catch (err) {}
+  const boldBtn = toolbar.querySelector('[data-fmt="bold"]');
+  const italicBtn = toolbar.querySelector('[data-fmt="italic"]');
+  if (boldBtn) boldBtn.classList.toggle('active', bold);
+  if (italicBtn) italicBtn.classList.toggle('active', italic);
+}
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const editor = richEditorOf(sel.anchorNode);
+  if (editor) syncFmtToolbarState(editor);
+});
+
+// 加粗/斜体：mousedown 先 preventDefault，别让编辑区失焦——contenteditable 一旦失焦，
+// 选区经常就跟着丢了，跟原来 textarea 靠 selectionStart/End 记住选区是两回事。
+document.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.fmt-btn')) e.preventDefault();
+});
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('.fmt-btn');
   if (!btn) return;
   const row = btn.closest('.block-row');
-  const ta = row && row.querySelector('textarea.blk-text, textarea.sblk-text');
-  if (!ta) return;
-  applyTextFormat(ta, btn.dataset.fmt === 'bold' ? '**' : '_');
+  const editor = row && row.querySelector('.rich-edit');
+  if (!editor) return;
+  editor.focus();
+  document.execCommand(btn.dataset.fmt === 'bold' ? 'bold' : 'italic');
+  editor.dispatchEvent(new Event('input', { bubbles: true }));
+  syncFmtToolbarState(editor);
 });
-// 调色板：选中文字 → 挑颜色 → 弹出「✓确认/✕取消」，点确认才真的改，
-// 改的时候用 execCommand('insertText', ...) 而不是直接改 textarea.value，
-// 这样改完能直接按 Ctrl+Z 撤销（原生 undo 栈只认得到用户输入/execCommand 这类操作）。
-let fmtColorSel = null; // { ta, start, end, hex, toolbar } —— 选好颜色、等着点确认/取消的待定状态
+
+// 颜色：mousedown 时先记住当前选区（原生颜色选择器一弹出，编辑区的焦点/选区大概率
+// 会丢），input 事件（拖色板的时候就在连续触发，不用等松手的 change）里先把选区恢复
+// 回去再执行 foreColor——选完颜色立刻看到效果，不用像以前那样再点一下"确认"。
+let fmtColorRange = null;
 document.addEventListener('mousedown', (e) => {
   const inp = e.target.closest('.fmt-color');
   if (!inp) return;
-  document.querySelectorAll('.fmt-color-confirm').forEach(el => { el.hidden = true; });
-  fmtColorSel = null;
-  const row = inp.closest('.block-row');
-  const ta = row && row.querySelector('textarea.blk-text, textarea.sblk-text');
-  if (ta) fmtColorSel = { ta, start: ta.selectionStart, end: ta.selectionEnd, toolbar: inp.closest('.fmt-toolbar') };
+  const sel = window.getSelection();
+  fmtColorRange = (sel && sel.rangeCount && richEditorOf(sel.anchorNode)) ? sel.getRangeAt(0).cloneRange() : null;
 });
-document.addEventListener('change', (e) => {
+document.addEventListener('input', (e) => {
   const inp = e.target.closest('.fmt-color');
-  if (!inp || !fmtColorSel) return;
-  if (fmtColorSel.start === fmtColorSel.end) { toast('先选中要改颜色的文字', true); fmtColorSel = null; return; }
-  fmtColorSel.hex = inp.value;
-  const confirmBox = fmtColorSel.toolbar && fmtColorSel.toolbar.querySelector('.fmt-color-confirm');
-  if (confirmBox) confirmBox.hidden = false;
+  if (!inp || !fmtColorRange) return;
+  const editor = richEditorOf(fmtColorRange.startContainer);
+  if (!editor) return;
+  if (fmtColorRange.collapsed) { toast('先选中要改颜色的文字', true); return; }
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(fmtColorRange);
+  editor.focus();
+  document.execCommand('foreColor', false, inp.value);
+  editor.dispatchEvent(new Event('input', { bubbles: true }));
 });
-document.addEventListener('click', (e) => {
-  const okBtn = e.target.closest('.fmt-color-ok');
-  const cancelBtn = e.target.closest('.fmt-color-cancel');
-  if (!okBtn && !cancelBtn) return;
-  const pending = fmtColorSel;
-  const toolbar = e.target.closest('.fmt-toolbar');
-  const confirmBox = toolbar && toolbar.querySelector('.fmt-color-confirm');
-  if (okBtn && pending) {
-    const { ta, start, end, hex } = pending;
-    ta.focus();
-    ta.setSelectionRange(start, end);
-    const wrapped = `{{c:${hex}}}${ta.value.slice(start, end)}{{/c}}`;
-    const applied = document.execCommand && document.execCommand('insertText', false, wrapped);
-    if (!applied) {
-      const val = ta.value;
-      ta.value = val.slice(0, start) + wrapped + val.slice(end);
-    }
-    ta.dispatchEvent(new Event('input', { bubbles: true }));
+
+// Cmd/Ctrl+B、Cmd/Ctrl+I；回车统一按 <br> 换行（不让浏览器自己开 div/p，不然
+// htmlToMarkerText 解析换行会乱）——中文输入法拼字过程中（isComposing）什么都不拦。
+document.addEventListener('keydown', (e) => {
+  const editor = richEditorOf(e.target);
+  if (!editor || e.isComposing) return;
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && (e.key === 'b' || e.key === 'B')) {
+    e.preventDefault(); document.execCommand('bold');
+    editor.dispatchEvent(new Event('input', { bubbles: true })); syncFmtToolbarState(editor); return;
   }
-  fmtColorSel = null;
-  if (confirmBox) confirmBox.hidden = true;
+  if (mod && (e.key === 'i' || e.key === 'I')) {
+    e.preventDefault(); document.execCommand('italic');
+    editor.dispatchEvent(new Event('input', { bubbles: true })); syncFmtToolbarState(editor); return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.execCommand('insertHTML', false, '<br>');
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+});
+
+// 粘贴进来的内容先过滤一遍，只留加粗/斜体/颜色/换行，别的一律展开成纯文本或丢掉。
+document.addEventListener('paste', (e) => {
+  const editor = richEditorOf(e.target);
+  if (!editor) return;
+  e.preventDefault();
+  const cd = e.clipboardData;
+  const html = cd && cd.getData('text/html');
+  let insert;
+  if (html) {
+    insert = sanitizeInlineHtml(html);
+  } else {
+    const text = (cd && cd.getData('text/plain')) || '';
+    insert = esc(text).replace(/\r\n|\r|\n/g, '<br>');
+  }
+  document.execCommand('insertHTML', false, insert);
+  editor.dispatchEvent(new Event('input', { bubbles: true }));
 });
 
 function thumbHtml(cls, path, icon, w, h) {
@@ -1729,10 +1848,6 @@ function blockRowHtml(b, i, total) {
     <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I 斜体</button>
     <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
     <span class="fmt-color-label">调色板</span>
-    <span class="fmt-color-confirm" hidden>
-      <button type="button" class="fmt-color-ok" title="应用颜色">✓</button>
-      <button type="button" class="fmt-color-cancel" title="取消">✕</button>
-    </span>
   </div>`;
   const body = isImg
     ? `<div class="block-img-row">
@@ -1746,7 +1861,7 @@ function blockRowHtml(b, i, total) {
       </div>`
     : b.type === 'list'
       ? `<textarea class="blk-text" rows="3">${esc(b.text || '')}</textarea>`
-      : `${fmtToolbar}<textarea class="blk-text" rows="${b.type === 'quote' ? 2 : 3}">${esc(b.text || '')}</textarea>`;
+      : `${fmtToolbar}<div class="blk-text rich-edit"${b.type === 'quote' ? ' style="min-height:54px"' : ''} contenteditable="true">${liteMdToHtml(b.text || '')}</div>`;
   return `<div class="block-row" data-idx="${i}">
     <div class="block-row-hd">
       <select class="blk-type">${typeOpts}</select>
@@ -1962,9 +2077,10 @@ function wireBlocksEditor(bodyEl, a) {
   const editor = bodyEl.querySelector('.blocks-editor');
   if (!editor) return;
 
-  editor.querySelectorAll('.blk-text').forEach(ta => {
-    const i = Number(ta.closest('.block-row').dataset.idx);
-    ta.oninput = () => { draft[i].text = ta.value; };
+  editor.querySelectorAll('.blk-text').forEach(el => {
+    const i = Number(el.closest('.block-row').dataset.idx);
+    if (el.tagName === 'TEXTAREA') { el.oninput = () => { draft[i].text = el.value; }; }
+    else { el.oninput = () => { draft[i].text = htmlToMarkerText(el); }; }
   });
   editor.querySelectorAll('.blk-caption').forEach(inp => {
     const i = Number(inp.closest('.block-row').dataset.idx);
@@ -2774,12 +2890,8 @@ function storyBlockRowHtml(b, i, total) {
       <button type="button" class="fmt-btn" data-fmt="italic" title="斜体">I 斜体</button>
       <input type="color" class="fmt-color" value="#1e3a8a" title="文字颜色" />
       <span class="fmt-color-label">调色板</span>
-      <span class="fmt-color-confirm" hidden>
-        <button type="button" class="fmt-color-ok" title="应用颜色">✓</button>
-        <button type="button" class="fmt-color-cancel" title="取消">✕</button>
-      </span>
     </div>
-    <textarea class="sblk-text" rows="${isQuote ? 2 : 3}">${esc(b.text || '')}</textarea>
+    <div class="sblk-text rich-edit"${isQuote ? ' style="min-height:54px"' : ''} contenteditable="true">${liteMdToHtml(b.text || '')}</div>
     ${isQuote ? `<input type="text" class="sblk-cite" placeholder="署名（可选，比如&quot;— Davis Origin&quot;）" value="${esc(b.cite || '')}"
       style="margin-top:8px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />` : ''}
   </div>`;
@@ -2803,9 +2915,9 @@ function refreshStoryEditor() {
 function wireStoryBlocksEditor() {
   const editor = document.querySelector('#module-story .blocks-editor');
   if (!editor) return;
-  editor.querySelectorAll('.sblk-text').forEach(ta => {
-    const i = Number(ta.closest('.block-row').dataset.idx);
-    ta.oninput = () => { storyDraft[i].text = ta.value; };
+  editor.querySelectorAll('.sblk-text').forEach(el => {
+    const i = Number(el.closest('.block-row').dataset.idx);
+    el.oninput = () => { storyDraft[i].text = htmlToMarkerText(el); };
   });
   editor.querySelectorAll('.sblk-cite').forEach(inp => {
     const i = Number(inp.closest('.block-row').dataset.idx);
