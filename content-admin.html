@@ -1705,7 +1705,10 @@ document.addEventListener('click', (e) => {
 });
 
 function thumbHtml(cls, path, icon, w, h) {
-  return `<div style="display:grid;width:${w}px;height:${h}px;flex-shrink:0">
+  const attrs = path
+    ? `data-act="thumb-recrop" data-path="${esc(path)}" title="点击重新裁剪" style="display:grid;width:${w}px;height:${h}px;flex-shrink:0;cursor:pointer"`
+    : `style="display:grid;width:${w}px;height:${h}px;flex-shrink:0"`;
+  return `<div ${attrs}>
     <div class="${cls} empty" style="grid-area:1/1;width:100%;height:100%">${esc(icon || '📷')}</div>
     ${path ? `<img class="${cls}" style="grid-area:1/1;width:100%;height:100%;object-fit:cover" src="${esc(path)}" onerror="this.style.display='none'" />` : ''}
   </div>`;
@@ -1870,6 +1873,17 @@ function blobToNamedFile(blob, originalName) {
   const stem = String(originalName || 'photo').replace(/\.[a-zA-Z0-9]+$/, '') || 'photo';
   return new File([blob], `${stem}-cropped.jpg`, { type: blob.type || 'image/jpeg' });
 }
+// 点已经传好的缩略图 = 拿这张图重新走一遍裁剪，裁完当成一张新图传上去（不改原来那个文件，
+// 旧文件留着，想清掉的话用旁边"删除照片"）。返回新路径；用户中途取消就返回 null。
+async function recropExistingImage(path, ratio) {
+  const resp = await fetch(path);
+  if (!resp.ok) throw new Error('图片加载失败，没法重新裁剪');
+  const blob = await resp.blob();
+  const file = new File([blob], path.split('/').pop() || 'photo.jpg', { type: blob.type || 'image/jpeg' });
+  const cropped = await openCropModal(file, ratio);
+  if (!cropped) return null;
+  return uploadNewsImage(blobToNamedFile(cropped, file.name));
+}
 
 let cropCtx = null; // { cropper, resolve, objectUrl } —— 弹窗开着的时候，这份状态记着"确认/取消"要回调给谁
 function teardownCrop() {
@@ -1973,6 +1987,21 @@ function wireBlocksEditor(bodyEl, a) {
   editor.querySelectorAll('[data-act="blk-upload-trigger"]').forEach(btn => btn.onclick = () => {
     btn.closest('.block-row').querySelector('.blk-upload-input').click();
   });
+  editor.querySelectorAll('[data-act="thumb-recrop"]').forEach(el => {
+    el.onclick = async () => {
+      const i = Number(el.closest('.block-row').dataset.idx);
+      const path = draft[i].image;
+      if (!path) return;
+      const ratio = BLOCK_CROP_RATIO[draft[i].type] || BLOCK_CROP_RATIO.image;
+      try {
+        const newPath = await recropExistingImage(path, ratio);
+        if (!newPath) return;
+        draft[i].image = newPath;
+        refreshBlocksEditor(a.id);
+        toast('已重新裁剪');
+      } catch (e) { toast(e.message, true); }
+    };
+  });
   editor.querySelectorAll('[data-act="blk-remove"]').forEach(btn => btn.onclick = () => {
     const i = Number(btn.closest('.block-row').dataset.idx);
     draft[i].image = '';
@@ -2018,6 +2047,22 @@ function wireArticleBody(bodyEl, a) {
 
   const coverBtn = bodyEl.querySelector('[data-act="cover-upload-trigger"]');
   if (coverBtn) coverBtn.onclick = () => bodyEl.querySelector('.cover-upload-input').click();
+  // 挂在外层这个 span 上（用事件委托），因为点一次重新裁剪之后里面的缩略图会被
+  // innerHTML 整个换掉——直接挂在里面那个 div 上，换完第二次点就失灵了。
+  const coverThumbWrap = bodyEl.querySelector('.cover-thumb-wrap');
+  if (coverThumbWrap) coverThumbWrap.onclick = async (e) => {
+    if (!e.target.closest('[data-act="thumb-recrop"]') || !a.cover_image) return;
+    const ratio = COVER_CROP_RATIO[a.cover_shape || 'default'] || COVER_CROP_RATIO.default;
+    try {
+      const newPath = await recropExistingImage(a.cover_image, ratio);
+      if (!newPath) return;
+      a.cover_image = newPath;
+      coverThumbWrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
+      const hint = bodyEl.querySelector('.cover-path-hint');
+      if (hint) hint.textContent = a.cover_image;
+      toast('已重新裁剪');
+    } catch (e) { toast(e.message, true); }
+  };
   const coverRemoveBtn = bodyEl.querySelector('[data-act="cover-remove"]');
   if (coverRemoveBtn) coverRemoveBtn.onclick = () => {
     a.cover_image = '';
