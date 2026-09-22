@@ -6,6 +6,7 @@
 <title>内容管理后台 · Davis Origin</title>
 <link rel="icon" type="image/png" href="assets/logo.png" />
 <meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
 <style>
   :root {
     --bg:#f7f5f0; --bg-soft:#fafaf7; --ink:#0a0e1a; --ink-soft:#3d4151;
@@ -189,6 +190,17 @@
     color:var(--accent);font-weight:700;font-size:11px;white-space:nowrap}
   .na-preview-text{color:var(--ink-soft);white-space:pre-wrap;word-break:break-word}
 
+  /* 裁剪弹窗 */
+  .crop-ratio-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .crop-ratio-btn{padding:7px 14px;border:1.5px solid var(--line);border-radius:999px;background:#fff;
+    font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:all .15s}
+  .crop-ratio-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .crop-ratio-btn.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .crop-stage{max-height:52vh;background:#2a2a2a;border-radius:10px;overflow:hidden}
+  .crop-stage img{display:block;max-width:100%}
+  .crop-zoom-row{display:flex;align-items:center;gap:10px;margin-top:14px}
+  .crop-zoom-row input[type="range"]{flex:1}
+
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
   .refresh-spin{display:inline-block;width:12px;height:12px;
@@ -238,9 +250,13 @@
   .cat-card-hd{margin-bottom:0}
 
   /* 新闻：点一条进它自己的编辑页（不再是列表里原地展开），右上角一个返回列表 */
+  .row-hide-btn{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:#fff;
+    color:var(--ink-soft);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .row-hide-btn:hover{border-color:var(--accent);color:var(--accent)}
   .row-del-btn{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:#fff;
     color:var(--danger);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .row-del-btn:hover{background:var(--danger-soft);border-color:var(--danger)}
+  .cat-card.art-hidden{opacity:.55}
   .news-edit-hd{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
   .news-edit-hd b{font-size:17px}
 
@@ -796,6 +812,29 @@
   </div>
 </div>
 
+<!-- 裁剪弹窗：上传图片先在这里选比例、拖动/缩放调整取景框，确认了才真的上传裁剪后的图 -->
+<div class="modal-bg" id="mCropBg">
+  <div class="modal" style="max-width:640px">
+    <h3>裁剪图片</h3>
+    <div class="crop-ratio-row">
+      <button type="button" class="crop-ratio-btn" data-ratio="1.3333">4:3</button>
+      <button type="button" class="crop-ratio-btn" data-ratio="1.7778">16:9</button>
+      <button type="button" class="crop-ratio-btn" data-ratio="1">1:1</button>
+      <button type="button" class="crop-ratio-btn" data-ratio="0.75">3:4</button>
+      <button type="button" class="crop-ratio-btn" data-ratio="free">自由</button>
+    </div>
+    <div class="crop-stage"><img id="cropImg" alt="" /></div>
+    <div class="crop-zoom-row">
+      <span class="hint" style="margin:0">缩放</span>
+      <input type="range" id="cropZoom" min="0" max="3" step="0.01" value="0" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost full" id="cropCancel" type="button">取消</button>
+      <button class="btn full" id="cropConfirm" type="button">确认裁剪并上传</button>
+    </div>
+  </div>
+</div>
+
 <!-- 添加球员的搜索框（名单看板右上角的搜索按钮点开这个，悬浮在按钮下方，不是整屏弹窗） -->
 <div class="roster-search-panel" id="rsPanel">
   <input type="text" id="rsInput" class="rs-input" autocomplete="off" />
@@ -806,6 +845,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.3/dist/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
 if (location.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
   location.replace('https://' + location.host + location.pathname + location.search + location.hash);
@@ -1775,14 +1815,18 @@ function blocksListInnerHtml(draft) {
 }
 
 function newsArticleRowHtml(a) {
-  return `<div class="cat-card" data-art="${a.id}">
+  const hidden = !!a.is_hidden;
+  return `<div class="cat-card${hidden ? ' art-hidden' : ''}" data-art="${a.id}">
     <div class="cs-row">
       <div class="cs-left">
         <span class="drag-handle" title="拖动排序" onclick="event.preventDefault()">☰</span>
         <b>${esc(a.title)}</b>
         <span class="hint" style="margin:0">${esc(a.pub_date || '')}</span>
+        ${hidden ? '<span class="hint" style="margin:0;color:var(--danger)">已隐藏</span>' : ''}
       </div>
       <div class="cs-right">
+        <button type="button" class="row-hide-btn" data-act="hide-article-row"
+          title="${hidden ? '取消隐藏（网站上重新显示）' : '隐藏（网站上不显示，不会删除）'}">${hidden ? '🚫' : '👁'}</button>
         <button type="button" class="row-del-btn" data-act="del-article-row" title="删除这篇文章">🗑</button>
       </div>
     </div>
@@ -1816,6 +1860,71 @@ async function deleteNewsImage(path) {
   if (!path) return;
   await api('/content/news-image', { method: 'DELETE', body: JSON.stringify({ path }) });
 }
+
+/* ===================== 上传图片前先裁剪 ===================== */
+// 不同图片类型/封面形状对应的默认裁剪比例（跟网站上实际展示的形状保持一致）。
+const BLOCK_CROP_RATIO = { image: '1.3333', image_wide: '1.7778', image_square: '1', image_portrait: '0.75' };
+const COVER_CROP_RATIO = { default: '1.3333', wide: '1.7778', square: '1', portrait: '0.75' };
+
+function blobToNamedFile(blob, originalName) {
+  const stem = String(originalName || 'photo').replace(/\.[a-zA-Z0-9]+$/, '') || 'photo';
+  return new File([blob], `${stem}-cropped.jpg`, { type: blob.type || 'image/jpeg' });
+}
+
+let cropCtx = null; // { cropper, resolve, objectUrl } —— 弹窗开着的时候，这份状态记着"确认/取消"要回调给谁
+function teardownCrop() {
+  $('mCropBg').classList.remove('on');
+  if (cropCtx) {
+    if (cropCtx.cropper) cropCtx.cropper.destroy();
+    if (cropCtx.objectUrl) URL.revokeObjectURL(cropCtx.objectUrl);
+  }
+  cropCtx = null;
+  $('cropZoom').value = 0;
+}
+// 打开裁剪弹窗，返回一个 Promise：用户点"确认裁剪并上传"就 resolve 裁剪后的 Blob，
+// 点"取消"就 resolve(null)（上传流程看到 null 就原地放弃，不会真的传）。
+function openCropModal(file, defaultRatio) {
+  return new Promise((resolve) => {
+    if (typeof Cropper === 'undefined') { resolve(null); toast('裁剪组件加载失败，请刷新页面重试', true); return; }
+    const objectUrl = URL.createObjectURL(file);
+    const img = $('cropImg');
+    img.src = objectUrl;
+    $('mCropBg').classList.add('on');
+    document.querySelectorAll('.crop-ratio-btn').forEach(b => b.classList.toggle('on', b.dataset.ratio === defaultRatio));
+    const start = () => {
+      const cropper = new Cropper(img, {
+        aspectRatio: defaultRatio === 'free' ? NaN : Number(defaultRatio),
+        viewMode: 1,
+        autoCropArea: 1,
+        background: false,
+        responsive: true,
+      });
+      cropCtx = { cropper, resolve, objectUrl };
+    };
+    if (img.complete) start(); else img.onload = start;
+  });
+}
+document.querySelectorAll('.crop-ratio-btn').forEach(btn => btn.onclick = () => {
+  if (!cropCtx) return;
+  document.querySelectorAll('.crop-ratio-btn').forEach(b => b.classList.toggle('on', b === btn));
+  cropCtx.cropper.setAspectRatio(btn.dataset.ratio === 'free' ? NaN : Number(btn.dataset.ratio));
+});
+$('cropZoom').oninput = (e) => { if (cropCtx) cropCtx.cropper.zoomTo(Number(e.target.value)); };
+$('cropCancel').onclick = () => {
+  const ctx = cropCtx;
+  teardownCrop();
+  if (ctx) ctx.resolve(null);
+};
+$('cropConfirm').onclick = () => {
+  if (!cropCtx) return;
+  const canvas = cropCtx.cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+  if (!canvas) { toast('裁剪失败，再试一次', true); return; }
+  const ctx = cropCtx;
+  canvas.toBlob((blob) => {
+    teardownCrop();
+    ctx.resolve(blob);
+  }, 'image/jpeg', 0.92);
+};
 
 // 正文块的增/删/挪/换类型/传图，只重画 .blocks-editor 这一小块（不碰标题/日期/
 // 封面这些还没保存的字段，不然每加一块正文，前面刚打的字就被"重新渲染"冲掉了）。
@@ -1885,7 +1994,11 @@ function wireBlocksEditor(bodyEl, a) {
       const file = inp.files && inp.files[0];
       if (!file) return;
       const i = Number(inp.closest('.block-row').dataset.idx);
-      try { draft[i].image = await uploadNewsImage(file); refreshBlocksEditor(a.id); toast('图片已上传'); }
+      const ratio = BLOCK_CROP_RATIO[draft[i].type] || BLOCK_CROP_RATIO.image;
+      const cropped = await openCropModal(file, ratio);
+      inp.value = '';
+      if (!cropped) return;
+      try { draft[i].image = await uploadNewsImage(blobToNamedFile(cropped, file.name)); refreshBlocksEditor(a.id); toast('图片已上传'); }
       catch (e) { toast(e.message, true); }
     };
   });
@@ -1931,8 +2044,12 @@ function wireArticleBody(bodyEl, a) {
   if (coverInput) coverInput.onchange = async () => {
     const file = coverInput.files && coverInput.files[0];
     if (!file) return;
+    const ratio = COVER_CROP_RATIO[a.cover_shape || 'default'] || COVER_CROP_RATIO.default;
+    const cropped = await openCropModal(file, ratio);
+    coverInput.value = '';
+    if (!cropped) return;
     try {
-      a.cover_image = await uploadNewsImage(file);
+      a.cover_image = await uploadNewsImage(blobToNamedFile(cropped, file.name));
       const wrap = bodyEl.querySelector('.cover-thumb-wrap');
       if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
       const hint = bodyEl.querySelector('.cover-path-hint');
@@ -2017,7 +2134,7 @@ function renderNewsTab() {
 
   list.querySelectorAll('.cat-card[data-art]').forEach(row => {
     row.addEventListener('click', (e) => {
-      if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-article-row"]')) return;
+      if (e.target.closest('.drag-handle') || e.target.closest('[data-act="del-article-row"]') || e.target.closest('[data-act="hide-article-row"]')) return;
       newsOpenId = Number(row.dataset.art);
       renderNewsTab();
     });
@@ -2038,6 +2155,22 @@ function renderNewsTab() {
         toast('已删除');
       }
     );
+  });
+  list.querySelectorAll('[data-act="hide-article-row"]').forEach(btn => btn.onclick = async (e) => {
+    e.stopPropagation();
+    const id = Number(btn.closest('.cat-card[data-art]').dataset.art);
+    const a = sorted.find(x => x.id === id);
+    if (!a) return;
+    const nextHidden = !a.is_hidden;
+    btn.disabled = true;
+    try {
+      await api(`/content/news/${id}`, { method: 'PUT', body: JSON.stringify({ isHidden: nextHidden }) });
+      await reload();
+      toast(nextHidden ? '已隐藏，下次发布新闻后网站上就看不到了' : '已取消隐藏，下次发布新闻后网站上会重新出现');
+    } catch (err) {
+      toast(err.message, true);
+      btn.disabled = false;
+    }
   });
 
   initDragSort(list, async (evt) => {
