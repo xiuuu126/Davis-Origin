@@ -2156,10 +2156,8 @@ function newsArticleBodyHtml(a) {
         <button type="button" class="btn ghost sm" data-act="cover-remove">移除</button>
         <button type="button" class="btn danger sm" data-act="cover-photo-del">删除照片</button>
         <select class="a-cover-shape">${coverShapeOptionsHtml(a.cover_shape)}</select>
-        <input type="text" class="a-cover-caption" placeholder="说明文字" value="${esc(a.cover_caption || '')}"
-          style="flex:1;min-width:160px;max-width:340px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px" />
       </div>
-      <div class="hint cover-path-hint">${a.cover_image ? esc(a.cover_image) : '还没上传，网站上先显示占位框'}</div>
+      <div class="hint cover-path-hint"${a.cover_image ? ' style="display:none"' : ''}>${a.cover_image ? '' : '还没上传，网站上先显示占位框'}</div>
     </div>
 
     <div class="hint" style="margin:16px 0 4px">正文内容（<span class="blk-count">${draft.length}</span> 块，从上到下依次显示）</div>
@@ -2430,7 +2428,7 @@ function wireArticleBody(bodyEl, a) {
       a.cover_image = newPath;
       coverThumbWrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
       const hint = bodyEl.querySelector('.cover-path-hint');
-      if (hint) hint.textContent = a.cover_image;
+      if (hint) { hint.textContent = ''; hint.style.display = 'none'; }
       toast('已重新裁剪');
     } catch (e) { toast(e.message, true); }
   };
@@ -2440,7 +2438,7 @@ function wireArticleBody(bodyEl, a) {
     const wrap = bodyEl.querySelector('.cover-thumb-wrap');
     if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
     const hint = bodyEl.querySelector('.cover-path-hint');
-    if (hint) hint.textContent = '还没上传，网站上先显示占位框';
+    if (hint) { hint.textContent = '还没上传，网站上先显示占位框'; hint.style.display = ''; }
   };
   const coverPhotoDelBtn = bodyEl.querySelector('[data-act="cover-photo-del"]');
   if (coverPhotoDelBtn) coverPhotoDelBtn.onclick = () => {
@@ -2452,7 +2450,7 @@ function wireArticleBody(bodyEl, a) {
       const wrap = bodyEl.querySelector('.cover-thumb-wrap');
       if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
       const hint = bodyEl.querySelector('.cover-path-hint');
-      if (hint) hint.textContent = '还没上传，网站上先显示占位框';
+      if (hint) { hint.textContent = '还没上传，网站上先显示占位框'; hint.style.display = ''; }
       toast('已删除');
     });
   };
@@ -2469,7 +2467,7 @@ function wireArticleBody(bodyEl, a) {
       const wrap = bodyEl.querySelector('.cover-thumb-wrap');
       if (wrap) wrap.innerHTML = thumbHtml('cover-thumb', a.cover_image, a.cover_icon, 64, 48);
       const hint = bodyEl.querySelector('.cover-path-hint');
-      if (hint) hint.textContent = a.cover_image;
+      if (hint) { hint.textContent = ''; hint.style.display = 'none'; }
       toast('封面图已上传');
     } catch (e) { toast(e.message, true); }
   };
@@ -2504,7 +2502,6 @@ function wireArticleBody(bodyEl, a) {
           location: bodyEl.querySelector('.a-location').value,
           author: bodyEl.querySelector('.a-author').value,
           coverImage: a.cover_image || '',
-          coverCaption: bodyEl.querySelector('.a-cover-caption').value,
           coverShape: bodyEl.querySelector('.a-cover-shape').value,
         }),
       });

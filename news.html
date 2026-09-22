@@ -419,15 +419,6 @@
     margin-bottom: 8px;
     opacity: 0.85;
   }
-  .article-figure-path {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
-    color: var(--ink-soft);
-    background: rgba(255,255,255,0.7);
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px dashed var(--ink-soft);
-  }
   .article-figure img {
     position: absolute;
     inset: 0;
@@ -608,7 +599,6 @@
     return `<figure class="${cls}" data-path="${escapeHtml(path)}">
       <div class="article-figure-icon">${escapeHtml(icon || '📷')}</div>
       <div class="article-figure-label">${escapeHtml(caption || '')}</div>
-      <div class="article-figure-path">${escapeHtml(path || '')}</div>
       <img src="${escapeHtml(path)}" alt="" onerror="this.style.display='none'" />
     </figure>`;
   }
