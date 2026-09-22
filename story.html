@@ -88,102 +88,240 @@
     animation: fadeUp .9s ease .2s both;
   }
 
+  /* 信纸高度由正文撑开；只有底部信封使用固定的装饰高度。 */
   main.story-page {
-    max-width: 680px; margin: 0 auto;
-    padding: 80px 40px 96px;
+    --letter-line: 2.25rem;
+    --letter-rule-y: 1.875rem;
+    --envelope-front-h: 12.5rem;
+    --envelope-back-h: 14rem;
+    --envelope-flap-h: 6.25rem;
+    --envelope-below-paper: 4.75rem;
+    --paper-side-gap: 1.5rem;
+    --paper-pull-distance: 2.5rem;
+    /* 遮挡深度 + 动画位移 + 一行留白，保证动画中也不盖住正文。 */
+    --paper-tail: calc(
+      var(--envelope-front-h) - var(--envelope-below-paper)
+      + var(--paper-pull-distance) + var(--letter-line)
+    );
+    max-width: 50rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 6rem;
+  }
+
+  .story-letter {
+    position: relative;
+    isolation: isolate;
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 0 var(--paper-side-gap) var(--envelope-below-paper);
+  }
+
+  /* 中间层：留在正常文档流中，不设 height/max-height，不设内部滚动。 */
+  .letter-paper {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    min-width: 0;
+    padding: 2.25rem 2.75rem 0;
+    border: 1px solid rgba(150, 139, 114, .23);
+    border-radius: 3px;
+    background: #fffdf7;
+    color: #28303f;
+    box-shadow:
+      0 7px 26px rgba(20, 26, 43, .14),
+      inset 0 0 25px rgba(170, 144, 91, .04);
+  }
+
+  .letter-paper.is-ready {
+    animation: letterPull 1.05s cubic-bezier(.2, .7, .2, 1) both;
+  }
+
+  .letter-heading { margin-bottom: 1.75rem; }
+  .letter-eyebrow {
+    display: block;
+    margin-bottom: .5rem;
+    font-size: .75rem;
+    line-height: 1.6;
+    letter-spacing: .22em;
+    color: var(--accent);
+  }
+  .letter-heading h2 {
+    margin: 0;
+    font-family: "Songti SC", "STSong", SimSun, Georgia, serif;
+    font-size: 1.8125rem;
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: .08em;
+  }
+
+  /* 所有文本块共用同一组横线，段间空白也占整行，避免横线错位。 */
+  .story-body {
+    display: flow-root;
+    position: relative;
+    padding-bottom: var(--paper-tail);
     font-family: "Songti SC", "Source Han Serif SC", "Noto Serif SC",
                  "STSong", SimSun, Georgia, "Times New Roman", serif;
-    font-size: 19px;
-    line-height: 2.05;
-    color: var(--ink);
-    letter-spacing: 0.02em;
+    font-size: 1.125rem;
     font-weight: 400;
+    line-height: var(--letter-line);
+    letter-spacing: .02em;
+    overflow-wrap: anywhere;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent var(--letter-rule-y),
+      rgba(91, 120, 156, .19) var(--letter-rule-y),
+      rgba(91, 120, 156, .19) calc(var(--letter-rule-y) + 1px),
+      transparent calc(var(--letter-rule-y) + 1px),
+      transparent var(--letter-line)
+    );
   }
-  .story-body p {
-    margin-bottom: 28px;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeUp .8s ease forwards;
-  }
-  .story-body p:nth-child(1) { animation-delay: .15s; }
-  .story-body p:nth-child(2) { animation-delay: .25s; }
-  .story-body p:nth-child(3) { animation-delay: .35s; }
-  .story-body p:nth-child(4) { animation-delay: .45s; }
-  .story-body p:nth-child(5) { animation-delay: .55s; }
-  .story-body p:nth-child(6) { animation-delay: .65s; }
-  .story-body p:last-child { margin-bottom: 0; }
-  .story-body p.lead::first-letter {
-    float: left;
-    font-family: "Songti SC", "Noto Serif SC", "STSong", SimSun, Georgia, serif;
-    font-size: 66px;
-    font-weight: 900;
-    line-height: 0.78;
-    color: var(--accent);
-    padding: 6px 10px 0 0;
-  }
-  .story-divider {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 52px 0 40px;
-    opacity: 0;
-    animation: fadeUp .8s ease .3s forwards;
-  }
-  .story-divider::before {
-    content: '';
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
-    opacity: 0.55;
-  }
-  .story-quote {
-    position: relative;
-    overflow: hidden;
-    margin: 0 0 48px;
-    padding: 40px 44px 36px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    border-left: 4px solid var(--accent);
-    font-size: 23px;
-    font-weight: 700;
-    color: var(--ink);
-    line-height: 1.5;
-    letter-spacing: -0.005em;
-    box-shadow: 0 14px 32px rgba(13, 18, 36, 0.06);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeUp .8s ease .8s forwards;
-  }
-  .story-quote::before {
-    content: '\201C';
+  .story-body::before {
+    content: "";
     position: absolute;
-    top: -18px;
-    left: 20px;
-    font-size: 96px;
-    font-weight: 900;
-    font-family: Georgia, "Songti SC", serif;
-    color: var(--accent-soft);
-    line-height: 1;
-    z-index: 0;
+    top: 0;
+    bottom: 0;
+    left: -1.125rem;
+    width: 1px;
+    background: rgba(178, 94, 79, .2);
+    pointer-events: none;
   }
-  .story-quote-text {
-    position: relative;
-    z-index: 1;
+  .story-body p,
+  .story-body blockquote {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: inherit;
+    line-height: inherit;
   }
-  .story-quote cite {
-    position: relative;
-    z-index: 1;
-    display: block;
-    margin-top: 16px;
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
+  .story-body > * + * { margin-top: var(--letter-line); }
+
+  /* 引用直接排在信纸上，不再使用独立卡片或大引号。 */
+  .story-body .story-quote {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
     font-style: normal;
-    font-weight: 600;
   }
+  .story-quote-text { color: var(--accent); font-weight: 600; }
+  .story-quote cite {
+    display: block;
+    font-size: .9375rem;
+    line-height: var(--letter-line);
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: .03em;
+    text-align: right;
+    color: var(--ink-soft);
+  }
+
+  /* 后层：信封背面和打开的信封盖，位于信纸下面。 */
+  .letter-envelope-back {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--envelope-back-h);
+    border-radius: 5px;
+    background: #182f6d;
+    box-shadow: 0 14px 28px rgba(20, 26, 43, .17);
+    pointer-events: none;
+  }
+  .letter-envelope-back::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(0px - var(--envelope-flap-h) + 1px);
+    height: var(--envelope-flap-h);
+    background: #182f6d;
+    clip-path: polygon(0 100%, 50% 0, 100% 100%);
+  }
+
+  /* 前层：只盖住信纸尾部的留白，V 形开口形成纸插在信封内的感觉。 */
+  .letter-envelope-front {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--envelope-front-h);
+    overflow: hidden;
+    border-radius: 0 0 5px 5px;
+    background: #24438c;
+    clip-path: polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%);
+    pointer-events: none;
+    user-select: none;
+  }
+  .letter-envelope-left,
+  .letter-envelope-right,
+  .letter-envelope-bottom { position: absolute; inset: 0; }
+  .letter-envelope-left {
+    background: #294b98;
+    clip-path: polygon(0 0, 56% 100%, 0 100%);
+  }
+  .letter-envelope-right {
+    background: #203b7d;
+    clip-path: polygon(100% 0, 44% 100%, 100% 100%);
+  }
+  .letter-envelope-bottom {
+    background: linear-gradient(180deg, #24438c, #2b4a94);
+    clip-path: polygon(0 100%, 50% 40%, 100% 100%);
+  }
+  .letter-envelope-name {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1.25rem;
+    color: #f1ede2;
+    font-size: .8125rem;
+    line-height: 1.8;
+    letter-spacing: .2em;
+    text-align: center;
+  }
+  .letter-envelope-name span {
+    display: block;
+    margin-top: .2rem;
+    font-family: "Songti SC", "STSong", SimSun, serif;
+    font-size: .75rem;
+    letter-spacing: .12em;
+    opacity: .85;
+  }
+
+  @keyframes letterPull {
+    from { transform: translateY(var(--paper-pull-distance)); }
+    to { transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    main.story-page { padding: 2.5rem 1rem 4rem; }
+  }
+  @media (max-width: 480px) {
+    main.story-page {
+      --letter-line: 2rem;
+      --letter-rule-y: 1.6875rem;
+      --paper-side-gap: .75rem;
+      --envelope-front-h: 10rem;
+      --envelope-back-h: 11rem;
+      --envelope-flap-h: 4.5rem;
+      --envelope-below-paper: 4rem;
+      padding: 2rem .75rem 3.5rem;
+    }
+    .letter-paper { padding: 1.625rem 1.375rem 0; }
+    .letter-heading { margin-bottom: 1.25rem; }
+    .letter-heading h2 { font-size: 1.5625rem; }
+    .story-body { font-size: 1rem; }
+    .story-body::before { left: -.625rem; }
+    .letter-envelope-name { bottom: .9375rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .letter-paper.is-ready,
+    .page-eyebrow,
+    .page-title,
+    .page-lede { animation: none; transform: none; opacity: 1; }
+  }
+
 
   footer {
     padding: 40px; text-align: center;
@@ -205,11 +343,6 @@
     .back-link { padding: 8px 12px; font-size: 12px; }
     .page-hero { padding: 56px 22px 32px; }
     .page-lede { font-size: 15px; }
-    main.story-page { padding: 48px 22px 64px; font-size: 16px; }
-    .story-body p.lead::first-letter { font-size: 46px; padding: 4px 8px 0 0; }
-    .story-divider { margin: 36px 0 28px; }
-    .story-quote { padding: 26px 22px 22px; font-size: 19px; margin: 0 0 36px; }
-    .story-quote::before { font-size: 64px; top: -10px; left: 14px; }
   }
 </style>
 </head>
@@ -234,7 +367,27 @@
 </section>
 
 <main class="story-page">
-  <div class="story-body" id="storyBody"></div>
+  <div class="story-letter">
+    <div class="letter-envelope-back" aria-hidden="true"></div>
+
+    <article class="letter-paper" id="storyPaper" aria-labelledby="letterTitle">
+      <header class="letter-heading">
+        <span class="letter-eyebrow">DAVIS ORIGIN</span>
+        <h2 id="letterTitle">我们的故事</h2>
+      </header>
+      <div class="story-body" id="storyBody"></div>
+    </article>
+
+    <div class="letter-envelope-front" aria-hidden="true">
+      <div class="letter-envelope-left"></div>
+      <div class="letter-envelope-right"></div>
+      <div class="letter-envelope-bottom"></div>
+      <div class="letter-envelope-name">
+        DAVIS ORIGIN
+        <span>岂曰无衣？与子同袍。</span>
+      </div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -245,7 +398,7 @@
 <script src="story-data.js"></script>
 <script>
 /** 故事正文由内容管理后台生成（story-data.js -> window.STORY_DATA），
- *  文字支持轻量 markdown（**加粗**、_斜体_），渲染成跟原来手写页面一样的段落/引用结构。 */
+ *  文字继续支持 **加粗**、_斜体_ 和颜色标记，正文与引用统一排在横线信纸上。 */
 function escHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -258,23 +411,34 @@ function liteMdToHtml(text) {
     .replace(/\{\{c:(#[0-9a-fA-F]{3,8})\}\}([\s\S]*?)\{\{\/c\}\}/g, '<span style="color:$1">$2</span>')
     .replace(/\n/g, '<br>');
 }
+/** 保留 story-data.js -> window.STORY_DATA.blocks 的数据入口。 */
 function renderStory() {
-  const blocks = (window.STORY_DATA && window.STORY_DATA.blocks) || [];
   const body = document.getElementById('storyBody');
+  const paper = document.getElementById('storyPaper');
+  if (!body) return;
+
+  const source = window.STORY_DATA && window.STORY_DATA.blocks;
+  const blocks = Array.isArray(source)
+    ? source.filter(block => block && typeof block === 'object')
+    : [];
+
   if (!blocks.length) {
     body.innerHTML = '<p>正文还在整理中。</p>';
-    return;
+  } else {
+    body.innerHTML = blocks.map(block => {
+      const text = liteMdToHtml(block.text || '');
+      if (block.type === 'quote') {
+        const cite = block.cite
+          ? `<cite>${escHtml(block.cite)}</cite>`
+          : '';
+        return `<blockquote class="story-quote"><p class="story-quote-text">${text}</p>${cite}</blockquote>`;
+      }
+      return `<p>${text}</p>`;
+    }).join('');
   }
-  let leadUsed = false;
-  body.innerHTML = blocks.map((b, i) => {
-    if (b.type === 'quote') {
-      const divider = i > 0 ? '<div class="story-divider" aria-hidden="true"></div>' : '';
-      return `${divider}<div class="story-quote"><div class="story-quote-text">${liteMdToHtml(b.text)}</div>${b.cite ? `<cite>${escHtml(b.cite)}</cite>` : ''}</div>`;
-    }
-    const cls = !leadUsed ? ' class="lead"' : '';
-    leadUsed = true;
-    return `<p${cls}>${liteMdToHtml(b.text)}</p>`;
-  }).join('');
+
+  // 内容渲染完才开始一次轻微的抽出动画；不测量或计算纸张高度。
+  if (paper) paper.classList.add('is-ready');
 }
 renderStory();
 </script>
