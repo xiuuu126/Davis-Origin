@@ -116,6 +116,7 @@ window.SEASON_DATA = {
       "id": "25-26",
       "label": "25-26 赛季",
       "current": false,
+      "placeholder": true,
       "lede": "2026 五月 · 北加联赛季圆满收官。Fight on.",
       "highlights": [
         "共 55 名学生与校友球员，覆盖一队与预备队",
@@ -205,23 +206,6 @@ window.SEASON_DATA = {
           "label": "北加联",
           "order": 1,
           "matches": [
-            {
-              "date": "may 15",
-              "time": "11",
-              "tag": "北加联",
-              "team1": {
-                "name": "Davis Origin",
-                "davis": true,
-                "winner": true
-              },
-              "team2": {
-                "name": "abc",
-                "davis": false,
-                "winner": false
-              },
-              "score": "6 : 1",
-              "result": "win"
-            },
             {
               "date": "May 10",
               "time": "19:45",
@@ -365,23 +349,6 @@ window.SEASON_DATA = {
               "result": "win"
             },
             {
-              "date": "Mar 20",
-              "time": "14:00",
-              "tag": "校际杯",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "UCI",
-                "davis": false,
-                "winner": true
-              },
-              "score": "1 : 3",
-              "result": "loss"
-            },
-            {
               "date": "Mar 21",
               "time": "11:00",
               "tag": "校际杯",
@@ -399,55 +366,21 @@ window.SEASON_DATA = {
               "result": "draw"
             },
             {
-              "date": "Mar 21",
-              "time": "15:00",
-              "tag": "校际杯",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "Cal Poly",
-                "davis": false,
-                "winner": true
-              },
-              "score": "0 : 2",
-              "result": "loss"
-            },
-            {
               "date": "Mar 22",
               "time": "09:30",
               "tag": "校际杯",
               "team1": {
                 "name": "Davis Origin",
                 "davis": true,
-                "winner": false
+                "winner": true
               },
               "team2": {
-                "name": "UCSD",
+                "name": "UCSB",
                 "davis": false,
                 "winner": false
               },
-              "score": "0 : 0",
-              "result": "draw"
-            },
-            {
-              "date": "Mar 22",
-              "time": "13:00",
-              "tag": "校际杯",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "UCSD B",
-                "davis": false,
-                "winner": false
-              },
-              "score": "1 : 1",
-              "result": "draw"
+              "score": "2 : 1",
+              "result": "win"
             }
           ]
         },
@@ -474,23 +407,6 @@ window.SEASON_DATA = {
             },
             {
               "date": "Jan 16",
-              "time": "11:30",
-              "tag": "贺岁杯",
-              "team1": {
-                "name": "Davis Origin",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "South Bay",
-                "davis": false,
-                "winner": true
-              },
-              "score": "1 : 2",
-              "result": "loss"
-            },
-            {
-              "date": "Jan 16",
               "time": "13:30",
               "tag": "贺岁杯",
               "team1": {
@@ -505,116 +421,30 @@ window.SEASON_DATA = {
               },
               "score": "1 : 1",
               "result": "draw"
+            },
+            {
+              "date": "Jan 17",
+              "time": "11:30",
+              "tag": "贺岁杯",
+              "team1": {
+                "name": "Davis Origin",
+                "davis": true,
+                "winner": false
+              },
+              "team2": {
+                "name": "South Bay",
+                "davis": false,
+                "winner": true
+              },
+              "score": "1 : 2",
+              "result": "loss"
             }
           ]
         },
         "huati": {
           "label": "华体会",
           "order": 4,
-          "matches": [
-            {
-              "date": "Nov 8",
-              "time": "10:00",
-              "tag": "华体会",
-              "team1": {
-                "name": "Davis Origin",
-                "davis": true,
-                "winner": true
-              },
-              "team2": {
-                "name": "UC Berkeley",
-                "davis": false,
-                "winner": false
-              },
-              "score": "3 : 2",
-              "result": "win"
-            },
-            {
-              "date": "Nov 8",
-              "time": "13:00",
-              "tag": "华体会",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": true
-              },
-              "team2": {
-                "name": "UC Berkeley B",
-                "davis": false,
-                "winner": false
-              },
-              "score": "1 : 0",
-              "result": "win"
-            },
-            {
-              "date": "Nov 9",
-              "time": "11:00",
-              "tag": "华体会",
-              "team1": {
-                "name": "Davis Origin",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "Stanford",
-                "davis": false,
-                "winner": false
-              },
-              "score": "2 : 2",
-              "result": "draw"
-            },
-            {
-              "date": "Nov 9",
-              "time": "14:00",
-              "tag": "华体会",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "Stanford B",
-                "davis": false,
-                "winner": true
-              },
-              "score": "1 : 4",
-              "result": "loss"
-            },
-            {
-              "date": "Nov 15",
-              "time": "10:30",
-              "tag": "华体会",
-              "team1": {
-                "name": "Davis Origin",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "San Jose State",
-                "davis": false,
-                "winner": true
-              },
-              "score": "0 : 1",
-              "result": "loss"
-            },
-            {
-              "date": "Nov 15",
-              "time": "13:30",
-              "tag": "华体会",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "San Jose State B",
-                "davis": false,
-                "winner": false
-              },
-              "score": "0 : 0",
-              "result": "draw"
-            }
-          ]
+          "matches": []
         }
       },
       "teams": {
@@ -677,23 +507,6 @@ window.SEASON_DATA = {
               "venue": "北加州各赛区",
               "schedule": "2026 年 5 月",
               "matches": [
-                {
-                  "date": "may 15",
-                  "time": "11",
-                  "tag": "北加联",
-                  "team1": {
-                    "name": "Davis Origin",
-                    "davis": true,
-                    "winner": true
-                  },
-                  "team2": {
-                    "name": "abc",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "6 : 1",
-                  "result": "win"
-                },
                 {
                   "date": "May 16",
                   "time": "10:00",
@@ -811,15 +624,15 @@ window.SEASON_DATA = {
                   "team1": {
                     "name": "Davis Origin",
                     "davis": true,
-                    "winner": false
+                    "winner": true
                   },
                   "team2": {
-                    "name": "UCSD",
+                    "name": "UCSB",
                     "davis": false,
                     "winner": false
                   },
-                  "score": "0 : 0",
-                  "result": "draw"
+                  "score": "2 : 1",
+                  "result": "win"
                 }
               ]
             },
@@ -847,7 +660,7 @@ window.SEASON_DATA = {
                   "result": "win"
                 },
                 {
-                  "date": "Jan 16",
+                  "date": "Jan 17",
                   "time": "11:30",
                   "tag": "贺岁杯",
                   "team1": {
@@ -870,59 +683,7 @@ window.SEASON_DATA = {
               "order": 4,
               "venue": "北加州湾区",
               "schedule": "2025 年 11 月",
-              "matches": [
-                {
-                  "date": "Nov 8",
-                  "time": "10:00",
-                  "tag": "华体会",
-                  "team1": {
-                    "name": "Davis Origin",
-                    "davis": true,
-                    "winner": true
-                  },
-                  "team2": {
-                    "name": "UC Berkeley",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "3 : 2",
-                  "result": "win"
-                },
-                {
-                  "date": "Nov 9",
-                  "time": "11:00",
-                  "tag": "华体会",
-                  "team1": {
-                    "name": "Davis Origin",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "Stanford",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "2 : 2",
-                  "result": "draw"
-                },
-                {
-                  "date": "Nov 15",
-                  "time": "10:30",
-                  "tag": "华体会",
-                  "team1": {
-                    "name": "Davis Origin",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "San Jose State",
-                    "davis": false,
-                    "winner": true
-                  },
-                  "score": "0 : 1",
-                  "result": "loss"
-                }
-              ]
+              "matches": []
             }
           }
         },
@@ -1029,59 +790,7 @@ window.SEASON_DATA = {
               "order": 2,
               "venue": "加州尔湾",
               "schedule": "2026 年 3 月 20–22 日",
-              "matches": [
-                {
-                  "date": "Mar 20",
-                  "time": "14:00",
-                  "tag": "校际杯",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "UCI",
-                    "davis": false,
-                    "winner": true
-                  },
-                  "score": "1 : 3",
-                  "result": "loss"
-                },
-                {
-                  "date": "Mar 21",
-                  "time": "15:00",
-                  "tag": "校际杯",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "Cal Poly",
-                    "davis": false,
-                    "winner": true
-                  },
-                  "score": "0 : 2",
-                  "result": "loss"
-                },
-                {
-                  "date": "Mar 22",
-                  "time": "13:00",
-                  "tag": "校际杯",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "UCSD B",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "1 : 1",
-                  "result": "draw"
-                }
-              ]
+              "matches": []
             },
             "xinnian": {
               "label": "贺岁杯",
@@ -1113,59 +822,7 @@ window.SEASON_DATA = {
               "order": 4,
               "venue": "北加州湾区",
               "schedule": "2025 年 11 月",
-              "matches": [
-                {
-                  "date": "Nov 8",
-                  "time": "13:00",
-                  "tag": "华体会",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": true
-                  },
-                  "team2": {
-                    "name": "UC Berkeley B",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "1 : 0",
-                  "result": "win"
-                },
-                {
-                  "date": "Nov 9",
-                  "time": "14:00",
-                  "tag": "华体会",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "Stanford B",
-                    "davis": false,
-                    "winner": true
-                  },
-                  "score": "1 : 4",
-                  "result": "loss"
-                },
-                {
-                  "date": "Nov 15",
-                  "time": "13:30",
-                  "tag": "华体会",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "San Jose State B",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "0 : 0",
-                  "result": "draw"
-                }
-              ]
+              "matches": []
             }
           }
         }
@@ -1178,8 +835,7 @@ window.SEASON_DATA = {
       "placeholder": true,
       "lede": "预备队建队、走上更大舞台的一年。",
       "highlights": [
-        "预备队建队，让更多队员踢上比赛、找到适合自己的踢球环境",
-        "华体会 2025 · 亚军"
+        "预备队建队，让更多队员踢上比赛、找到适合自己的踢球环境"
       ],
       "roster": {
         "gk": [],
