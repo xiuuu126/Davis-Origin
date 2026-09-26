@@ -843,29 +843,7 @@ window.SEASON_DATA = {
         "mid": [],
         "fwd": []
       },
-      "matches": {
-        "league": {
-          "label": "北加联",
-          "order": 1,
-          "matches": []
-        },
-        "jiaoji": {
-          "label": "校际杯",
-          "order": 2,
-          "matches": []
-        },
-        "huati": {
-          "label": "华体会",
-          "order": 4,
-          "matches": [],
-          "note": "华体会 2025 亚军——具体逐场比分还没整理。"
-        },
-        "xinnian": {
-          "label": "贺岁杯",
-          "order": 3,
-          "matches": []
-        }
-      },
+      "matches": {},
       "teams": {
         "first": {
           "label": "一队",
@@ -875,29 +853,7 @@ window.SEASON_DATA = {
             "mid": [],
             "fwd": []
           },
-          "matches": {
-            "league": {
-              "label": "北加联",
-              "order": 1,
-              "matches": []
-            },
-            "jiaoji": {
-              "label": "校际杯",
-              "order": 2,
-              "matches": []
-            },
-            "huati": {
-              "label": "华体会",
-              "order": 4,
-              "matches": [],
-              "note": "华体会 2025 亚军——具体逐场比分还没整理。"
-            },
-            "xinnian": {
-              "label": "贺岁杯",
-              "order": 3,
-              "matches": []
-            }
-          }
+          "matches": {}
         },
         "reserve": {
           "label": "预备队",
@@ -907,28 +863,7 @@ window.SEASON_DATA = {
             "mid": [],
             "fwd": []
           },
-          "matches": {
-            "league": {
-              "label": "北加联",
-              "order": 1,
-              "matches": []
-            },
-            "jiaoji": {
-              "label": "校际杯",
-              "order": 2,
-              "matches": []
-            },
-            "huati": {
-              "label": "华体会",
-              "order": 4,
-              "matches": []
-            },
-            "xinnian": {
-              "label": "贺岁杯",
-              "order": 3,
-              "matches": []
-            }
-          },
+          "matches": {},
           "note": "预备队这一年刚成立，名单和比赛记录还在整理。"
         }
       }
