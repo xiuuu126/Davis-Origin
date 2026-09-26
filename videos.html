@@ -245,6 +245,19 @@
     background: rgba(255,255,255,0.22);
     font-size: 9px;
   }
+  .video-status-pending {
+    display: inline-flex;
+    align-items: center;
+    padding: 11px 24px;
+    background: var(--line);
+    color: var(--muted);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: default;
+    user-select: none;
+  }
 
   /* Coming soon card */
   .video-card.placeholder {
@@ -290,6 +303,7 @@
     .video-meta { gap: 4px; }
     .video-tournament { font-size: 10px; }
     .video-link { padding: 10px 18px; font-size: 12px; }
+    .video-status-pending { padding: 10px 18px; font-size: 12px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -358,7 +372,9 @@ function videoCardHtml(v, idx) {
           <span class="play">▶</span>看录像
         </a>
       </div>`
-    : '';
+    : `<div class="video-link-wrap">
+        <span class="video-status-pending">录像整理中</span>
+      </div>`;
   return `<article class="video-card" style="animation-delay: ${delay}s;">
       <div class="video-meta">
         <span class="video-tournament">${escHtml(v.tournament)}</span>

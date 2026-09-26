@@ -398,6 +398,7 @@
     flex-direction: column;
     padding: 20px;
   }
+  .article-figure[hidden] { display: none !important; }
   .article-figure-portrait { aspect-ratio: 3 / 4; }
   .article-figure-wide { aspect-ratio: 16 / 9; }
   .article-figure-square { aspect-ratio: 1 / 1; }
@@ -594,12 +595,20 @@
   }
 
   const FIGURE_SHAPE_CLASS = { wide: 'article-figure-wide', square: 'article-figure-square', portrait: 'article-figure-portrait', default: '' };
+  // 图片块：路径为空 / 加载失败(404 等) 时，整块 figure（背景、相机图标、占位文字、
+  // 预留高度）一起隐藏，不是只隐藏 <img>。默认就是 hidden，只有确认加载成功才
+  // 显示出来，避免"先闪一下占位框，又消失"。空路径完全不生成 <img>，不会输出
+  // src=""。没有用 loading="lazy"，隐藏状态不会挡住图片开始加载。
   function figureHtml(shapeClass, path, icon, caption) {
     const cls = 'article-figure' + (shapeClass ? ' ' + shapeClass : '');
-    return `<figure class="${cls}" data-path="${escapeHtml(path)}">
+    const hasPath = !!(path && String(path).trim());
+    if (!hasPath) {
+      return `<figure class="${cls}" data-path="" data-icon="${escapeHtml(icon || '')}" data-caption="${escapeHtml(caption || '')}" hidden></figure>`;
+    }
+    return `<figure class="${cls}" data-path="${escapeHtml(path)}" data-icon="${escapeHtml(icon || '')}" data-caption="${escapeHtml(caption || '')}" hidden>
       <div class="article-figure-icon">${escapeHtml(icon || '📷')}</div>
       <div class="article-figure-label">${escapeHtml(caption || '')}</div>
-      <img src="${escapeHtml(path)}" alt="" onerror="this.style.display='none'" />
+      <img src="${escapeHtml(path)}" alt="" onload="this.closest('figure').removeAttribute('hidden')" onerror="this.closest('figure').classList.add('article-figure-broken')" />
     </figure>`;
   }
   function blockHtml(b) {
@@ -692,8 +701,31 @@
   const listView = document.getElementById('viewList');
   const articleViews = document.querySelectorAll('.view-article');
 
+  // 旧文章 ID 兼容：这些 ID 对应的文章内容跟保留下来的某一篇完全重复，
+  // 后台已把重复的隐藏/合并；别人可能收藏过旧链接（#n15 这种），打开时
+  // 自动跳到保留下来的那篇，而不是显示"找不到"。
+  const OLD_ARTICLE_REDIRECT = {
+    'n15': 'n1', 'n30': 'n1',
+    'n16': 'n2', 'n31': 'n2',
+    'n17': 'n3', 'n32': 'n3',
+    'n18': 'n4', 'n33': 'n4',
+    'n19': 'n5', 'n34': 'n5',
+    'n20': 'n6', 'n35': 'n6',
+    'n21': 'n7', 'n36': 'n7',
+    'n22': 'n8', 'n37': 'n8',
+    'n23': 'n9', 'n38': 'n9',
+    'n24': 'n10', 'n39': 'n10',
+    'n25': 'n11', 'n40': 'n11',
+    'n26': 'n12', 'n41': 'n12',
+    'n27': 'n13', 'n42': 'n13',
+    'n28': 'n14', 'n43': 'n14',
+  };
   function render() {
-    const hash = window.location.hash.replace('#', '');
+    let hash = window.location.hash.replace('#', '');
+    if (hash && OLD_ARTICLE_REDIRECT[hash] && !document.getElementById(hash)) {
+      hash = OLD_ARTICLE_REDIRECT[hash];
+      history.replaceState(null, '', '#' + hash);
+    }
     if (hash && document.getElementById(hash)) {
       listView.style.display = 'none';
       articleViews.forEach(a => a.classList.remove('active'));

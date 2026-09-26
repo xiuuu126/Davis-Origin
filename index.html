@@ -439,6 +439,13 @@
     text-transform: uppercase;
     margin-top: 4px;
   }
+  .season-stat .num-pending {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.3;
+  }
   .season-highlights {
     list-style: none;
     margin: 0 0 26px;
@@ -846,6 +853,7 @@
     .season-panel { padding: 24px 20px; }
     .season-stat-row { grid-template-columns: repeat(4, 1fr); gap: 4px; }
     .season-stat .num { font-size: 21px; }
+    .season-stat .num-pending { font-size: 11px; }
     footer { padding: 40px 22px; }
   }
   @media (min-width: 961px) {
@@ -975,7 +983,7 @@
             </div>
             <div class="history-mini-item now">
               <div class="history-mini-year">现在 · NOW</div>
-              <div class="history-mini-title">赛季落幕，短暂休整，26-27 赛季即将启程。</div>
+              <div class="history-mini-title">26-27 新赛季训练已经开始，名单和比赛安排仍在整理。</div>
             </div>
           </div>
           <a class="brief-link brief-split-more" href="history.html">完整时间线 <span>→</span></a>
@@ -1327,12 +1335,15 @@
     const played = rec.w + rec.d + rec.l;
     const total = rosterTotal(s);
 
+    const totalCellHtml = total > 0
+      ? `<div class="season-stat"><span class="num">${total}</span><span class="lbl">球员</span></div>`
+      : `<div class="season-stat"><span class="num-pending">名单整理中</span></div>`;
     const statsHtml = `
       <div class="season-stat-row">
         <div class="season-stat"><span class="num">${played > 0 ? rec.w : '–'}</span><span class="lbl">胜 W</span></div>
         <div class="season-stat"><span class="num">${played > 0 ? rec.d : '–'}</span><span class="lbl">平 D</span></div>
         <div class="season-stat"><span class="num">${played > 0 ? rec.l : '–'}</span><span class="lbl">负 L</span></div>
-        <div class="season-stat"><span class="num">${total}</span><span class="lbl">球员</span></div>
+        ${totalCellHtml}
       </div>`;
 
     const highlightsHtml = (s.highlights && s.highlights.length)
