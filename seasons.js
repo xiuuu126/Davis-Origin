@@ -338,15 +338,15 @@ window.SEASON_DATA = {
               "team1": {
                 "name": "Davis Origin",
                 "davis": true,
-                "winner": true
+                "winner": false
               },
               "team2": {
-                "name": "USC",
+                "name": "UCSD",
                 "davis": false,
                 "winner": false
               },
-              "score": "2 : 1",
-              "result": "win"
+              "score": "1 : 1",
+              "result": "draw"
             },
             {
               "date": "Mar 21",
@@ -358,7 +358,7 @@ window.SEASON_DATA = {
                 "winner": false
               },
               "team2": {
-                "name": "UCLA",
+                "name": "UCI",
                 "davis": false,
                 "winner": false
               },
@@ -404,23 +404,6 @@ window.SEASON_DATA = {
               },
               "score": "2 : 0",
               "result": "win"
-            },
-            {
-              "date": "Jan 16",
-              "time": "13:30",
-              "tag": "贺岁杯",
-              "team1": {
-                "name": "Davis Origin Reverse",
-                "davis": true,
-                "winner": false
-              },
-              "team2": {
-                "name": "SF United",
-                "davis": false,
-                "winner": false
-              },
-              "score": "1 : 1",
-              "result": "draw"
             },
             {
               "date": "Jan 17",
@@ -590,15 +573,15 @@ window.SEASON_DATA = {
                   "team1": {
                     "name": "Davis Origin",
                     "davis": true,
-                    "winner": true
+                    "winner": false
                   },
                   "team2": {
-                    "name": "USC",
+                    "name": "UCSD",
                     "davis": false,
                     "winner": false
                   },
-                  "score": "2 : 1",
-                  "result": "win"
+                  "score": "1 : 1",
+                  "result": "draw"
                 },
                 {
                   "date": "Mar 21",
@@ -610,7 +593,7 @@ window.SEASON_DATA = {
                     "winner": false
                   },
                   "team2": {
-                    "name": "UCLA",
+                    "name": "UCI",
                     "davis": false,
                     "winner": false
                   },
@@ -797,25 +780,7 @@ window.SEASON_DATA = {
               "order": 3,
               "venue": "北美湾区",
               "schedule": "2026 年 1 月 16 日",
-              "matches": [
-                {
-                  "date": "Jan 16",
-                  "time": "13:30",
-                  "tag": "贺岁杯",
-                  "team1": {
-                    "name": "Davis Origin Reverse",
-                    "davis": true,
-                    "winner": false
-                  },
-                  "team2": {
-                    "name": "SF United",
-                    "davis": false,
-                    "winner": false
-                  },
-                  "score": "1 : 1",
-                  "result": "draw"
-                }
-              ]
+              "matches": []
             },
             "huati": {
               "label": "华体会",
