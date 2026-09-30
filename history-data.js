@@ -37,17 +37,15 @@ window.HISTORY_DATA = {
       "items": [
         {
           "id": 2,
-          "dateLabel": "2024 · Champion",
-          "title": "北加联 · 冠军",
-          "isTrophy": true,
-          "tier": "gold",
+          "dateLabel": "2024 · 启航",
+          "title": "北加联 · 惜败冠军",
+          "isTrophy": false,
+          "tier": "",
           "isNow": false,
-          "description": "**真正意义上的崛起**。这一座冠军奖杯，是过去几年坚持的回报，\n也是戴维斯新时代的开端。",
+          "description": "**真正意义上的立足**。这一场经典比赛，是过去几年坚持的回报，\n也是戴维斯新时代的开端。",
           "quote": "",
           "tags": [
-            "北加联",
-            "冠军",
-            "里程碑"
+            "北加联"
           ]
         }
       ]
@@ -142,13 +140,15 @@ window.HISTORY_DATA = {
           "isTrophy": false,
           "tier": "",
           "isNow": false,
-          "description": "一队小组赛**一胜两平**。和 UCSD 同分同净胜球，差两个进球进决赛；\n击败 USC（柴泓旭半场迎球吊射）；对阵 UCLA 由**于霆访**角球助攻\n**李润泽**头球破门。最后一队第四，二队第六。",
+          "description": "一队小组赛一胜两平：战平 UCSD 1:1、战平 UCI 1:1、力克 UCSB 2:1，与 UCSD 同分同净胜球，差两个进球无缘决赛，最终排名第四。\n\n二队小组赛也是打入两球，但两负小组赛对手：对阵 USC，**柴泓旭**半场迎球吊射，让 USC 未能进入决赛；对阵 UCLA，**于霆访**角球开到门前、**李润泽**甩头攻门。最后定位赛两球小负 UCI，二队最终排名第六。",
           "quote": "爱球队和球队里的人，我们才变成最拼的球队。",
           "tags": [
-            "vs UCSD",
-            "vs USC",
-            "vs UCLA",
-            "vs UCI"
+            "一队 vs UCSD",
+            "一队 vs UCI",
+            "一队 vs UCSB",
+            "二队 vs USC",
+            "二队 vs UCLA",
+            "二队 vs UCI"
           ]
         },
         {
@@ -229,11 +229,11 @@ window.HISTORY_DATA = {
         {
           "id": 14,
           "dateLabel": "现在 · NOW",
-          "title": "赛季落幕，短暂休整",
+          "title": "赛季落幕，26-27 新赛季训练已经开始",
           "isTrophy": false,
           "tier": "",
           "isNow": true,
-          "description": "2026 北加联、加州校际杯、北美湾区贺岁杯——这一年的征程都已经收官。\n**南下未尝败绩，北上手起刀落**。\n\n赛季落幕，短暂休整。**下一段征程，仍在路上**。",
+          "description": "2026 北加联、加州校际杯、北美湾区贺岁杯——上一年的征程都已收官。\n**南下未尝败绩，北上手起刀落**。\n\n26-27 新赛季训练已经开始，名单和比赛安排仍在整理。**下一段征程，正在路上**。",
           "quote": "谢谢这一年。Davis Origin，期待再见。",
           "tags": []
         }
