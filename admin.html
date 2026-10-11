@@ -940,6 +940,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.3/dist/index.js"></script>
 <script>
 /* ===================== 配置 ===================== */
 
@@ -1619,18 +1620,35 @@ function hasExemptThisTerm(name){
   return (t.sessions||[]).some(s => (s.exempt||[]).includes(name));
 }
 
+let qMatchAlias = new Map();   // 当前搜索命中英文名/外号/拼音时：中文名 -> 命中的别名文本
 function renderCodes(){
   const body = $('codeBody');
   const all = D.codes || [];
 
-  // 搜索：名字 / 号码 / 分组 / 查询码
-  const q = norm($('qPlayer')?.value || '');
+  // 搜索：名字 / 号码 / 分组 / 查询码 / 英文名 / 外号 / 拼音（含首字母）
+  const qRaw = ($('qPlayer')?.value || '').trim();
+  const q = norm(qRaw);
+  qMatchAlias = new Map();
   const list = q
-    ? all.filter(c =>
-        norm(c.name).includes(q) ||
-        String(c.number||'').includes(q) ||
-        norm(c.tag||'').includes(q) ||
-        norm(c.code||'').includes(q))
+    ? all.filter(c => {
+        if (norm(c.name).includes(q) ||
+            String(c.number||'').includes(q) ||
+            norm(c.tag||'').includes(q) ||
+            norm(c.code||'').includes(q)) return true;
+        if (c.englishName && norm(c.englishName).includes(q)) { qMatchAlias.set(c.name, c.englishName); return true; }
+        if (c.nickname && norm(c.nickname).includes(q)) { qMatchAlias.set(c.name, c.nickname); return true; }
+        if (window.pinyinPro && typeof window.pinyinPro.match === 'function') {
+          try {
+            const r = window.pinyinPro.match(c.name, qRaw);
+            if (r && r.length) {
+              const py = window.pinyinPro.pinyin(c.name, { toneType: 'none', type: 'string' }).replace(/\s+/g, '');
+              qMatchAlias.set(c.name, py);
+              return true;
+            }
+          } catch (e) {}
+        }
+        return false;
+      })
     : all;
 
   $('playerSub').textContent = q
@@ -1670,7 +1688,9 @@ function renderCodes(){
         : '<span style="color:var(--muted)">—</span>'}</td>
       <td>
         ${newPlayers.has(c.name)?'<span class="newdot" title="本次新加"></span>':''}
-        <b>${esc(c.name)}</b>
+        ${qMatchAlias.has(c.name)
+          ? `<b>${esc(qMatchAlias.get(c.name))}</b><span style="color:var(--muted);margin-left:4px">(${esc(c.name)})</span>`
+          : `<b>${esc(c.name)}</b>${(c.englishName || c.nickname) ? ` <span style="color:var(--muted);font-weight:400;font-size:12.5px">(${esc([c.englishName, c.nickname].filter(Boolean).join(' / '))})</span>` : ''}`}
         ${hasExemptThisTerm(c.name)?'<span class="ex-flag" style="margin-left:5px" title="本学期有免费记录">免</span>':''}
       </td>
       <td>${c.tag
@@ -1728,6 +1748,8 @@ function renderCodes(){
           {key:'tag', label:'分组', type:'tags',
            value:(D.codes.find(c=>c.name===name)||{}).tag||'',
            options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
+          {key:'englishName', label:'英文名', value:(D.codes.find(c=>c.name===name)||{}).englishName||'', placeholder:'选填'},
+          {key:'nickname', label:'外号', value:(D.codes.find(c=>c.name===name)||{}).nickname||'', placeholder:'选填'},
           {key:'code', label:'查询码', value:cur},
           {key:'resetCode', type:'action', label:'重置查询码',
            onClick: async (btn)=>{
@@ -1744,7 +1766,7 @@ function renderCodes(){
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
           await api('/players/'+encodeURIComponent(name),{method:'PUT',
-            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number})});
+            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number, englishName:v.englishName, nickname:v.nickname})});
           newPlayers.delete(name);      // 看过就不再提示
           newPlayers.delete(v.name);
           await reload();
