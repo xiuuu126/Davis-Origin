@@ -1369,10 +1369,39 @@ function parseNames(text){
     .filter(Boolean);
 }
 
+/** 一个中文名的拼音候选形式：姓+名直接拼在一起、名+姓倒过来拼在一起
+ *  （刘效尔 → liuxiaoer / xiaoerliu），都不带空格、小写，配合 norm() 去空格后可以直接比对。
+ *  只按"第一个字=姓"这个最常见情况切，复姓（欧阳/司马…）这种不处理。 */
+function playerPinyinForms(name){
+  if(!window.pinyinPro || typeof window.pinyinPro.pinyin !== 'function') return [];
+  try{
+    const syl = window.pinyinPro.pinyin(String(name), { toneType:'none', type:'array' });
+    if(!syl || !syl.length) return [];
+    const straight = syl.join('').toLowerCase();
+    if(syl.length < 2) return [straight];
+    const swapped = (syl.slice(1).join('') + syl[0]).toLowerCase();
+    return [...new Set([straight, swapped])];
+  }catch(e){ return []; }
+}
+
+/** 别名索引：拼音（两种顺序）/ 英文名 / 外号 → 登记的中文名。
+ *  用 D.codes（带 englishName/nickname），而不是只有名字的 D.players。 */
+function buildAliasIndex(){
+  const idx = new Map();
+  (D?.codes || []).forEach(c=>{
+    if(!c.name) return;
+    playerPinyinForms(c.name).forEach(f=>{ if(f && !idx.has(f)) idx.set(f, c.name); });
+    if(c.englishName){ const k = norm(c.englishName); if(k && !idx.has(k)) idx.set(k, c.name); }
+    if(c.nickname){ const k = norm(c.nickname); if(k && !idx.has(k)) idx.set(k, c.name); }
+  });
+  return idx;
+}
+
 function matchNames(list){
   const players = D?.players || [];
   const exact = new Map();
   players.forEach(p => exact.set(norm(p), p));
+  const aliasIdx = buildAliasIndex();   // 拼音（刘效尔/liuxiaoer/xiaoerliu）/ 英文名（lucas）/ 外号
 
   // 长名字优先，避免「刘奕」抢在「刘奕辰」前面匹配上
   const byLen = [...players].sort((a,b)=> norm(b).length - norm(a).length);
@@ -1383,10 +1412,14 @@ function matchNames(list){
     const k = norm(raw);
     if(!k) return;
 
-    // ① 完全一致
+    // ① 完全一致（中文名）
     let hit = exact.get(k);
 
-    // ② 名册里的某个名字被包在这一行里 —— 前后是年级、省份、职务、备注都不管
+    // ② 拼音（姓名两种顺序，带不带空格都行）/ 英文名 / 外号 完全一致
+    //    命中后统一按登记的中文名录入，不会把"lucas"这种别名存进系统
+    if(!hit) hit = aliasIdx.get(k);
+
+    // ③ 名册里的某个名字被包在这一行里 —— 前后是年级、省份、职务、备注都不管
     if(!hit){
       hit = byLen.find(p => {
         const np = norm(p);
