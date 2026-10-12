@@ -1834,11 +1834,6 @@ function renderCodes(){
            options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
           {key:'englishName', label:'英文名', value:(D.codes.find(c=>c.name===name)||{}).englishName||'', placeholder:'选填'},
           {key:'nickname', label:'外号', value:(D.codes.find(c=>c.name===name)||{}).nickname||'', placeholder:'选填'},
-          {key:'pinyinOverride', label:'拼音手动修正', value:(D.codes.find(c=>c.name===name)||{}).pinyinOverride||'',
-           placeholder:'多音字自动拼错时才填，比如 liufuhang'},
-          {key:'defaultExempt', type:'check', label:'默认不计入训练/比赛费用',
-           hint:'适合教练/经理这类不是球员的人：以后新存的场次会自动标免费，不用每次手动点',
-           value:!!(D.codes.find(c=>c.name===name)||{}).defaultExempt},
           {key:'code', label:'查询码', value:cur},
           {key:'resetCode', type:'action', label:'重置查询码',
            onClick: async (btn)=>{
@@ -1855,8 +1850,7 @@ function renderCodes(){
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
           await api('/players/'+encodeURIComponent(name),{method:'PUT',
-            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number, englishName:v.englishName, nickname:v.nickname,
-              defaultExempt:v.defaultExempt, pinyinOverride:v.pinyinOverride})});
+            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number, englishName:v.englishName, nickname:v.nickname})});
           newPlayers.delete(name);      // 看过就不再提示
           newPlayers.delete(v.name);
           await reload();
