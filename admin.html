@@ -447,6 +447,7 @@
     font-size:12.5px;border:1px solid var(--line);background:var(--bg-soft)}
   .chip.ok{background:var(--ok-soft);border-color:rgba(23,121,94,.28);color:var(--ok)}
   .chip.warn{background:var(--warn-soft);border-color:rgba(176,118,42,.3);color:var(--warn)}
+  .chip.ambig{background:var(--danger-soft);border-color:rgba(176,70,70,.3);color:var(--danger)}
   /* 识别结果可以点，点了变灰=不计入 */
   .chip[data-toggle]{cursor:pointer;user-select:none;transition:all .18s}
   .chip[data-toggle]:hover{transform:translateY(-1px)}
@@ -1383,10 +1384,22 @@ const COMPOUND_SURNAMES = new Set([
   '段干','百里','东郭','南门','呼延','羊舌','微生','梁丘','左丘','东门','西门',
 ]);
 
-/** override 非空时（多音字拼错了，手动修正过），直接只用这个值，不再自动算——
- *  "刘富行"这种程序会拼成 liufuxing，实际该读 liufuhang，填了手动修正后以这个为准。 */
+/** override 非空时（多音字拼错了，手动修正过），用这个值代替自动算的拼音——
+ *  "刘富行"这种程序会拼成 liufuxing，实际该读 liufuhang，填了手动修正后以这个为准。
+ *  override 要按音节用空格分开填（比如 "liu fu hang"），这样正反两种顺序
+ *  （姓在前/姓在后，比如 liufuhang / fuhangliu）才都能算出来、都能被搜到；
+ *  不带空格就只当一个整体死板匹配，搜 "fuhang liu" 这种会漏。 */
 function playerPinyinForms(name, override){
-  if(override && String(override).trim()) return [norm(override)];
+  const ov = override ? String(override).trim() : '';
+  if(ov){
+    const sylOv = ov.split(/\s+/).filter(Boolean);
+    if(sylOv.length < 2) return [norm(ov)];
+    const nameStr = String(name);
+    const surnameLen = (nameStr.length >= 3 && COMPOUND_SURNAMES.has(nameStr.slice(0, 2))) ? 2 : 1;
+    const straightOv = sylOv.join('').toLowerCase();
+    const swappedOv = (sylOv.slice(surnameLen).join('') + sylOv.slice(0, surnameLen).join('')).toLowerCase();
+    return [...new Set([straightOv, swappedOv])];
+  }
   if(!window.pinyinPro || typeof window.pinyinPro.pinyin !== 'function') return [];
   try{
     const nameStr = String(name);
@@ -1427,7 +1440,8 @@ function matchNames(list){
   const byLen = [...players].sort((a,b)=> norm(b).length - norm(a).length);
 
   const matched = [], unmatched = [], seen = new Set();
-  const aliasHit = new Map();   // 中文名 -> 命中用的别名展示文本（只有靠拼音/英文名/外号命中的才会有）
+  const aliasHit = new Map();     // 中文名 -> 命中用的别名展示文本（只有靠拼音/英文名/外号命中的才会有）
+  const ambiguous = new Set();    // 原始输入文本（trim 后）：部分匹配命中不止一个人，需要人工看一下
 
   list.forEach(raw=>{
     const k = norm(raw);
@@ -1451,6 +1465,26 @@ function matchNames(list){
       });
     }
 
+    // ④ 部分对上也算：拼音/英文名/外号 跟这行输入互相包含就行（谁包含谁都算），
+    //    比如 "xiaoer" 对上 "liuxiaoer"，"lucas liu" 里的 "lucasliu" 包含 "lucas"。
+    //    只有唯一对上一个人才自动选中；要是对上不止一个人，不自动选，标红让人工看。
+    if(!hit){
+      const cands = new Set();
+      for(const [key, a] of aliasIdx){
+        if(key.length < 2) continue;
+        if(k.includes(key) || key.includes(k)) cands.add(a.name);
+      }
+      if(cands.size === 1){
+        hit = [...cands][0];
+        if(!aliasHit.has(hit)){
+          const a = [...aliasIdx.values()].find(v => v.name === hit);
+          aliasHit.set(hit, (a && a.alias) || raw);
+        }
+      }else if(cands.size > 1){
+        ambiguous.add(k);
+      }
+    }
+
     if(hit){
       if(!seen.has(hit)){ seen.add(hit); matched.push(hit); }
     }else{
@@ -1458,7 +1492,7 @@ function matchNames(list){
     }
   });
 
-  return { matched, unmatched, aliasHit };
+  return { matched, unmatched, aliasHit, ambiguous };
 }
 
 /* ===================== 渲染 ===================== */
@@ -2524,18 +2558,19 @@ function renderChips(stagger = false){
 
   const all = [
     ...pendingMatch.matched.map(n=>({ n, known:true })),
-    ...pendingMatch.unmatched.map(n=>({ n, known:false })),
+    ...pendingMatch.unmatched.map(n=>({ n, known:false, ambig: pendingMatch.ambiguous && pendingMatch.ambiguous.has(norm(n)) })),
   ];
 
-  chips.innerHTML = all.map(({n, known}, i)=>{
+  chips.innerHTML = all.map(({n, known, ambig}, i)=>{
     const off = excluded.has(n);
     const ok  = known || approved.has(n);     // 确认过的生面孔也算绿勾
-    const cls = off ? 'chip off' : (ok ? 'chip ok' : 'chip warn');
+    const cls = off ? 'chip off' : (ok ? 'chip ok' : (ambig ? 'chip ambig' : 'chip warn'));
     // 第一次识别时从左到右铺开，方便一眼看出识别了多少人
     const anim = stagger
       ? ` style="animation:chipIn .28s ease-out both;animation-delay:${Math.min(i*25, 900)}ms"`
       : '';
-    return `<span class="${cls}" data-toggle="${esc(n)}"${anim}>${off ? '○' : (ok ? '✓' : '?')} ${esc(known ? matchedChipLabel(n) : n)}</span>`;
+    const icon = off ? '○' : (ok ? '✓' : (ambig ? '⚠' : '?'));
+    return `<span class="${cls}" data-toggle="${esc(n)}"${anim} title="${ambig ? '对上不止一个人，没自动选，点名字可以先排除' : ''}">${icon} ${esc(known ? matchedChipLabel(n) : n)}</span>`;
   }).join('');
 
   chips.querySelectorAll('[data-toggle]').forEach(el=>{
