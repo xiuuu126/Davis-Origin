@@ -776,6 +776,7 @@
             <div class="mini-search">
               <input type="search" id="qPlayer" placeholder="搜名字号码分组" autocomplete="off" />
             </div>
+            <button class="btn ghost sm" id="btnResetAllCodes" title="把所有人的查询码都改成拼音（刘效尔 → liuxiaoer）">全部查询码设为拼音</button>
           </div>
         </div>
 
@@ -1372,27 +1373,43 @@ function parseNames(text){
 /** 一个中文名的拼音候选形式：姓+名直接拼在一起、名+姓倒过来拼在一起
  *  （刘效尔 → liuxiaoer / xiaoerliu），都不带空格、小写，配合 norm() 去空格后可以直接比对。
  *  只按"第一个字=姓"这个最常见情况切，复姓（欧阳/司马…）这种不处理。 */
+/** 常见复姓(两个字都算姓)，判断"姓+名"该在哪切开要用，不然欧阳川会被当成
+ *  姓"欧"名"阳川"，swapped 顺序就全乱了（变成"yangchuanou"这种）。 */
+const COMPOUND_SURNAMES = new Set([
+  '欧阳','太史','端木','上官','司马','东方','独孤','南宫','万俟','闻人','夏侯','诸葛',
+  '尉迟','公羊','赫连','澹台','皇甫','宗政','濮阳','公冶','太叔','申屠','公孙','仲孙',
+  '轩辕','令狐','钟离','宇文','长孙','慕容','鲜于','闾丘','司徒','司空','亓官','司寇',
+  '子车','颛孙','巫马','公西','漆雕','乐正','壤驷','公良','拓跋','夹谷','宰父','谷梁',
+  '段干','百里','东郭','南门','呼延','羊舌','微生','梁丘','左丘','东门','西门',
+]);
+
 function playerPinyinForms(name){
   if(!window.pinyinPro || typeof window.pinyinPro.pinyin !== 'function') return [];
   try{
-    const syl = window.pinyinPro.pinyin(String(name), { toneType:'none', type:'array' });
+    const nameStr = String(name);
+    const syl = window.pinyinPro.pinyin(nameStr, { toneType:'none', type:'array' });
     if(!syl || !syl.length) return [];
     const straight = syl.join('').toLowerCase();
     if(syl.length < 2) return [straight];
-    const swapped = (syl.slice(1).join('') + syl[0]).toLowerCase();
+    // 姓占几个字：默认 1 个字，前两个字是已知复姓的话算 2 个字（欧阳川 → 姓"欧阳"名"川"）
+    const surnameLen = (nameStr.length >= 3 && COMPOUND_SURNAMES.has(nameStr.slice(0, 2))) ? 2 : 1;
+    const swapped = (syl.slice(surnameLen).join('') + syl.slice(0, surnameLen).join('')).toLowerCase();
     return [...new Set([straight, swapped])];
   }catch(e){ return []; }
 }
 
-/** 别名索引：拼音（两种顺序）/ 英文名 / 外号 → 登记的中文名。
- *  用 D.codes（带 englishName/nickname），而不是只有名字的 D.players。 */
+/** 别名索引：拼音（两种顺序，含常见复姓）/ 英文名 / 外号 → { name: 登记的中文名, alias: 命中时展示用的别名文本 }。
+ *  用 D.codes（带 englishName/nickname），而不是只有名字的 D.players。
+ *  拼音命中统一展示"姓在前"那种直拼形式（比如 liuxiaoer），不管用户实际打的是哪种顺序。 */
 function buildAliasIndex(){
   const idx = new Map();
   (D?.codes || []).forEach(c=>{
     if(!c.name) return;
-    playerPinyinForms(c.name).forEach(f=>{ if(f && !idx.has(f)) idx.set(f, c.name); });
-    if(c.englishName){ const k = norm(c.englishName); if(k && !idx.has(k)) idx.set(k, c.name); }
-    if(c.nickname){ const k = norm(c.nickname); if(k && !idx.has(k)) idx.set(k, c.name); }
+    const forms = playerPinyinForms(c.name);
+    const straight = forms[0] || '';
+    forms.forEach(f=>{ if(f && !idx.has(f)) idx.set(f, { name:c.name, alias: straight || f }); });
+    if(c.englishName){ const k = norm(c.englishName); if(k && !idx.has(k)) idx.set(k, { name:c.name, alias:c.englishName }); }
+    if(c.nickname){ const k = norm(c.nickname); if(k && !idx.has(k)) idx.set(k, { name:c.name, alias:c.nickname }); }
   });
   return idx;
 }
@@ -1407,6 +1424,7 @@ function matchNames(list){
   const byLen = [...players].sort((a,b)=> norm(b).length - norm(a).length);
 
   const matched = [], unmatched = [], seen = new Set();
+  const aliasHit = new Map();   // 中文名 -> 命中用的别名展示文本（只有靠拼音/英文名/外号命中的才会有）
 
   list.forEach(raw=>{
     const k = norm(raw);
@@ -1417,7 +1435,10 @@ function matchNames(list){
 
     // ② 拼音（姓名两种顺序，带不带空格都行）/ 英文名 / 外号 完全一致
     //    命中后统一按登记的中文名录入，不会把"lucas"这种别名存进系统
-    if(!hit) hit = aliasIdx.get(k);
+    if(!hit){
+      const a = aliasIdx.get(k);
+      if(a){ hit = a.name; if(!aliasHit.has(hit)) aliasHit.set(hit, a.alias); }
+    }
 
     // ③ 名册里的某个名字被包在这一行里 —— 前后是年级、省份、职务、备注都不管
     if(!hit){
@@ -1434,7 +1455,7 @@ function matchNames(list){
     }
   });
 
-  return { matched, unmatched };
+  return { matched, unmatched, aliasHit };
 }
 
 /* ===================== 渲染 ===================== */
@@ -1621,6 +1642,29 @@ function makeCodes(n){
   return [...out];
 }
 
+/** 查询码 = 拼音（姓在前直拼，刘效尔 → liuxiaoer）。
+ *  跟 taken 集合（已经用掉的码）撞了就在后面加数字区分（第二个 liuyi 变成 liuyi2），
+ *  taken 会被就地更新，所以同一批里连续调用不会互相撞。
+ *  playerPinyinForms() 定义在后面（接龙匹配那块），函数声明会被提升，这里能直接用。 */
+function pinyinCodeFor(name, taken){
+  const forms = playerPinyinForms(name);
+  let base = (forms && forms[0]) || norm(name);
+  let code = base, i = 2;
+  while(taken.has(code)){ code = base + i; i++; }
+  taken.add(code);
+  return code;
+}
+/** 给一批中文名生成拼音查询码；excludeNames 是这批人原来的名字（改名/重置时用来
+ *  排除自己原来那条记录，不然会被自己的旧码"占用"挡住）。 */
+function makePinyinCodes(names, excludeNames){
+  const excl = new Set(excludeNames || []);
+  const taken = new Set((D?.codes || [])
+    .filter(c => !excl.has(c.name))
+    .map(c => norm(c.code || ''))
+    .filter(Boolean));
+  return names.map(n => pinyinCodeFor(n, taken));
+}
+
 /** 训练记录里勾了几场，反映到「导出 PDF」按钮上 */
 function updateSessPickHint(){
   const btn = $('btnSessPdf');
@@ -1791,7 +1835,7 @@ function renderCodes(){
              const who = (nameInput?.value || name).trim();
              if(!who) return;
              if(!await confirmMini(`确认重置「${who}」的查询码？旧的会立刻失效。`, '确认重置')) return;
-             codeInput.value = makeCode();
+             codeInput.value = makePinyinCodes([who], [name])[0];
              $('emErr').textContent = '记得把新码发给本人';
              codeInput.focus();
            }},
@@ -2455,6 +2499,18 @@ let excluded   = new Set();   // 手动取消勾选的
 let approved   = new Set();   // 弹窗里确认过的生面孔（保存时才真的入库）
 let newPlayers = new Set();   // 本次登录新加的球员，名册里带小圆点
 
+/** 已识别的名字在芯片上怎么显示：
+ *  靠拼音/英文名/外号命中的 → "别名（中文名）"；
+ *  直接按中文名命中、但这人本来就设了外号/英文名的 → "中文名（外号/英文名）"；
+ *  都没有就只显示中文名。 */
+function matchedChipLabel(n){
+  if(pendingMatch && pendingMatch.aliasHit && pendingMatch.aliasHit.has(n))
+    return `${pendingMatch.aliasHit.get(n)}（${n}）`;
+  const c = (D?.codes || []).find(c => c.name === n);
+  if(c && (c.englishName || c.nickname))
+    return `${n}（${[c.englishName, c.nickname].filter(Boolean).join(' / ')}）`;
+  return n;
+}
 function renderChips(stagger = false){
   const chips = $('matchChips');
   if(!pendingMatch) { chips.innerHTML = ''; return; }
@@ -2472,7 +2528,7 @@ function renderChips(stagger = false){
     const anim = stagger
       ? ` style="animation:chipIn .28s ease-out both;animation-delay:${Math.min(i*25, 900)}ms"`
       : '';
-    return `<span class="${cls}" data-toggle="${esc(n)}"${anim}>${off ? '○' : (ok ? '✓' : '?')} ${esc(n)}</span>`;
+    return `<span class="${cls}" data-toggle="${esc(n)}"${anim}>${off ? '○' : (ok ? '✓' : '?')} ${esc(known ? matchedChipLabel(n) : n)}</span>`;
   }).join('');
 
   chips.querySelectorAll('[data-toggle]').forEach(el=>{
@@ -2725,7 +2781,7 @@ $('btnSaveSess').onclick = async ()=>{
     // 确认过的生面孔：这时候才真正入库，顺手把查询码（全拼）建好
     const fresh = finalNames.filter(n => approved.has(n));
     if(fresh.length){
-      const codes = makeCodes(fresh.length);
+      const codes = makePinyinCodes(fresh);
       await api('/players',{method:'POST',body:JSON.stringify({names:fresh, codes})});
     }
     const payload = JSON.stringify({
@@ -2754,7 +2810,7 @@ $('btnAddPlayers').onclick = async (e)=>{
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = '添加中…';
   try{
-    const codes = makeCodes(names.length);   // 每人一个随机查询码
+    const codes = makePinyinCodes(names);   // 每人一个拼音查询码（刘效尔 → liuxiaoer）
     await api('/players',{method:'POST',body:JSON.stringify({names, codes})});
     $('fNewPlayers').value='';
     names.forEach(n=>newPlayers.add(n));
@@ -3106,6 +3162,30 @@ $('qPlayer').addEventListener('input', ()=>{
 $('qPlayer').addEventListener('keydown', e=>{
   if(e.key === 'Escape'){ e.target.value=''; renderCodes(); }
 });
+
+$('btnResetAllCodes').onclick = async ()=>{
+  const all = D.codes || [];
+  if(!all.length) return toast('名册里还没有人', true);
+  if(!await confirmMini(
+    `确认把全部 ${all.length} 人的查询码都改成拼音？旧码会立刻全部失效，需要重新告诉大家。`,
+    '确认全部重置')) return;
+  const btn = $('btnResetAllCodes');
+  btn.disabled = true; const old = btn.textContent; btn.textContent = '处理中…';
+  try{
+    const names = all.map(c => c.name);
+    const codes = makePinyinCodes(names, names);   // 排除自己原来的码，不然会被自己占住
+    for(let i = 0; i < all.length; i++){
+      const c = all[i];
+      await api('/players/'+encodeURIComponent(c.name),{method:'PUT', body:JSON.stringify({
+        name:c.name, code:codes[i], tag:c.tag, number:c.number,
+        englishName:c.englishName, nickname:c.nickname
+      })});
+    }
+    await reload();
+    toast(`已把 ${all.length} 人的查询码都改成拼音`);
+  }catch(e){ toast(e.message, true); }
+  finally{ btn.disabled = false; btn.textContent = old; }
+};
 
 $('btnRefresh').onclick = async ()=>{
   const btn = $('btnRefresh');
