@@ -1442,6 +1442,7 @@ function matchNames(list){
   const matched = [], unmatched = [], seen = new Set();
   const aliasHit = new Map();     // 中文名 -> 命中用的别名展示文本（只有靠拼音/英文名/外号命中的才会有）
   const ambiguous = new Set();    // 原始输入文本（trim 后）：部分匹配命中不止一个人，需要人工看一下
+  const order = [];               // 按粘贴进来的原始顺序记一遍，识别结果展示时按这个顺序编号
 
   list.forEach(raw=>{
     const k = norm(raw);
@@ -1486,13 +1487,13 @@ function matchNames(list){
     }
 
     if(hit){
-      if(!seen.has(hit)){ seen.add(hit); matched.push(hit); }
+      if(!seen.has(hit)){ seen.add(hit); matched.push(hit); order.push({ type:'matched', key:hit }); }
     }else{
-      if(!seen.has(k)){ seen.add(k); unmatched.push(raw); }
+      if(!seen.has(k)){ seen.add(k); unmatched.push(raw); order.push({ type:'unmatched', key:raw }); }
     }
   });
 
-  return { matched, unmatched, aliasHit, ambiguous };
+  return { matched, unmatched, aliasHit, ambiguous, order };
 }
 
 /* ===================== 渲染 ===================== */
@@ -2556,10 +2557,12 @@ function renderChips(stagger = false){
   const chips = $('matchChips');
   if(!pendingMatch) { chips.innerHTML = ''; return; }
 
-  const all = [
-    ...pendingMatch.matched.map(n=>({ n, known:true })),
-    ...pendingMatch.unmatched.map(n=>({ n, known:false, ambig: pendingMatch.ambiguous && pendingMatch.ambiguous.has(norm(n)) })),
-  ];
+  // 按粘贴进来的原始顺序铺，不是先匹配上的排前面——方便对着原始名单一条条核对
+  const all = (pendingMatch.order || []).map(o =>
+    o.type === 'matched'
+      ? { n:o.key, known:true }
+      : { n:o.key, known:false, ambig: pendingMatch.ambiguous && pendingMatch.ambiguous.has(norm(o.key)) }
+  );
 
   chips.innerHTML = all.map(({n, known, ambig}, i)=>{
     const off = excluded.has(n);
@@ -2570,7 +2573,7 @@ function renderChips(stagger = false){
       ? ` style="animation:chipIn .28s ease-out both;animation-delay:${Math.min(i*25, 900)}ms"`
       : '';
     const icon = off ? '○' : (ok ? '✓' : (ambig ? '⚠' : '?'));
-    return `<span class="${cls}" data-toggle="${esc(n)}"${anim} title="${ambig ? '对上不止一个人，没自动选，点名字可以先排除' : ''}">${icon} ${esc(known ? matchedChipLabel(n) : n)}</span>`;
+    return `<span class="${cls}" data-toggle="${esc(n)}"${anim} title="${ambig ? '对上不止一个人，没自动选，点名字可以先排除' : ''}">${i+1}. ${icon} ${esc(known ? matchedChipLabel(n) : n)}</span>`;
   }).join('');
 
   chips.querySelectorAll('[data-toggle]').forEach(el=>{
