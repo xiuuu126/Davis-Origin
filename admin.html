@@ -1383,7 +1383,10 @@ const COMPOUND_SURNAMES = new Set([
   '段干','百里','东郭','南门','呼延','羊舌','微生','梁丘','左丘','东门','西门',
 ]);
 
-function playerPinyinForms(name){
+/** override 非空时（多音字拼错了，手动修正过），直接只用这个值，不再自动算——
+ *  "刘富行"这种程序会拼成 liufuxing，实际该读 liufuhang，填了手动修正后以这个为准。 */
+function playerPinyinForms(name, override){
+  if(override && String(override).trim()) return [norm(override)];
   if(!window.pinyinPro || typeof window.pinyinPro.pinyin !== 'function') return [];
   try{
     const nameStr = String(name);
@@ -1405,7 +1408,7 @@ function buildAliasIndex(){
   const idx = new Map();
   (D?.codes || []).forEach(c=>{
     if(!c.name) return;
-    const forms = playerPinyinForms(c.name);
+    const forms = playerPinyinForms(c.name, c.pinyinOverride);
     const straight = forms[0] || '';
     forms.forEach(f=>{ if(f && !idx.has(f)) idx.set(f, { name:c.name, alias: straight || f }); });
     if(c.englishName){ const k = norm(c.englishName); if(k && !idx.has(k)) idx.set(k, { name:c.name, alias:c.englishName }); }
@@ -1646,8 +1649,8 @@ function makeCodes(n){
  *  跟 taken 集合（已经用掉的码）撞了就在后面加数字区分（第二个 liuyi 变成 liuyi2），
  *  taken 会被就地更新，所以同一批里连续调用不会互相撞。
  *  playerPinyinForms() 定义在后面（接龙匹配那块），函数声明会被提升，这里能直接用。 */
-function pinyinCodeFor(name, taken){
-  const forms = playerPinyinForms(name);
+function pinyinCodeFor(name, taken, override){
+  const forms = playerPinyinForms(name, override);
   let base = (forms && forms[0]) || norm(name);
   let code = base, i = 2;
   while(taken.has(code)){ code = base + i; i++; }
@@ -1662,7 +1665,10 @@ function makePinyinCodes(names, excludeNames){
     .filter(c => !excl.has(c.name))
     .map(c => norm(c.code || ''))
     .filter(Boolean));
-  return names.map(n => pinyinCodeFor(n, taken));
+  return names.map(n => {
+    const rec = (D?.codes || []).find(c => c.name === n);
+    return pinyinCodeFor(n, taken, rec && rec.pinyinOverride);
+  });
 }
 
 /** 训练记录里勾了几场，反映到「导出 PDF」按钮上 */
@@ -1714,6 +1720,7 @@ function renderCodes(){
             norm(c.code||'').includes(q)) return true;
         if (c.englishName && norm(c.englishName).includes(q)) { qMatchAlias.set(c.name, c.englishName); return true; }
         if (c.nickname && norm(c.nickname).includes(q)) { qMatchAlias.set(c.name, c.nickname); return true; }
+        if (c.pinyinOverride && norm(c.pinyinOverride).includes(q)) { qMatchAlias.set(c.name, c.pinyinOverride); return true; }
         if (window.pinyinPro && typeof window.pinyinPro.match === 'function') {
           try {
             const r = window.pinyinPro.match(c.name, qRaw);
@@ -1827,6 +1834,11 @@ function renderCodes(){
            options:(D.tags||[]).filter(x=>x.kind==='player').map(x=>x.name)},
           {key:'englishName', label:'英文名', value:(D.codes.find(c=>c.name===name)||{}).englishName||'', placeholder:'选填'},
           {key:'nickname', label:'外号', value:(D.codes.find(c=>c.name===name)||{}).nickname||'', placeholder:'选填'},
+          {key:'pinyinOverride', label:'拼音手动修正', value:(D.codes.find(c=>c.name===name)||{}).pinyinOverride||'',
+           placeholder:'多音字自动拼错时才填，比如 liufuhang'},
+          {key:'defaultExempt', type:'check', label:'默认不计入训练/比赛费用',
+           hint:'适合教练/经理这类不是球员的人：以后新存的场次会自动标免费，不用每次手动点',
+           value:!!(D.codes.find(c=>c.name===name)||{}).defaultExempt},
           {key:'code', label:'查询码', value:cur},
           {key:'resetCode', type:'action', label:'重置查询码',
            onClick: async (btn)=>{
@@ -1843,7 +1855,8 @@ function renderCodes(){
         onSubmit: async v=>{
           if(!v.name) throw new Error('名字不能为空');
           await api('/players/'+encodeURIComponent(name),{method:'PUT',
-            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number, englishName:v.englishName, nickname:v.nickname})});
+            body:JSON.stringify({name:v.name, code:v.code, tag:v.tag, number:v.number, englishName:v.englishName, nickname:v.nickname,
+              defaultExempt:v.defaultExempt, pinyinOverride:v.pinyinOverride})});
           newPlayers.delete(name);      // 看过就不再提示
           newPlayers.delete(v.name);
           await reload();
